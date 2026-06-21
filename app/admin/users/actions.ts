@@ -148,3 +148,19 @@ export async function getTeachers(): Promise<TeacherRow[]> {
   if (error) throw new Error('Errore caricando gli insegnanti.')
   return (data ?? []) as TeacherRow[]
 }
+
+export async function getApprovedTeachersExcept(excludeId: string): Promise<TeacherRow[]> {
+  await requireAdminUserId()
+  const admin = createAdminClient()
+
+  const { data, error } = await admin
+    .from('profiles')
+    .select('id, nome, cognome, teacher_status, created_at')
+    .eq('role', 'teacher')
+    .eq('teacher_status', 'approved')
+    .neq('id', excludeId)
+    .order('nome', { ascending: true })
+
+  if (error) throw new Error('Errore caricando gli insegnanti disponibili.')
+  return (data ?? []) as TeacherRow[]
+}

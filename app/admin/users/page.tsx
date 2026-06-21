@@ -12,6 +12,8 @@ import {
   reenableTeacher,
   deleteTeacher,
   getTeacherBlockers,
+  getApprovedTeachersExcept,
+  reassignAllClasses,
   type TeacherRow
 } from './actions'
 
@@ -179,12 +181,27 @@ function DeleteTeacherModal({
 }) {
   const [confirmName, setConfirmName] = useState('')
   const [classi, setClassi] = useState<{ id: string; nome: string }[] | null>(null)
+  const [candidates, setCandidates] = useState<TeacherRow[]>([])
+  const [targetTeacherId, setTargetTeacherId] = useState('')
   const [pending, startTransition] = useTransition()
   const fullName = `${teacher.nome} ${teacher.cognome}`
 
   useEffect(() => {
     getTeacherBlockers(teacher.id).then((r) => setClassi(r.classi))
+    getApprovedTeachersExcept(teacher.id).then(setCandidates)
   }, [teacher.id])
+
+  function handleReassign() {
+    if (!targetTeacherId) return
+    startTransition(async () => {
+      try {
+        await reassignAllClasses(teacher.id, targetTeacherId)
+        setClassi([])
+      } catch (e) {
+        onError(e instanceof Error ? e.message : 'Errore riassegnando.')
+      }
+    })
+  }
 
   function handleDelete() {
     startTransition(async () => {
@@ -209,10 +226,39 @@ function DeleteTeacherModal({
         {classi === null ? (
           <p className="text-sm text-ink-tertiary">Verifica in corso...</p>
         ) : hasClassi ? (
-          <div className="rounded-md bg-warning-bg p-3 text-sm text-warning-text">
-            Questo insegnante ha ancora {classi!.length} classe/i ({classi!.map((c) => c.nome).join(', ')}).
-            Riassegnale a un altro insegnante prima di poter eliminare l'account.
-            {/* TODO: selector de profesor destino + llamado a reassignAllClasses */}
+          <div className="space-y-3">
+            <div className="rounded-md bg-warning-bg p-3 text-sm text-warning-text">
+              Questo insegnante ha ancora {classi!.length} classe/i (
+              {classi!.map((c) => c.nome).join(', ')}). Riassegnale a un altro
+              insegnante prima di poter eliminare l'account.
+            </div>
+
+            {candidates.length === 0 ? (
+              <p className="text-sm text-ink-tertiary">
+                Non ci sono altri insegnanti approvati a cui riassegnare le classi.
+              </p>
+            ) : (
+              <div className="flex items-center gap-2">
+                <select
+                  value={targetTeacherId}
+                  onChange={(e) => setTargetTeacherId(e.target.value)}
+                  className="flex-1 rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand-400"
+                >
+                  <option value="">Seleziona un insegnante...</option>
+                  {candidates.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.nome} {c.cognome}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  disabled={!targetTeacherId || pending}
+                  onClick={handleReassign}
+                >
+                  {pending ? 'Riassegnando...' : 'Riassegna tutte'}
+                </Button>
+              </div>
+            )}
           </div>
         ) : (
           <>
@@ -227,7 +273,7 @@ function DeleteTeacherModal({
           </>
         )}
 
-        <div className="flex justify-end gap-2">
+        <div className="mt-4 flex justify-end gap-2">
           <Button variant="ghost" onClick={onClose} disabled={pending}>
             Annulla
           </Button>
