@@ -1,9 +1,9 @@
-import { generateStructuredContent } from './client'
+import { generateStructuredContent } from '../client'
 import {
   valutazioneEsaminatoreSchema,
   zodToGeminiSchema,
   type ValutazioneEsaminatore
-} from './schema'
+} from '../schema'
 
 /**
  * Evaluador de "scrittura libera". Activa thinking (presupuesto medio)
