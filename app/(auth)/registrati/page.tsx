@@ -63,7 +63,7 @@ export default function RegistratiPage() {
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
         setLoading(false)
-        setError(body.error ?? 'Codice classe non valido.')
+        setError(body.error ?? 'Codice insegnante non valido.')
         return
       }
     }
@@ -154,7 +154,7 @@ export default function RegistratiPage() {
 
           {ruolo === 'student' && (
             <div>
-              <label className="mb-1 block text-sm text-ink-secondary">Codice classe</label>
+              <label className="mb-1 block text-sm text-ink-secondary">Codice insegnante</label>
               <input
                 required
                 value={inviteCode}
@@ -163,7 +163,7 @@ export default function RegistratiPage() {
                 className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm uppercase outline-none focus:border-brand-400"
               />
               <p className="mt-1 text-xs text-ink-tertiary">
-                Te lo fornisce il tuo insegnante.
+                Te lo fornisce il tuo insegnante. Dopo potrà assegnarti a una classe.
               </p>
             </div>
           )}

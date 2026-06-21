@@ -32,9 +32,9 @@ export default function JoinClassPage() {
       <Card className="w-full max-w-sm bg-surface">
         <div className="mb-6 flex flex-col items-center gap-3">
           <ParolaMascot mood="incoraggiante" />
-          <h1 className="text-xl font-semibold text-ink-primary">Unisciti a una classe</h1>
+          <h1 className="text-xl font-semibold text-ink-primary">Unisciti al tuo insegnante</h1>
           <p className="text-center text-sm text-ink-secondary">
-            Inserisci il codice che ti ha dato il tuo insegnante.
+            Inserisci il codice del tuo insegnante. Ti assegnerà a una classe in seguito.
           </p>
         </div>
 

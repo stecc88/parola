@@ -9,14 +9,15 @@ export async function joinClassWithCode(inviteCode: string) {
   if (authError || !userData.user) throw new Error('Non autenticato.')
 
   const admin = createAdminClient()
-  const { data: targetClass, error: classError } = await admin
-    .from('classes')
-    .select('id')
+  const { data: teacher, error: teacherError } = await admin
+    .from('profiles')
+    .select('id, teacher_status')
+    .eq('role', 'teacher')
     .eq('invite_code', inviteCode.toUpperCase().trim())
     .single()
 
-  if (classError || !targetClass) {
-    throw new Error('Codice classe non valido.')
+  if (teacherError || !teacher) {
+    throw new Error('Codice insegnante non valido.')
   }
 
   await supabase
@@ -25,12 +26,16 @@ export async function joinClassWithCode(inviteCode: string) {
     .eq('student_id', userData.user.id)
     .is('left_at', null)
 
+  // class_id queda NULL: el estudiante está vinculado al profesor pero
+  // todavía no asignado a ninguna classe especifica. El profesor lo ubica
+  // despues desde /teacher/classes.
   const { error: insertError } = await supabase.from('class_memberships').insert({
     student_id: userData.user.id,
-    class_id: targetClass.id
+    teacher_id: teacher.id,
+    class_id: null
   })
 
-  if (insertError) throw new Error('Errore unendosi alla classe.')
+  if (insertError) throw new Error('Errore unendosi al gruppo dell\'insegnante.')
 }
 
 /**

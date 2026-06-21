@@ -21,6 +21,7 @@ export interface Profile {
   cognome: string
   teacher_status: TeacherStatus | null
   livello_target: LivelloCefr | null
+  invite_code: string | null
   created_at: string
   updated_at: string
 }
@@ -37,7 +38,8 @@ export interface ClassRow {
 export interface ClassMembership {
   id: string
   student_id: string
-  class_id: string
+  teacher_id: string
+  class_id: string | null
   joined_at: string
   left_at: string | null
 }

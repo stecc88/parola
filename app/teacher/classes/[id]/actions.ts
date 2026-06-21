@@ -50,6 +50,7 @@ export async function moveStudentToClass(membershipId: string, targetClassId: st
 
   const { error: insertError } = await supabase.from('class_memberships').insert({
     student_id: membership.student_id,
+    teacher_id: userData.user.id,
     class_id: targetClassId
   })
 

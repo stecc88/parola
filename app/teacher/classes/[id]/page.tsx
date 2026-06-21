@@ -13,7 +13,7 @@ export default async function ClassDetailPage({ params }: { params: { id: string
 
   const { data: classe } = await supabase
     .from('classes')
-    .select('id, nome, invite_code')
+    .select('id, nome')
     .eq('id', params.id)
     .single()
 
@@ -47,13 +47,7 @@ export default async function ClassDetailPage({ params }: { params: { id: string
           ← Tutte le classi
         </Link>
 
-        <h1 className="mt-2 mb-1 text-xl font-semibold text-ink-primary">{classe.nome}</h1>
-        <p className="mb-6 text-sm text-ink-secondary">
-          Codice invito:{' '}
-          <span className="rounded bg-surface-tertiary px-2 py-0.5 font-mono">
-            {classe.invite_code}
-          </span>
-        </p>
+        <h1 className="mt-2 mb-6 text-xl font-semibold text-ink-primary">{classe.nome}</h1>
 
         <h2 className="mb-3 text-sm font-semibold text-ink-primary">Studenti</h2>
 
