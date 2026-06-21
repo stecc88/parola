@@ -41,6 +41,15 @@ export function createAdminClient(): SupabaseClient {
     auth: {
       autoRefreshToken: false,
       persistSession: false
+    },
+    global: {
+      // CRÍTICO: Next.js cachea automáticamente las llamadas fetch()
+      // hechas en el servidor (Data Cache). El cliente de Supabase usa
+      // fetch internamente para cada query — sin esto, una consulta
+      // (ej. "¿es admin?") puede quedar cacheada y devolver datos viejos
+      // en requests posteriores aunque la fila haya cambiado en la DB.
+      fetch: (url: RequestInfo | URL, options?: RequestInit) =>
+        fetch(url, { ...options, cache: 'no-store' })
     }
   })
 
