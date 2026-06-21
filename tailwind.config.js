@@ -59,7 +59,8 @@ module.exports = {
         xl: '16px'
       },
       fontFamily: {
-        sans: ['var(--font-sans)']
+        sans: ['var(--font-sans)'],
+        display: ['var(--font-display)']
       }
     }
   },

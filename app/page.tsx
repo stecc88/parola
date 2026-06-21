@@ -5,6 +5,7 @@ import { tryAutoJoinFromMetadata, hasActiveMembership } from '@/app/student/join
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { ParolaMascot } from '@/components/shared/ParolaMascot'
+import { PenLine, ListChecks, BookOpen, TrendingUp } from 'lucide-react'
 
 export default async function HomePage() {
   const supabase = createClient()
@@ -43,42 +44,107 @@ export default async function HomePage() {
   redirect('/student/write')
 }
 
+const FEATURES = [
+  {
+    icon: PenLine,
+    titolo: 'Scrittura libera',
+    descrizione: 'Scrivi un testo e ricevi una correzione dettagliata, errore per errore.'
+  },
+  {
+    icon: ListChecks,
+    titolo: 'Esercizi di struttura',
+    descrizione: 'Completa frasi, riordina parole, scegli la preposizione giusta.'
+  },
+  {
+    icon: BookOpen,
+    titolo: 'Guide di scrittura',
+    descrizione: 'Una consegna per ogni tipo di testo: lettera, email, racconto, articolo.'
+  },
+  {
+    icon: TrendingUp,
+    titolo: 'I tuoi progressi',
+    descrizione: 'Vedi come cambia il tuo punteggio nel tempo, attività dopo attività.'
+  }
+]
+
 function LandingPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-surface-secondary p-6">
-      <div className="w-full max-w-md text-center">
-        <div className="mb-6 flex flex-col items-center gap-4">
-          <ParolaMascot mood="felice" className="h-20 w-20" />
-          <div>
-            <h1 className="text-3xl font-semibold text-ink-primary">Parola</h1>
-            <p className="mt-2 text-ink-secondary">
-              Impara l&apos;italiano e preparati a superare standard
-              internazionali di lingua italiana, con un feedback dettagliato
-              su ogni testo che scrivi.
-            </p>
+    <main className="min-h-screen bg-surface">
+      {/* Hero: textura de cuaderno sutil tras el titular, único elemento
+          de firma visual de la página — el resto se mantiene contenido. */}
+      <section className="notebook-lines border-b border-border bg-surface-secondary px-6 py-20">
+        <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
+          <ParolaMascot mood="felice" className="mb-6 h-16 w-16" />
+
+          <span className="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-brand-400">
+            Italiano per adolescenti
+          </span>
+
+          <h1 className="font-display text-4xl italic text-ink-primary sm:text-5xl">
+            Parola
+          </h1>
+
+          <p className="mt-5 max-w-md text-balance text-ink-secondary">
+            Scrivi, sbaglia, migliora. Un quaderno digitale che corregge i
+            tuoi testi e ti prepara a superare standard internazionali di
+            lingua italiana.
+          </p>
+
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link href="/registrati">
+              <Button className="w-full sm:w-auto">Inizia a scrivere</Button>
+            </Link>
+            <Link href="/login">
+              <Button variant="secondary" className="w-full sm:w-auto">
+                Ho già un account
+              </Button>
+            </Link>
           </div>
         </div>
+      </section>
 
-        <Card className="bg-surface text-left">
-          <ul className="space-y-2 text-sm text-ink-secondary">
-            <li>✓ Scrittura libera con valutazione immediata</li>
-            <li>✓ Esercizi di grammatica e struttura</li>
-            <li>✓ Guide di scrittura per ogni tipo di testo</li>
-            <li>✓ Monitora i tuoi progressi nel tempo</li>
-          </ul>
-        </Card>
+      {/* Cosa puoi fare */}
+      <section className="px-6 py-16">
+        <div className="mx-auto max-w-4xl">
+          <h2 className="mb-8 text-center font-display text-2xl italic text-ink-primary">
+            Cosa puoi fare
+          </h2>
 
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <Link href="/login" className="w-full sm:w-auto">
-            <Button className="w-full">Accedi</Button>
-          </Link>
-          <Link href="/registrati" className="w-full sm:w-auto">
-            <Button variant="secondary" className="w-full">
-              Registrati
-            </Button>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {FEATURES.map((f) => (
+              <Card key={f.titolo} className="flex items-start gap-4">
+                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-guided-bg text-guided-accent">
+                  <f.icon className="h-5 w-5" strokeWidth={1.75} />
+                </div>
+                <div>
+                  <h3 className="font-medium text-ink-primary">{f.titolo}</h3>
+                  <p className="mt-1 text-sm text-ink-secondary">{f.descrizione}</p>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Per gli insegnanti */}
+      <section className="border-t border-border bg-surface-secondary px-6 py-14">
+        <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
+          <h2 className="font-display text-xl italic text-ink-primary">
+            Sei un insegnante?
+          </h2>
+          <p className="mt-2 max-w-sm text-sm text-ink-secondary">
+            Crea le tue classi, condividi un codice di accesso e segui i
+            progressi di ogni studente.
+          </p>
+          <Link href="/registrati" className="mt-5">
+            <Button variant="secondary">Registra la tua classe</Button>
           </Link>
         </div>
-      </div>
+      </section>
+
+      <footer className="px-6 py-8 text-center text-xs text-ink-tertiary">
+        Parola — uno spazio per scrivere, sbagliare, migliorare.
+      </footer>
     </main>
   )
 }

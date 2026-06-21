@@ -4,6 +4,7 @@
 
 :root {
   --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', serif;
 
   --surface: #FFFFFF;
   --surface-secondary: #F7F5F3;
@@ -65,4 +66,17 @@
 body {
   background-color: var(--surface);
   color: var(--ink-primary);
+}
+
+/* Textura di "quaderno a righe", usata solo nella landing page (hero).
+   Linee sottili che evocano un quaderno di scuola, coerente col soggetto
+   (apprendimento della scrittura) senza competere col contenuto. */
+.notebook-lines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 35px,
+    var(--border-default) 35px,
+    var(--border-default) 36px
+  );
 }
