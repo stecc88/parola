@@ -74,12 +74,22 @@ supabase/
 
 ## Stato del progetto
 
-Scaffolding iniziale + architettura backend (schema, RLS, integrazione
-Gemini). Le pagine in `app/` sono placeholder con `TODO` che indicano la
-logica da implementare. Pendenti note:
+Flussi principali end-to-end funzionanti:
 
-- Server Actions di onboarding (registrazione studente/insegnante)
-- Endpoint admin (approva/rifiuta/disabilita/elimina insegnante, riassegna
-  studente)
-- `lib/gemini/prompts/struttura.ts` — contratto dei 4 tipi di esercizio
-  (da definire)
+- **Studente**: registrazione (con codice classe, anche con conferma email
+  attivata tramite `/student/join-class`), scrittura libera con valutazione
+  Gemini, primo esercizio di analisi delle strutture (completamento frasi)
+- **Insegnante**: registrazione (resta `pending` finché un admin approva),
+  creazione classi, vista classe con lista studenti e spostamento tra le
+  proprie classi
+- **Admin**: approvazione/rifiuto/disabilitazione insegnanti, eliminazione
+  definitiva con riassegnazione obbligatoria delle classi pendenti
+
+Pendenti noti:
+
+- `esercizio_struttura_2/3/4` — contratto non ancora definito (il pattern
+  generate/evaluate di `esercizio_struttura_1` in
+  `lib/gemini/prompts/struttura.ts` è riutilizzabile)
+- `/student/guides` — modalità guidata non implementata
+- Nessun concetto di "livello target" per studente (usato fisso B1 negli
+  esercizi di struttura)

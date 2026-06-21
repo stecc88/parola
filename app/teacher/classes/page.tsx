@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { AppNav } from '@/components/shared/AppNav'
 import { Card } from '@/components/ui/Card'
 import { createClient } from '@/lib/supabase/server'
@@ -28,19 +29,20 @@ export default async function TeacherClassesPage() {
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {classi.map((c) => (
-              <Card key={c.id}>
-                <h2 className="font-semibold text-ink-primary">{c.nome}</h2>
-                <p className="mt-1 text-sm text-ink-secondary">
-                  Codice invito:{' '}
-                  <span className="rounded bg-surface-tertiary px-2 py-0.5 font-mono">
-                    {c.invite_code}
-                  </span>
-                </p>
-              </Card>
+              <Link href={`/teacher/classes/${c.id}`} key={c.id}>
+                <Card className="transition-colors hover:bg-surface-tertiary">
+                  <h2 className="font-semibold text-ink-primary">{c.nome}</h2>
+                  <p className="mt-1 text-sm text-ink-secondary">
+                    Codice invito:{' '}
+                    <span className="rounded bg-surface-tertiary px-2 py-0.5 font-mono">
+                      {c.invite_code}
+                    </span>
+                  </p>
+                </Card>
+              </Link>
             ))}
           </div>
         )}
-        {/* TODO: gestione studenti per classe, spostamento tra classi proprie */}
       </main>
     </>
   )

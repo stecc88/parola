@@ -35,7 +35,7 @@ export default function RegistratiPage() {
       email,
       password,
       options: {
-        data: { role: ruolo, nome, cognome }
+        data: { role: ruolo, nome, cognome, invite_code: ruolo === 'student' ? inviteCode : undefined }
       }
     })
 
