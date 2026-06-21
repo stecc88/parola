@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { requireApprovedTeacher } from '@/lib/teacher/guard'
 import { CreateClassForm } from './CreateClassForm'
 import { AssignStudentSelect } from './AssignStudentSelect'
+import { ClassActions } from './ClassActions'
 import { getTeacherInviteCode, getUnassignedStudents } from './actions'
 
 const NAV_ITEMS = [{ href: '/teacher/classes', label: 'Le mie classi' }]
@@ -77,6 +78,9 @@ export default async function TeacherClassesPage() {
               <Link href={`/teacher/classes/${c.id}`} key={c.id}>
                 <Card className="h-full transition-colors hover:bg-surface-tertiary">
                   <h2 className="font-semibold text-ink-primary">{c.nome}</h2>
+                  <div className="mt-2">
+                    <ClassActions classId={c.id} nomeAttuale={c.nome} />
+                  </div>
                 </Card>
               </Link>
             ))}

@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/Card'
 import { createClient } from '@/lib/supabase/server'
 import { requireApprovedTeacher } from '@/lib/teacher/guard'
 import { MoveStudentSelect } from './MoveStudentSelect'
+import { ClassActions } from '../ClassActions'
 
 const NAV_ITEMS = [{ href: '/teacher/classes', label: 'Le mie classi' }]
 
@@ -47,7 +48,10 @@ export default async function ClassDetailPage({ params }: { params: { id: string
           ← Tutte le classi
         </Link>
 
-        <h1 className="mt-2 mb-6 text-xl font-semibold text-ink-primary">{classe.nome}</h1>
+        <div className="mt-2 mb-6 flex items-center justify-between">
+          <h1 className="text-xl font-semibold text-ink-primary">{classe.nome}</h1>
+          <ClassActions classId={classe.id} nomeAttuale={classe.nome} redirectAfterDelete />
+        </div>
 
         <h2 className="mb-3 text-sm font-semibold text-ink-primary">Studenti</h2>
 

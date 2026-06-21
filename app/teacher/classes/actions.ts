@@ -111,3 +111,58 @@ export async function getUnassignedStudents(): Promise<UnassignedStudent[]> {
     }
   })
 }
+
+export async function renameClass(classId: string, nuovoNome: string) {
+  const supabase = createClient()
+  const { data: userData, error: authError } = await supabase.auth.getUser()
+  if (authError || !userData.user) throw new Error('Non autenticato.')
+
+  if (!nuovoNome.trim()) {
+    throw new Error('Il nome della classe è obbligatorio.')
+  }
+
+  const { error } = await supabase
+    .from('classes')
+    .update({ nome: nuovoNome.trim() })
+    .eq('id', classId)
+    .eq('teacher_id', userData.user.id)
+
+  if (error) throw new Error('Errore rinominando la classe.')
+  revalidatePath('/teacher/classes')
+  revalidatePath(`/teacher/classes/${classId}`)
+}
+
+/**
+ * Elimina una classe. Los studenti que estuvieran en ella NO se pierden:
+ * vuelven al estado "sin classe assegnata" (class_id = NULL), igual que
+ * cuando se unen por primera vez con el codice del profesor.
+ */
+export async function deleteClass(classId: string) {
+  const supabase = createClient()
+  const { data: userData, error: authError } = await supabase.auth.getUser()
+  if (authError || !userData.user) throw new Error('Non autenticato.')
+
+  // Verificar que la classe sea del profesor antes de tocar nada.
+  const { data: classe } = await supabase
+    .from('classes')
+    .select('id')
+    .eq('id', classId)
+    .eq('teacher_id', userData.user.id)
+    .single()
+
+  if (!classe) throw new Error('Classe non trovata.')
+
+  // Liberar a los studenti antes de borrar (la FK class_memberships.class_id
+  // tiene ON DELETE RESTRICT a propósito, para que un delete accidental no
+  // se lleve studenti puestos sin querer — por eso lo hacemos explícito acá).
+  await supabase
+    .from('class_memberships')
+    .update({ class_id: null })
+    .eq('class_id', classId)
+    .eq('teacher_id', userData.user.id)
+
+  const { error } = await supabase.from('classes').delete().eq('id', classId)
+
+  if (error) throw new Error('Errore eliminando la classe.')
+  revalidatePath('/teacher/classes')
+}
