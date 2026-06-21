@@ -13,7 +13,8 @@ import { Esercizio4 } from './Esercizio4'
 const NAV_ITEMS = [
   { href: '/student/write', label: 'Scrittura libera' },
   { href: '/student/exercises', label: 'Esercizi' },
-  { href: '/student/guides', label: 'Guide' }
+  { href: '/student/guides', label: 'Guide' },
+  { href: '/student/progress', label: 'I miei progressi' }
 ]
 
 const TIPI = [

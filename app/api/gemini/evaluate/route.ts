@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { evaluateScritturaLibera } from '@/lib/gemini/prompts/examinador'
+import { checkSubmissionRateLimit } from '@/lib/student/rate-limit'
 
 /**
  * POST /api/gemini/evaluate
@@ -82,6 +83,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    await checkSubmissionRateLimit(userData.user.id)
+
     const { data: profile } = await supabase
       .from('profiles')
       .select('livello_target')
@@ -109,6 +112,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ valutazione })
   } catch (err) {
     console.error('Errore durante la valutazione Gemini:', err)
+
+    if (err instanceof Error && err.message.includes('limite di')) {
+      return NextResponse.json({ error: err.message }, { status: 429 })
+    }
+
     return NextResponse.json(
       { error: 'Errore durante la valutazione. Riprova più tardi.' },
       { status: 502 }

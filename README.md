@@ -89,10 +89,14 @@ Flussi principali end-to-end funzionanti:
 - **Admin**: approvazione/rifiuto/disabilitazione insegnanti, eliminazione
   definitiva con riassegnazione obbligatoria delle classi pendenti
 
+- **Progressi**: `/student/progress` mostra cronologia attività, punteggio
+  medio e stato di ogni submission
+- **Rate limiting**: `lib/student/rate-limit.ts` limita le chiamate a Gemini
+  (default 10 ogni 5 minuti per studente) basato su conteggio in DB
+
 Pendenti noti (scope futuro, non bloccanti):
 
 - Generazione AI per i contenuti delle guide di scrittura (oggi sono
   consegne statiche)
-- Nessuna cronologia/dashboard di progresso per lo studente (le submissions
-  si salvano ma non si visualizzano in retrospettiva)
-- Nessun limite di rate-limiting sulle chiamate a Gemini
+- Rate limiting basato su DB, non su infrastruttura dedicata (sufficiente
+  per il volume previsto; migrare a Upstash Ratelimit o simile se necessario)
