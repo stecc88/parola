@@ -78,6 +78,16 @@ export async function assertIsAdmin(userId: string | undefined): Promise<void> {
     .single()
 
   if (error || !data || data.role !== 'admin') {
+    // Log detallado server-side: el mensaje que ve el cliente es siempre
+    // genérico ('FORBIDDEN_NOT_ADMIN'), pero acá queda la causa real
+    // (ej. service role key inválida, fila no encontrada, rol distinto).
+    console.error('assertIsAdmin falló:', {
+      userId,
+      error: error?.message,
+      errorDetails: error,
+      dataFound: !!data,
+      role: data?.role
+    })
     throw new Error('FORBIDDEN_NOT_ADMIN')
   }
 }
