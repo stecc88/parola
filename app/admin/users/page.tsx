@@ -1,22 +1,19 @@
+import { AppNav } from '@/components/shared/AppNav'
 import { Card } from '@/components/ui/Card'
+
+const NAV_ITEMS = [{ href: '/admin/users', label: 'Gestione insegnanti' }]
 
 export default function AdminUsersPage() {
   return (
-    <main className="p-6">
-      <h1 className="mb-4 text-xl font-semibold">Gestione insegnanti</h1>
-      <Card>
-        {/*
-          TODO:
-          - Listar profiles WHERE role='teacher' (vía admin client, server-side)
-          - Aprobar/rechazar (teacher_status)
-          - Disable (reversible) / Delete (irreversible, requiere:
-            1. confirmación con nombre exacto
-            2. que no tenga classes/estudiantes activos -> bloqueado por
-               constraint ON DELETE RESTRICT + verificación explícita en
-               app/api/admin/teachers/[id]/route.ts (pendiente de crear)
-          - Reasignar estudiante a otro profesor
-        */}
-      </Card>
-    </main>
+    <>
+      <AppNav items={NAV_ITEMS} />
+      <main className="mx-auto max-w-3xl p-6">
+        <h1 className="mb-6 text-xl font-semibold text-ink-primary">Gestione insegnanti</h1>
+        <Card className="border-dashed text-center text-sm text-ink-tertiary">
+          Questa sezione richiede endpoint admin non ancora implementati
+          (approvazione, disabilitazione, eliminazione, riassegnazione).
+        </Card>
+      </main>
+    </>
   )
 }
