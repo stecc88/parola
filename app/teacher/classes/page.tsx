@@ -1,6 +1,7 @@
 import { AppNav } from '@/components/shared/AppNav'
 import { Card } from '@/components/ui/Card'
 import { createClient } from '@/lib/supabase/server'
+import { CreateClassForm } from './CreateClassForm'
 
 const NAV_ITEMS = [{ href: '/teacher/classes', label: 'Le mie classi' }]
 
@@ -15,12 +16,14 @@ export default async function TeacherClassesPage() {
     <>
       <AppNav items={NAV_ITEMS} />
       <main className="mx-auto max-w-3xl p-6">
-        <h1 className="mb-6 text-xl font-semibold text-ink-primary">Le mie classi</h1>
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-xl font-semibold text-ink-primary">Le mie classi</h1>
+          <CreateClassForm />
+        </div>
 
         {!classi || classi.length === 0 ? (
           <Card className="border-dashed text-center text-sm text-ink-tertiary">
             Non hai ancora creato nessuna classe.
-            {/* TODO: form/Server Action per creare una nuova classe */}
           </Card>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
