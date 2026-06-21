@@ -1,6 +1,8 @@
+import Link from 'next/link'
 import { AppNav } from '@/components/shared/AppNav'
 import { Card } from '@/components/ui/Card'
 import { ParolaMascot } from '@/components/shared/ParolaMascot'
+import { GUIDES } from '@/lib/guides'
 
 const NAV_ITEMS = [
   { href: '/student/write', label: 'Scrittura libera' },
@@ -18,14 +20,21 @@ export default function GuidesPage() {
           <div>
             <h1 className="text-xl font-semibold text-ink-primary">Guide di scrittura</h1>
             <p className="text-sm text-ink-secondary">
-              Modalità guidata per imparare a scrivere diversi tipi di testo.
+              Scegli un tipo di testo e scrivi seguendo una consegna guidata.
             </p>
           </div>
         </div>
 
-        <Card className="border-dashed text-center text-sm text-ink-tertiary">
-          Questa sezione è in fase di sviluppo.
-        </Card>
+        <div className="grid gap-3 sm:grid-cols-2">
+          {GUIDES.map((g) => (
+            <Link key={g.slug} href={`/student/write?guida=${g.slug}`}>
+              <Card className="h-full transition-colors hover:bg-surface-tertiary">
+                <h2 className="font-semibold text-ink-primary">{g.titolo}</h2>
+                <p className="mt-1 text-sm text-ink-secondary">{g.descrizione}</p>
+              </Card>
+            </Link>
+          ))}
+        </div>
       </main>
     </>
   )

@@ -6,6 +6,7 @@
 
 export type UserRole = 'student' | 'teacher' | 'admin'
 export type TeacherStatus = 'pending' | 'approved' | 'rejected' | 'disabled'
+export type LivelloCefr = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'
 export type SubmissionType =
   | 'scrittura_libera'
   | 'esercizio_struttura_1'
@@ -19,6 +20,7 @@ export interface Profile {
   nome: string
   cognome: string
   teacher_status: TeacherStatus | null
+  livello_target: LivelloCefr | null
   created_at: string
   updated_at: string
 }

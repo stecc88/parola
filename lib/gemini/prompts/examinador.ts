@@ -17,11 +17,11 @@ import {
 
 const RESPONSE_SCHEMA = zodToGeminiSchema(valutazioneEsaminatoreSchema)
 
-function buildPrompt(testoStudente: string, livelloTarget?: string): string {
+function buildPrompt(testoStudente: string, livelloTarget?: string, consegna?: string): string {
   return `Sei un esaminatore esperto di lingua italiana per adolescenti che si
 preparano a superare standard internazionali di lingua italiana. Valuta il
 testo seguente, scritto da uno studente${livelloTarget ? ` con livello target ${livelloTarget}` : ''}.
-
+${consegna ? `\nConsegna data allo studente: "${consegna}"\nTieni conto di quanto il testo risponde a questa consegna, oltre alla correttezza linguistica.\n` : ''}
 Testo dello studente:
 """
 ${testoStudente}
@@ -36,10 +36,11 @@ genericamente a "standard internazionali di lingua italiana" se necessario.`
 
 export async function evaluateScritturaLibera(
   testoStudente: string,
-  livelloTarget?: string
+  livelloTarget?: string,
+  consegna?: string
 ): Promise<ValutazioneEsaminatore> {
   const raw = await generateStructuredContent({
-    prompt: buildPrompt(testoStudente, livelloTarget),
+    prompt: buildPrompt(testoStudente, livelloTarget, consegna),
     responseSchema: RESPONSE_SCHEMA,
     thinking: { thinkingBudget: 4096 },
     temperature: 0.3

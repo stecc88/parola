@@ -1,12 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { AppNav } from '@/components/shared/AppNav'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { ParolaMascot } from '@/components/shared/ParolaMascot'
+import { LivelloSelector } from '@/components/shared/LivelloSelector'
 import { createScritturaLiberaSubmission } from './actions'
 import type { ValutazioneEsaminatore } from '@/lib/gemini/schema'
+import { getGuidaBySlug } from '@/lib/guides'
 
 const NAV_ITEMS = [
   { href: '/student/write', label: 'Scrittura libera' },
@@ -16,7 +19,10 @@ const NAV_ITEMS = [
 
 type Stato = 'idle' | 'salvando' | 'valutando' | 'pronto' | 'errore'
 
-export default function WritePage() {
+function WritePageInner() {
+  const searchParams = useSearchParams()
+  const guida = getGuidaBySlug(searchParams.get('guida'))
+
   const [testo, setTesto] = useState('')
   const [stato, setStato] = useState<Stato>('idle')
   const [errore, setErrore] = useState<string | null>(null)
@@ -39,7 +45,7 @@ export default function WritePage() {
       const res = await fetch('/api/gemini/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ submissionId })
+        body: JSON.stringify({ submissionId, consegna: guida?.consegna })
       })
 
       if (!res.ok) {
@@ -60,14 +66,21 @@ export default function WritePage() {
     <>
       <AppNav items={NAV_ITEMS} />
       <main className="mx-auto max-w-3xl p-6">
-        <div className="mb-6 flex items-center gap-3">
-          <ParolaMascot mood="incoraggiante" />
-          <div>
-            <h1 className="text-xl font-semibold text-ink-primary">Scrittura libera</h1>
-            <p className="text-sm text-ink-secondary">
-              Scrivi un testo in italiano e ricevi una valutazione dettagliata.
-            </p>
+        <div className="mb-6 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <ParolaMascot mood="incoraggiante" />
+            <div>
+              <h1 className="text-xl font-semibold text-ink-primary">
+                {guida ? guida.titolo : 'Scrittura libera'}
+              </h1>
+              <p className="text-sm text-ink-secondary">
+                {guida
+                  ? guida.consegna
+                  : 'Scrivi un testo in italiano e ricevi una valutazione dettagliata.'}
+              </p>
+            </div>
           </div>
+          <LivelloSelector />
         </div>
 
         <Card>
@@ -157,5 +170,13 @@ export default function WritePage() {
         )}
       </main>
     </>
+  )
+}
+
+export default function WritePage() {
+  return (
+    <Suspense>
+      <WritePageInner />
+    </Suspense>
   )
 }

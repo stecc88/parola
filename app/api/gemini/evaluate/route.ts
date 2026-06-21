@@ -50,6 +50,7 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json().catch(() => null)
   const submissionId = body?.submissionId
+  const consegna = typeof body?.consegna === 'string' ? body.consegna : undefined
   if (!submissionId || typeof submissionId !== 'string') {
     return NextResponse.json({ error: 'submissionId es requerido.' }, { status: 400 })
   }
@@ -81,7 +82,17 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const valutazione = await evaluateScritturaLibera(submission.testo_studente)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('livello_target')
+      .eq('id', userData.user.id)
+      .single()
+
+    const valutazione = await evaluateScritturaLibera(
+      submission.testo_studente,
+      profile?.livello_target ?? undefined,
+      consegna
+    )
 
     const { error: updateError } = await supabase
       .from('submissions')

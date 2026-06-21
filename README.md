@@ -50,6 +50,7 @@ Supabase prima del primo avvio (in ordine numerico):
 
 1. `0001_schema_base.sql` — tabelle, trigger, funzioni
 2. `0002_rls_policies.sql` — Row Level Security per ruolo
+3. `0003_livello_target.sql` — livello CEFR obiettivo dello studente
 
 ## Struttura
 
@@ -77,19 +78,21 @@ supabase/
 Flussi principali end-to-end funzionanti:
 
 - **Studente**: registrazione (con codice classe, anche con conferma email
-  attivata tramite `/student/join-class`), scrittura libera con valutazione
-  Gemini, primo esercizio di analisi delle strutture (completamento frasi)
+  attivata tramite `/student/join-class`), livello CEFR target personale,
+  scrittura libera con valutazione Gemini (anche guidata da una consegna),
+  4 tipi di esercizio di analisi delle strutture (completamento frasi,
+  riordino parole, scelta preposizioni, trasformazione frasi), guide di
+  scrittura per tipo di testo
 - **Insegnante**: registrazione (resta `pending` finché un admin approva),
   creazione classi, vista classe con lista studenti e spostamento tra le
   proprie classi
 - **Admin**: approvazione/rifiuto/disabilitazione insegnanti, eliminazione
   definitiva con riassegnazione obbligatoria delle classi pendenti
 
-Pendenti noti:
+Pendenti noti (scope futuro, non bloccanti):
 
-- `esercizio_struttura_2/3/4` — contratto non ancora definito (il pattern
-  generate/evaluate di `esercizio_struttura_1` in
-  `lib/gemini/prompts/struttura.ts` è riutilizzabile)
-- `/student/guides` — modalità guidata non implementata
-- Nessun concetto di "livello target" per studente (usato fisso B1 negli
-  esercizi di struttura)
+- Generazione AI per i contenuti delle guide di scrittura (oggi sono
+  consegne statiche)
+- Nessuna cronologia/dashboard di progresso per lo studente (le submissions
+  si salvano ma non si visualizzano in retrospettiva)
+- Nessun limite di rate-limiting sulle chiamate a Gemini

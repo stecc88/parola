@@ -1,38 +1,98 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getLivelloTarget } from '@/lib/student/livello'
 import {
   generateEsercizioStruttura1,
   evaluateEsercizioStruttura1,
-  type FraseDaCompletare
+  generateEsercizioStruttura2,
+  evaluateEsercizioStruttura2,
+  generateEsercizioStruttura3,
+  evaluateEsercizioStruttura3,
+  generateEsercizioStruttura4,
+  evaluateEsercizioStruttura4,
+  type FraseDaCompletare,
+  type FrasiDaRiordinare,
+  type DomandePreposizione,
+  type FrasiDaTrasformare,
+  type ValutazioneRisposteStruttura
 } from '@/lib/gemini/prompts/struttura'
 
-export async function startEsercizioStruttura1(): Promise<FraseDaCompletare> {
-  // Livello fijo por ahora (no hay todavía noción de nivel objetivo por
-  // estudiante en el modelo de datos); placeholder razonable: B1.
-  return generateEsercizioStruttura1('B1')
+export async function startEsercizio1(): Promise<FraseDaCompletare> {
+  return generateEsercizioStruttura1(await getLivelloTarget())
+}
+export async function startEsercizio2(): Promise<FrasiDaRiordinare> {
+  return generateEsercizioStruttura2(await getLivelloTarget())
+}
+export async function startEsercizio3(): Promise<DomandePreposizione> {
+  return generateEsercizioStruttura3(await getLivelloTarget())
+}
+export async function startEsercizio4(): Promise<FrasiDaTrasformare> {
+  return generateEsercizioStruttura4(await getLivelloTarget())
 }
 
-export async function submitEsercizioStruttura1(
-  frasi: FraseDaCompletare['frasi'],
-  risposte: { id: string; risposta_studente: string }[]
-) {
+async function persistSubmission(tipo: string, testo: string, valutazione: ValutazioneRisposteStruttura) {
   const supabase = createClient()
-  const { data: userData, error: authError } = await supabase.auth.getUser()
-  if (authError || !userData.user) throw new Error('Non autenticato.')
+  const { data: userData, error } = await supabase.auth.getUser()
+  if (error || !userData.user) throw new Error('Non autenticato.')
 
-  const valutazione = await evaluateEsercizioStruttura1(frasi, risposte)
-
-  // Se persiste como submission para mantener el historial, igual que
-  // scrittura_libera. testo_studente guarda las respuestas concatenadas
-  // por trazabilidad simple (no hay columna estructurada dedicada todavía).
   await supabase.from('submissions').insert({
     student_id: userData.user.id,
-    tipo: 'esercizio_struttura_1',
-    testo_studente: risposte.map((r) => `${r.id}: ${r.risposta_studente}`).join(' | '),
+    tipo,
+    testo_studente: testo,
     valutazione_ia: valutazione,
     valutazione_completed_at: new Date().toISOString()
   })
+}
 
+export async function submitEsercizio1(
+  frasi: FraseDaCompletare['frasi'],
+  risposte: { id: string; risposta_studente: string }[]
+) {
+  const valutazione = await evaluateEsercizioStruttura1(frasi, risposte)
+  await persistSubmission(
+    'esercizio_struttura_1',
+    risposte.map((r) => `${r.id}: ${r.risposta_studente}`).join(' | '),
+    valutazione
+  )
+  return valutazione
+}
+
+export async function submitEsercizio2(
+  frasi: FrasiDaRiordinare['frasi'],
+  risposte: { id: string; ordine_studente: string[] }[]
+) {
+  const valutazione = await evaluateEsercizioStruttura2(frasi, risposte)
+  await persistSubmission(
+    'esercizio_struttura_2',
+    risposte.map((r) => `${r.id}: ${r.ordine_studente.join(' ')}`).join(' | '),
+    valutazione
+  )
+  return valutazione
+}
+
+export async function submitEsercizio3(
+  domande: DomandePreposizione['domande'],
+  risposte: { id: string; opzione_scelta: string }[]
+) {
+  const valutazione = await evaluateEsercizioStruttura3(domande, risposte)
+  await persistSubmission(
+    'esercizio_struttura_3',
+    risposte.map((r) => `${r.id}: ${r.opzione_scelta}`).join(' | '),
+    valutazione
+  )
+  return valutazione
+}
+
+export async function submitEsercizio4(
+  frasi: FrasiDaTrasformare['frasi'],
+  risposte: { id: string; frase_trasformata: string }[]
+) {
+  const valutazione = await evaluateEsercizioStruttura4(frasi, risposte)
+  await persistSubmission(
+    'esercizio_struttura_4',
+    risposte.map((r) => `${r.id}: ${r.frase_trasformata}`).join(' | '),
+    valutazione
+  )
   return valutazione
 }
