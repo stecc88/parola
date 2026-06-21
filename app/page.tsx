@@ -17,7 +17,7 @@ export default async function HomePage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, teacher_status')
     .eq('id', data.user.id)
     .single()
 
@@ -26,7 +26,7 @@ export default async function HomePage() {
   }
 
   if (profile?.role === 'teacher') {
-    redirect('/teacher/classes')
+    redirect(profile.teacher_status === 'approved' ? '/teacher/classes' : '/teacher/pending')
   }
 
   // Estudiante: si no tiene membership activa, intenta el join automático

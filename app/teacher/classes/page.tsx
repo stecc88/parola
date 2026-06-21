@@ -2,11 +2,13 @@ import Link from 'next/link'
 import { AppNav } from '@/components/shared/AppNav'
 import { Card } from '@/components/ui/Card'
 import { createClient } from '@/lib/supabase/server'
+import { requireApprovedTeacher } from '@/lib/teacher/guard'
 import { CreateClassForm } from './CreateClassForm'
 
 const NAV_ITEMS = [{ href: '/teacher/classes', label: 'Le mie classi' }]
 
 export default async function TeacherClassesPage() {
+  await requireApprovedTeacher()
   const supabase = createClient()
   const { data: classi } = await supabase
     .from('classes')

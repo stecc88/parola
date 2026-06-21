@@ -13,6 +13,16 @@ export async function moveStudentToClass(membershipId: string, targetClassId: st
   const { data: userData, error: authError } = await supabase.auth.getUser()
   if (authError || !userData.user) throw new Error('Non autenticato.')
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, teacher_status')
+    .eq('id', userData.user.id)
+    .single()
+
+  if (profile?.role !== 'teacher' || profile.teacher_status !== 'approved') {
+    throw new Error('Il tuo account insegnante non è ancora approvato.')
+  }
+
   // Verificar que la clase destino también sea del profesor (defensa extra,
   // RLS en el insert ya lo exigiría vía classes_insert/select policies del
   // lado de lectura, pero confirmamos explícitamente acá).
