@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { Card } from '@/components/ui/Card'
 import { ParolaMascot } from '@/components/shared/ParolaMascot'
+import { LogoutButton } from '@/components/shared/LogoutButton'
 
 const STATUS_MESSAGE: Record<string, string> = {
   pending:
@@ -41,6 +42,9 @@ export default async function TeacherPendingPage() {
           Account in attesa
         </h1>
         <p className="text-sm text-ink-secondary">{message}</p>
+        <div className="mt-4">
+          <LogoutButton />
+        </div>
       </Card>
     </main>
   )

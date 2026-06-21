@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { ParolaMascot } from './ParolaMascot'
+import { LogoutButton } from './LogoutButton'
 
 interface AppNavProps {
   items: { href: string; label: string }[]
@@ -12,7 +13,7 @@ export function AppNav({ items }: AppNavProps) {
         <ParolaMascot mood="neutro" className="h-9 w-9" />
         <span className="font-semibold text-ink-primary">Parola</span>
       </Link>
-      <ul className="flex gap-4">
+      <ul className="flex flex-1 gap-4">
         {items.map((item) => (
           <li key={item.href}>
             <Link
@@ -24,6 +25,7 @@ export function AppNav({ items }: AppNavProps) {
           </li>
         ))}
       </ul>
+      <LogoutButton />
     </nav>
   )
 }
