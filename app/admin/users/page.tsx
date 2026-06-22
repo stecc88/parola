@@ -17,7 +17,10 @@ import {
   type TeacherRow
 } from './actions'
 
-const NAV_ITEMS = [{ href: '/admin/users', label: 'Gestione insegnanti' }]
+const NAV_ITEMS = [
+  { href: '/admin/users', label: 'Gestione insegnanti' },
+  { href: '/account', label: 'Account' }
+]
 
 const STATUS_LABEL: Record<TeacherRow['teacher_status'], string> = {
   pending: 'In attesa',

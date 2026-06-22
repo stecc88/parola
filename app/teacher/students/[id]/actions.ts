@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { generateEsercizioPersonalizzato } from '@/lib/gemini/prompts/generatore'
 import { GeminiError, isQuotaExhausted } from '@/lib/gemini/client'
+import { checkGenerationRateLimit } from '@/lib/teacher/rate-limit'
 import { computeStudentStats, type SubmissionRow } from '@/lib/analytics/studentStats'
 import type { TipoEsercizioPersonalizzato } from '@/lib/gemini/schema'
 
@@ -48,6 +49,8 @@ export async function generatePersonalizedExercise(
   const supabase = createClient()
   const { data: userData, error: authError } = await supabase.auth.getUser()
   if (authError || !userData.user) throw new Error('Non autenticato.')
+
+  await checkGenerationRateLimit(userData.user.id)
 
   // RLS (is_active_teacher_of) garantisce comunque che questa query veda
   // solo dati di uno studente effettivamente attivo sotto questo docente;

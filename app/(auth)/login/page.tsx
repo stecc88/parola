@@ -97,6 +97,12 @@ export default function LoginPage() {
             </p>
           )}
 
+          <div className="text-right">
+            <Link href="/reset-password" className="text-xs text-ink-secondary hover:text-brand-400">
+              Hai dimenticato la password?
+            </Link>
+          </div>
+
           <Button type="submit" disabled={loading} className="w-full">
             {loading ? 'Accesso in corso...' : 'Accedi'}
           </Button>

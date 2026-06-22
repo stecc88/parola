@@ -135,11 +135,15 @@ export function computeStudentStats(submissions: SubmissionRow[]): StudentStats 
     if (!isEsaminatoreValutazione(s.valutazione_ia)) continue
     const v = s.valutazione_ia
 
-    tuttiPuntiForza.push(...v.punti_forza)
-    tutteAreeMiglioramento.push(...v.aree_di_miglioramento)
+    // isEsaminatoreValutazione solo garantiza punteggio_complessivo y errori[]
+    // (es lo mínimo para considerarlo "del esaminatore"). El resto de campos
+    // se trata defensivamente: un registro viejo/parcial en la base no debe
+    // romper el cálculo de stats para todo el dashboard.
+    tuttiPuntiForza.push(...(v.punti_forza ?? []))
+    tutteAreeMiglioramento.push(...(v.aree_di_miglioramento ?? []))
 
-    for (const errore of v.errori) {
-      if (CATEGORIE_ERRORE.includes(errore.categoria)) {
+    for (const errore of v.errori ?? []) {
+      if (errore?.categoria && CATEGORIE_ERRORE.includes(errore.categoria)) {
         erroriPerCategoria[errore.categoria] += 1
       }
     }
@@ -149,7 +153,9 @@ export function computeStudentStats(submissions: SubmissionRow[]): StudentStats 
       if (v.rispetto_consegna.rispetta_consegna) consegneRispettate += 1
     }
 
-    livelliCronologici.push({ data: s.created_at, livello: v.livello_stimato })
+    if (v.livello_stimato) {
+      livelliCronologici.push({ data: s.created_at, livello: v.livello_stimato })
+    }
   }
 
   livelliCronologici.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())

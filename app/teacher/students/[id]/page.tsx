@@ -21,7 +21,10 @@ import { SubmissionHistoryEntry } from './SubmissionHistoryEntry'
 import { PersonalizedExerciseEntry } from './PersonalizedExerciseEntry'
 import { ListChecks, TrendingUp, GraduationCap, Target } from 'lucide-react'
 
-const NAV_ITEMS = [{ href: '/teacher/classes', label: 'Le mie classi' }]
+const NAV_ITEMS = [
+  { href: '/teacher/classes', label: 'Le mie classi' },
+  { href: '/account', label: 'Account' }
+]
 
 const CATEGORIA_LABEL: Record<CategoriaErrore, string> = {
   grammatica: 'Grammatica',

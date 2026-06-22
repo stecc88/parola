@@ -13,7 +13,10 @@ import {
   getStudentsOverview
 } from './actions'
 
-const NAV_ITEMS = [{ href: '/teacher/classes', label: 'Le mie classi' }]
+const NAV_ITEMS = [
+  { href: '/teacher/classes', label: 'Le mie classi' },
+  { href: '/account', label: 'Account' }
+]
 
 export default async function TeacherClassesPage() {
   await requireApprovedTeacher()

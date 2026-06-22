@@ -282,6 +282,12 @@ function LandingPage() {
             <Link href="/registrati" className="hover:text-ink-primary">
               Registrati
             </Link>
+            <Link href="/privacy" className="hover:text-ink-primary">
+              Privacy
+            </Link>
+            <Link href="/termini" className="hover:text-ink-primary">
+              Termini
+            </Link>
           </nav>
           <p className="text-xs text-ink-tertiary">
             © {new Date().getFullYear()} Parola — uno spazio per scrivere, sbagliare, migliorare.

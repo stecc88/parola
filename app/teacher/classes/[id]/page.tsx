@@ -6,7 +6,10 @@ import { requireApprovedTeacher } from '@/lib/teacher/guard'
 import { MoveStudentSelect } from './MoveStudentSelect'
 import { ClassActions } from '../ClassActions'
 
-const NAV_ITEMS = [{ href: '/teacher/classes', label: 'Le mie classi' }]
+const NAV_ITEMS = [
+  { href: '/teacher/classes', label: 'Le mie classi' },
+  { href: '/account', label: 'Account' }
+]
 
 export default async function ClassDetailPage({ params }: { params: { id: string } }) {
   await requireApprovedTeacher()
