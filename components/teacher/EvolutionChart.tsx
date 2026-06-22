@@ -69,18 +69,18 @@ export function EvolutionChart({ punti }: { punti: PuntoEvoluzione[] }) {
         )
       })}
 
-      <polygon points={areaPoints} fill="#D85A30" opacity={0.08} />
+      <polygon points={areaPoints} fill="#2F8FE0" opacity={0.08} />
       <polyline
         points={polylinePoints}
         fill="none"
-        stroke="#D85A30"
+        stroke="#2F8FE0"
         strokeWidth={2.5}
         strokeLinecap="round"
         strokeLinejoin="round"
       />
 
       {coords.map((c, i) => (
-        <circle key={i} cx={c.x} cy={c.y} r={4} fill="#D85A30">
+        <circle key={i} cx={c.x} cy={c.y} r={4} fill="#2F8FE0">
           <title>
             {new Date(c.p.data).toLocaleDateString('it-IT', {
               day: '2-digit',

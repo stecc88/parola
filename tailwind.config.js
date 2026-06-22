@@ -9,13 +9,26 @@ module.exports = {
     extend: {
       colors: {
         brand: {
-          50: '#FAECE7',
-          100: '#F5C4B3',
-          200: '#F0997B',
-          400: '#D85A30',
-          600: '#993C1D',
-          800: '#712B13',
-          900: '#4A1B0C'
+          50: '#E9F2FB',
+          100: '#BFDCF5',
+          200: '#8AC0ED',
+          400: '#2F8FE0',
+          600: '#1E6FB8',
+          800: '#16548A',
+          900: '#0F3A60'
+        },
+        sunshine: {
+          50: '#FFF8E1',
+          100: '#FFEDB0',
+          200: '#FFE07D',
+          400: '#FFC93C',
+          600: '#E0A900',
+          800: '#A87800'
+        },
+        flag: {
+          green: '#0B7C3F',
+          white: '#F7F5F3',
+          red: '#CE2B37'
         },
         surface: {
           DEFAULT: 'var(--surface)',

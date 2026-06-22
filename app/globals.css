@@ -29,9 +29,9 @@
   --danger-bg: #FAE7E5;
   --danger-text: #A3331E;
 
-  --guided-bg: #F5EDE3;
+  --guided-bg: #FFF6DC;
   --guided-text: #6B4A23;
-  --guided-accent: #D8923B;
+  --guided-accent: #FFC93C;
 }
 
 .dark {
@@ -60,12 +60,60 @@
 
   --guided-bg: #2A2117;
   --guided-text: #E8C896;
-  --guided-accent: #D8923B;
+  --guided-accent: #FFC93C;
 }
 
+/* Fondo "carta increspata" applicato a tutta la piattaforma: alcuni layer
+   di gradienti radiali/lineari molto leggeri che simulano pieghe e
+   ombre morbide di un foglio di carta, senza interferire con la
+   leggibilità del testo sopra (le superfici dei Card restano opache). */
 body {
-  background-color: var(--surface);
+  background-color: var(--surface-secondary);
+  background-image:
+    radial-gradient(at 15% 20%, rgba(0, 0, 0, 0.035) 0px, transparent 45%),
+    radial-gradient(at 85% 10%, rgba(0, 0, 0, 0.03) 0px, transparent 40%),
+    radial-gradient(at 70% 65%, rgba(0, 0, 0, 0.035) 0px, transparent 45%),
+    radial-gradient(at 20% 80%, rgba(0, 0, 0, 0.03) 0px, transparent 40%),
+    radial-gradient(at 50% 50%, rgba(255, 255, 255, 0.4) 0px, transparent 60%),
+    repeating-linear-gradient(
+      115deg,
+      rgba(0, 0, 0, 0.015) 0px,
+      rgba(0, 0, 0, 0.015) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    repeating-linear-gradient(
+      25deg,
+      rgba(0, 0, 0, 0.012) 0px,
+      rgba(0, 0, 0, 0.012) 1px,
+      transparent 1px,
+      transparent 4px
+    );
+  background-attachment: fixed;
   color: var(--ink-primary);
+}
+
+.dark body {
+  background-color: var(--surface-secondary);
+  background-image:
+    radial-gradient(at 15% 20%, rgba(255, 255, 255, 0.03) 0px, transparent 45%),
+    radial-gradient(at 85% 10%, rgba(255, 255, 255, 0.025) 0px, transparent 40%),
+    radial-gradient(at 70% 65%, rgba(255, 255, 255, 0.03) 0px, transparent 45%),
+    radial-gradient(at 20% 80%, rgba(255, 255, 255, 0.025) 0px, transparent 40%),
+    repeating-linear-gradient(
+      115deg,
+      rgba(255, 255, 255, 0.015) 0px,
+      rgba(255, 255, 255, 0.015) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    repeating-linear-gradient(
+      25deg,
+      rgba(255, 255, 255, 0.012) 0px,
+      rgba(255, 255, 255, 0.012) 1px,
+      transparent 1px,
+      transparent 4px
+    );
 }
 
 /* Textura di "quaderno a righe", usata solo nella landing page (hero).
