@@ -6,7 +6,12 @@ import { requireApprovedTeacher } from '@/lib/teacher/guard'
 import { CreateClassForm } from './CreateClassForm'
 import { AssignStudentSelect } from './AssignStudentSelect'
 import { ClassActions } from './ClassActions'
-import { getTeacherInviteCode, getUnassignedStudents, getUnseenDeliveries } from './actions'
+import {
+  getTeacherInviteCode,
+  getUnassignedStudents,
+  getUnseenDeliveries,
+  getStudentsOverview
+} from './actions'
 
 const NAV_ITEMS = [{ href: '/teacher/classes', label: 'Le mie classi' }]
 
@@ -14,15 +19,18 @@ export default async function TeacherClassesPage() {
   await requireApprovedTeacher()
   const supabase = createClient()
 
-  const [{ data: classi }, inviteCode, unassigned, notifiche] = await Promise.all([
+  const [{ data: classi }, inviteCode, unassigned, notifiche, panoramica] = await Promise.all([
     supabase
       .from('classes')
       .select('id, nome, created_at')
       .order('created_at', { ascending: false }),
     getTeacherInviteCode(),
     getUnassignedStudents(),
-    getUnseenDeliveries()
+    getUnseenDeliveries(),
+    getStudentsOverview()
   ])
+
+  const studentiAttenzione = panoramica.filter((s) => s.richiedeAttenzione)
 
   return (
     <>
@@ -48,6 +56,83 @@ export default async function TeacherClassesPage() {
                         day: '2-digit',
                         month: '2-digit'
                       })}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {studentiAttenzione.length > 0 && (
+          <Card className="mb-6 border-danger-text/30 bg-danger-bg">
+            <h2 className="mb-3 text-sm font-semibold text-danger-text">
+              ⚠ Studenti che richiedono attenzione ({studentiAttenzione.length})
+            </h2>
+            <div className="space-y-2">
+              {studentiAttenzione.map((s) => (
+                <Link key={s.studentId} href={`/teacher/students/${s.studentId}`}>
+                  <div className="rounded-md bg-surface p-3 hover:bg-surface-tertiary">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-ink-primary">
+                        {s.nome} {s.cognome}
+                      </p>
+                      {s.mediaGenerale !== null && (
+                        <span className="text-xs text-ink-tertiary">
+                          Media: {s.mediaGenerale}%
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1 text-xs text-danger-text">
+                      {s.motiviAttenzione.join(' · ')}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </Card>
+        )}
+
+        {panoramica.length > 0 && (
+          <Card className="mb-6">
+            <h2 className="mb-3 text-sm font-semibold text-ink-primary">
+              Tutti gli studenti ({panoramica.length})
+            </h2>
+            <div className="space-y-1">
+              {panoramica.map((s) => (
+                <Link key={s.studentId} href={`/teacher/students/${s.studentId}`}>
+                  <div className="flex items-center justify-between gap-3 rounded-md p-2 text-sm hover:bg-surface-secondary">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-ink-primary">
+                        {s.nome} {s.cognome}
+                        {s.richiedeAttenzione && <span className="ml-1">⚠</span>}
+                      </p>
+                      <p className="truncate text-xs text-ink-tertiary">
+                        {s.classeNome ?? 'Nessuna classe'}
+                      </p>
+                    </div>
+                    <div className="hidden shrink-0 text-right text-xs text-ink-tertiary sm:block">
+                      <p>
+                        Ultimo accesso:{' '}
+                        {s.ultimoAccesso
+                          ? new Date(s.ultimoAccesso).toLocaleDateString('it-IT', {
+                              day: '2-digit',
+                              month: '2-digit'
+                            })
+                          : 'mai'}
+                      </p>
+                      <p>{s.totaleAttivita} attività</p>
+                    </div>
+                    <span
+                      className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${
+                        s.mediaGenerale === null
+                          ? 'bg-surface-tertiary text-ink-tertiary'
+                          : s.mediaGenerale < 60
+                            ? 'bg-danger-bg text-danger-text'
+                            : 'bg-success-bg text-success-text'
+                      }`}
+                    >
+                      {s.mediaGenerale !== null ? `${s.mediaGenerale}%` : '—'}
                     </span>
                   </div>
                 </Link>
