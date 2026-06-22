@@ -2,7 +2,7 @@
  * Cliente REST directo a la API de Gemini. NUNCA usar @google/generative-ai
  * ni ningún SDK oficial — regla explícita del proyecto.
  *
- * Modelo: gemini-3.5-flash
+ * Modelo principal: gemini-3.5-flash
  *   - Structured outputs nativos (responseSchema) → se usan en vez de
  *     parsear JSON "a mano" desde el texto de respuesta.
  *   - Thinking soportado → opcional, se activa solo donde el costo de
@@ -10,11 +10,18 @@
  *     rápidos de modo guiado.
  *   - Input hasta 1,048,576 tokens / output hasta 65,536.
  *
+ * Modelo de respaldo: gemini-2.5-flash-lite
+ *   - Se usa SOLO cuando el modelo principal devuelve cuota agotada
+ *     (RESOURCE_EXHAUSTED) — ver isQuotaExhausted más abajo. Cada modelo
+ *     tiene su propia cuota independiente en el plan gratuito, así que
+ *     esto da continuidad de servicio sin esperar al reseteo de cuota.
+ *
  * GEMINI_API_KEY vive solo en el entorno del servidor (sin prefijo
  * NEXT_PUBLIC_) — este módulo no debe importarse desde código de cliente.
  */
 
-const GEMINI_MODEL = 'gemini-3.5-flash'
+const GEMINI_MODEL_PRIMARY = 'gemini-3.5-flash'
+const GEMINI_MODEL_FALLBACK = 'gemini-2.5-flash-lite'
 const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta'
 
 interface ThinkingConfig {
@@ -40,7 +47,12 @@ interface GeminiResponse {
 }
 
 export class GeminiError extends Error {
-  constructor(message: string, public readonly status?: number, public readonly body?: unknown) {
+  constructor(
+    message: string,
+    public readonly status?: number,
+    public readonly body?: unknown,
+    public readonly model?: string
+  ) {
     super(message)
     this.name = 'GeminiError'
   }
@@ -53,7 +65,8 @@ export class GeminiError extends Error {
  * arregla reintentando con nuestro backoff de milisegundos — Gemini
  * mismo indica "retry in Xs" donde X suele ser varios segundos, más de
  * lo que conviene esperar dentro de una función serverless. Reintentar
- * igual solo desperdicia cuota y tiempo.
+ * igual solo desperdicia cuota y tiempo; en su lugar, generateContent
+ * cambia de modelo (ver GEMINI_MODEL_FALLBACK).
  */
 export function isQuotaExhausted(err: GeminiError): boolean {
   if (err.status !== 429) return false
@@ -61,20 +74,7 @@ export function isQuotaExhausted(err: GeminiError): boolean {
   return body?.error?.status === 'RESOURCE_EXHAUSTED'
 }
 
-/**
- * Llama a generateContent con reintentos simples ante 429/5xx.
- * No reintenta ante 4xx de validación (400) — esos son errores de
- * nuestro propio payload, reintentar no ayuda.
- */
-export async function generateContent(
-  options: GenerateContentOptions,
-  { maxRetries = 2 }: { maxRetries?: number } = {}
-): Promise<string> {
-  const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey) {
-    throw new GeminiError('GEMINI_API_KEY no está configurada en el entorno del servidor.')
-  }
-
+function buildRequestBody(options: GenerateContentOptions) {
   const generationConfig: Record<string, unknown> = {
     temperature: options.temperature ?? 0.4
   }
@@ -90,7 +90,7 @@ export async function generateContent(
     }
   }
 
-  const body = {
+  return {
     contents: [
       {
         role: 'user',
@@ -99,8 +99,21 @@ export async function generateContent(
     ],
     generationConfig
   }
+}
 
-  const url = `${GEMINI_BASE_URL}/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`
+/**
+ * Llama a UN modelo específico con reintentos simples ante 429
+ * (no-cuota)/5xx. No reintenta ante 4xx de validación (400) ni ante
+ * cuota agotada (ver isQuotaExhausted) — en ambos casos reintentar
+ * contra el MISMO modelo no ayuda.
+ */
+async function callModel(
+  model: string,
+  body: ReturnType<typeof buildRequestBody>,
+  apiKey: string,
+  maxRetries: number
+): Promise<string> {
+  const url = `${GEMINI_BASE_URL}/models/${model}:generateContent?key=${apiKey}`
 
   let lastError: unknown
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -119,22 +132,24 @@ export async function generateContent(
           throw new GeminiError(
             `Gemini rechazó la solicitud (400): ${JSON.stringify(errorBody)}`,
             res.status,
-            errorBody
+            errorBody,
+            model
           )
         }
 
-        throw new GeminiError(
-          `Gemini respondió con error ${res.status}`,
-          res.status,
-          errorBody
-        )
+        throw new GeminiError(`Gemini respondió con error ${res.status}`, res.status, errorBody, model)
       }
 
       const data = (await res.json()) as GeminiResponse
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text
 
       if (!text) {
-        throw new GeminiError('Gemini devolvió una respuesta sin contenido de texto.', res.status, data)
+        throw new GeminiError(
+          'Gemini devolvió una respuesta sin contenido de texto.',
+          res.status,
+          data,
+          model
+        )
       }
 
       return text
@@ -155,6 +170,38 @@ export async function generateContent(
   }
 
   throw lastError instanceof Error ? lastError : new GeminiError('Error desconocido llamando a Gemini.')
+}
+
+/**
+ * Genera contenido con el modelo principal; si éste devuelve cuota
+ * agotada, cambia automáticamente al modelo de respaldo (cuota
+ * independiente) antes de rendirse. El llamador no necesita saber cuál
+ * de los dos modelos respondió finalmente.
+ */
+export async function generateContent(
+  options: GenerateContentOptions,
+  { maxRetries = 2 }: { maxRetries?: number } = {}
+): Promise<string> {
+  const apiKey = process.env.GEMINI_API_KEY
+  if (!apiKey) {
+    throw new GeminiError('GEMINI_API_KEY no está configurada en el entorno del servidor.')
+  }
+
+  const body = buildRequestBody(options)
+
+  try {
+    return await callModel(GEMINI_MODEL_PRIMARY, body, apiKey, maxRetries)
+  } catch (err) {
+    if (err instanceof GeminiError && isQuotaExhausted(err)) {
+      console.warn(
+        `Cuota agotada en ${GEMINI_MODEL_PRIMARY}, reintentando con modelo de respaldo ${GEMINI_MODEL_FALLBACK}.`
+      )
+      // Un solo reintento adicional en el fallback alcanza: si éste
+      // también está agotado, no tiene sentido seguir insistiendo.
+      return await callModel(GEMINI_MODEL_FALLBACK, body, apiKey, 1)
+    }
+    throw err
+  }
 }
 
 /**
