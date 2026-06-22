@@ -18,6 +18,7 @@ import {
 } from './actions'
 import { GeneratePersonalizedExerciseButton } from './GeneratePersonalizedExerciseButton'
 import { SubmissionHistoryEntry } from './SubmissionHistoryEntry'
+import { PersonalizedExerciseEntry } from './PersonalizedExerciseEntry'
 
 const NAV_ITEMS = [{ href: '/teacher/classes', label: 'Le mie classi' }]
 
@@ -141,33 +142,33 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
             <div className="mt-4 space-y-2">
               {personalizedExercises.map((e: PersonalizedExerciseRow) => {
                 const punteggio = e.submission_id ? punteggiPerSubmission[e.submission_id] : null
+                const statoNode = e.submission_id ? (
+                  punteggio !== null ? (
+                    <span className="rounded-full bg-info-bg px-3 py-1 text-sm font-medium text-info-text">
+                      {punteggio}%
+                    </span>
+                  ) : (
+                    <span className="text-xs text-ink-tertiary">Consegnato, in valutazione</span>
+                  )
+                ) : (
+                  <span className="text-xs text-warning-text">In attesa dello studente</span>
+                )
+
                 return (
-                  <div
+                  <PersonalizedExerciseEntry
                     key={e.id}
-                    className="flex items-center justify-between rounded-md bg-surface-secondary p-3"
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-ink-primary">{e.titolo}</p>
-                      <p className="text-xs text-ink-tertiary">
-                        {new Date(e.created_at).toLocaleDateString('it-IT', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric'
-                        })}
-                      </p>
-                    </div>
-                    {e.submission_id ? (
-                      punteggio !== null ? (
-                        <span className="rounded-full bg-info-bg px-3 py-1 text-sm font-medium text-info-text">
-                          {punteggio}%
-                        </span>
-                      ) : (
-                        <span className="text-xs text-ink-tertiary">Consegnato, in valutazione</span>
-                      )
-                    ) : (
-                      <span className="text-xs text-warning-text">In attesa dello studente</span>
-                    )}
-                  </div>
+                    titolo={e.titolo}
+                    teoria={e.teoria}
+                    spiegazione={e.spiegazione}
+                    esempio={e.esempio}
+                    consegna={e.consegna}
+                    dataLabel={new Date(e.created_at).toLocaleDateString('it-IT', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric'
+                    })}
+                    statoNode={statoNode}
+                  />
                 )
               })}
             </div>
