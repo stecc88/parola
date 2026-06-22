@@ -147,9 +147,10 @@ export async function generateContent(
  * lib/gemini/schema.ts para validar antes de persistir).
  */
 export async function generateStructuredContent(
-  options: GenerateContentOptions
+  options: GenerateContentOptions,
+  retryOptions: { maxRetries?: number } = {}
 ): Promise<unknown> {
-  const text = await generateContent(options)
+  const text = await generateContent(options, retryOptions)
   try {
     return JSON.parse(text)
   } catch {

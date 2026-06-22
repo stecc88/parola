@@ -56,11 +56,19 @@ export async function generatePersonalizedExercise(studentId: string) {
     .slice(0, 3)
     .map(([categoria]) => categoria)
 
-  const esercizio = await generateEsercizioPersonalizzato({
-    livelloTarget: profile.livello_target ?? undefined,
-    areeDiMiglioramento: stats.areeMiglioramentoFrequenti.map((a) => a.testo),
-    categorieErroriFrequenti: categorieFrequenti
-  })
+  let esercizio
+  try {
+    esercizio = await generateEsercizioPersonalizzato({
+      livelloTarget: profile.livello_target ?? undefined,
+      areeDiMiglioramento: stats.areeMiglioramentoFrequenti.map((a) => a.testo),
+      categorieErroriFrequenti: categorieFrequenti
+    })
+  } catch (err) {
+    console.error('Errore generando esercizio personalizzato:', err)
+    throw new Error(
+      "L'IA è temporaneamente sovraccarica e non ha potuto generare l'esercizio. Riprova tra qualche istante."
+    )
+  }
 
   const { error: insertError } = await supabase.from('personalized_exercises').insert({
     student_id: studentId,

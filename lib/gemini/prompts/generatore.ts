@@ -72,12 +72,15 @@ internazionali di lingua italiana" se necessario.`
 export async function generateEsercizioPersonalizzato(
   profilo: ProfiloDebolezzeStudente
 ): Promise<EsercizioPersonalizzato> {
-  const raw = await generateStructuredContent({
-    prompt: buildPrompt(profilo),
-    responseSchema: RESPONSE_SCHEMA,
-    thinking: { thinkingBudget: 2048 },
-    temperature: 0.5
-  })
+  const raw = await generateStructuredContent(
+    {
+      prompt: buildPrompt(profilo),
+      responseSchema: RESPONSE_SCHEMA,
+      thinking: { thinkingBudget: 2048 },
+      temperature: 0.5
+    },
+    { maxRetries: 4 }
+  )
 
   const parsed = esercizioPersonalizzatoSchema.safeParse(raw)
   if (!parsed.success) {
