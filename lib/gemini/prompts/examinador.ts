@@ -21,7 +21,23 @@ function buildPrompt(testoStudente: string, livelloTarget?: string, consegna?: s
   return `Sei un esaminatore esperto di lingua italiana per adolescenti che si
 preparano a superare standard internazionali di lingua italiana. Valuta il
 testo seguente, scritto da uno studente${livelloTarget ? ` con livello target ${livelloTarget}` : ''}.
-${consegna ? `\nConsegna data allo studente: "${consegna}"\nTieni conto di quanto il testo risponde a questa consegna, oltre alla correttezza linguistica.\n` : ''}
+${
+  consegna
+    ? `\nConsegna data allo studente dal docente: "${consegna}"
+
+Prima di tutto, identifica ogni punto/richiesta esplicita o implicita contenuta
+nella consegna (es. "racconta un'esperienza", "esprimi un'opinione", "usa il
+condizionale", "scrivi almeno 150 parole", ecc.). Poi verifica, punto per
+punto, se il testo dello studente la soddisfa. Compila il campo
+"rispetto_consegna" con: l'elenco dei punti richiesti, quali sono stati
+coperti, quali mancano, un giudizio booleano se la consegna è stata
+complessivamente rispettata, e un commento breve che spiega il giudizio.
+Questa verifica è tanto importante quanto la correttezza linguistica: un
+testo grammaticalmente perfetto ma che non risponde alla consegna NON deve
+ricevere un punteggio alto.
+`
+    : '\nNon è stata fornita nessuna consegna specifica: lascia "rispetto_consegna" a null.\n'
+}
 Testo dello studente:
 """
 ${testoStudente}

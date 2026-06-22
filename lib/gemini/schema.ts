@@ -23,7 +23,16 @@ export const valutazioneEsaminatoreSchema = z.object({
       spiegazione: z.string()
     })
   ),
-  feedback_generale: z.string().min(1)
+  feedback_generale: z.string().min(1),
+  rispetto_consegna: z
+    .object({
+      punti_richiesti: z.array(z.string()).min(1).max(8),
+      punti_coperti: z.array(z.string()),
+      punti_mancanti: z.array(z.string()),
+      rispetta_consegna: z.boolean(),
+      commento: z.string().min(1)
+    })
+    .nullable()
 })
 
 export type ValutazioneEsaminatore = z.infer<typeof valutazioneEsaminatoreSchema>

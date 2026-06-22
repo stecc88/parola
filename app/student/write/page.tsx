@@ -25,11 +25,19 @@ function WritePageInner() {
   const guida = getGuidaBySlug(searchParams.get('guida'))
 
   const [testo, setTesto] = useState('')
+  const [consegnaLibera, setConsegnaLibera] = useState('')
   const [stato, setStato] = useState<Stato>('idle')
   const [errore, setErrore] = useState<string | null>(null)
   const [valutazione, setValutazione] = useState<ValutazioneEsaminatore | null>(null)
 
+  const consegnaEffettiva = guida ? guida.consegna : consegnaLibera
+
   async function handleSubmit() {
+    if (!guida && consegnaLibera.trim().length < 10) {
+      setErrore('Inserisci la consegna che ti ha dato il docente prima di scrivere il testo.')
+      return
+    }
+
     if (testo.trim().length < 20) {
       setErrore('Scrivi almeno qualche frase prima di richiedere una valutazione.')
       return
@@ -40,13 +48,13 @@ function WritePageInner() {
     setStato('salvando')
 
     try {
-      const submissionId = await createScritturaLiberaSubmission(testo)
+      const submissionId = await createScritturaLiberaSubmission(testo, consegnaEffettiva)
 
       setStato('valutando')
       const res = await fetch('/api/gemini/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ submissionId, consegna: guida?.consegna })
+        body: JSON.stringify({ submissionId, consegna: consegnaEffettiva })
       })
 
       if (!res.ok) {
@@ -85,6 +93,30 @@ function WritePageInner() {
         </div>
 
         <Card>
+          {!guida && (
+            <div className="mb-4">
+              <label
+                htmlFor="consegna-libera"
+                className="mb-1 block text-sm font-medium text-ink-primary"
+              >
+                Consegna del docente
+              </label>
+              <p className="mb-2 text-xs text-ink-tertiary">
+                Inserisci esattamente la consegna che ti ha dato il docente. L&apos;esaminatore
+                verificherà se il tuo testo rispetta ogni punto richiesto.
+              </p>
+              <textarea
+                id="consegna-libera"
+                value={consegnaLibera}
+                onChange={(e) => setConsegnaLibera(e.target.value)}
+                disabled={stato === 'salvando' || stato === 'valutando'}
+                rows={3}
+                placeholder="Es: Scrivi una lettera a un amico in cui racconti la tua ultima vacanza. Descrivi dove sei andato, cosa hai fatto e come ti sei sentito. (almeno 120 parole)"
+                className="w-full resize-none rounded-md border border-border bg-surface p-3 text-sm text-ink-primary outline-none focus:border-brand-400 disabled:opacity-60"
+              />
+            </div>
+          )}
+
           <textarea
             value={testo}
             onChange={(e) => setTesto(e.target.value)}
@@ -128,6 +160,33 @@ function WritePageInner() {
             </div>
 
             <p className="mb-4 text-sm text-ink-primary">{valutazione.feedback_generale}</p>
+
+            {valutazione.rispetto_consegna && (
+              <div
+                className={`mb-4 rounded-md p-3 text-sm ${
+                  valutazione.rispetto_consegna.rispetta_consegna
+                    ? 'bg-success-bg text-success-text'
+                    : 'bg-warning-bg text-warning-text'
+                }`}
+              >
+                <p className="font-semibold">
+                  {valutazione.rispetto_consegna.rispetta_consegna
+                    ? '✓ Consegna rispettata'
+                    : '⚠ Consegna non completamente rispettata'}
+                </p>
+                <p className="mt-1">{valutazione.rispetto_consegna.commento}</p>
+                {valutazione.rispetto_consegna.punti_mancanti.length > 0 && (
+                  <div className="mt-2">
+                    <p className="font-medium">Punti mancanti:</p>
+                    <ul className="ml-4 list-disc">
+                      {valutazione.rispetto_consegna.punti_mancanti.map((p, i) => (
+                        <li key={i}>{p}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
