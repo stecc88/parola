@@ -10,6 +10,11 @@ import {
   type SubmissionRow,
   type CategoriaErrore
 } from '@/lib/analytics/studentStats'
+import {
+  getPersonalizedExercisesForStudent,
+  type PersonalizedExerciseRow
+} from './actions'
+import { GeneratePersonalizedExerciseButton } from './GeneratePersonalizedExerciseButton'
 
 const NAV_ITEMS = [{ href: '/teacher/classes', label: 'Le mie classi' }]
 
@@ -62,6 +67,27 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
 
   const stats = computeStudentStats((submissions as SubmissionRow[]) ?? [])
 
+  const personalizedExercises = await getPersonalizedExercisesForStudent(params.id)
+  const submissionIds = personalizedExercises
+    .map((e) => e.submission_id)
+    .filter((id): id is string => !!id)
+
+  let punteggiPerSubmission: Record<string, number | null> = {}
+  if (submissionIds.length > 0) {
+    const { data: relatedSubmissions } = await supabase
+      .from('submissions')
+      .select('id, valutazione_ia')
+      .in('id', submissionIds)
+
+    punteggiPerSubmission = Object.fromEntries(
+      (relatedSubmissions ?? []).map((s) => {
+        const v = s.valutazione_ia as Record<string, unknown> | null
+        const punteggio = typeof v?.punteggio_complessivo === 'number' ? v.punteggio_complessivo : null
+        return [s.id, punteggio]
+      })
+    )
+  }
+
   return (
     <>
       <AppNav items={NAV_ITEMS} />
@@ -80,6 +106,53 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
             </p>
           )}
         </div>
+
+        <Card className="mb-6">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-ink-primary">Esercizi personalizzati</h2>
+          </div>
+          <p className="mb-3 text-xs text-ink-tertiary">
+            Genera un esercizio su misura (teoria, spiegazione, esempio e consegna pratica)
+            basato sulle aree di miglioramento e gli errori più frequenti di questo studente.
+          </p>
+          <GeneratePersonalizedExerciseButton studentId={params.id} />
+
+          {personalizedExercises.length > 0 && (
+            <div className="mt-4 space-y-2">
+              {personalizedExercises.map((e: PersonalizedExerciseRow) => {
+                const punteggio = e.submission_id ? punteggiPerSubmission[e.submission_id] : null
+                return (
+                  <div
+                    key={e.id}
+                    className="flex items-center justify-between rounded-md bg-surface-secondary p-3"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-ink-primary">{e.titolo}</p>
+                      <p className="text-xs text-ink-tertiary">
+                        {new Date(e.created_at).toLocaleDateString('it-IT', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                    {e.submission_id ? (
+                      punteggio !== null ? (
+                        <span className="rounded-full bg-info-bg px-3 py-1 text-sm font-medium text-info-text">
+                          {punteggio}%
+                        </span>
+                      ) : (
+                        <span className="text-xs text-ink-tertiary">Consegnato, in valutazione</span>
+                      )
+                    ) : (
+                      <span className="text-xs text-warning-text">In attesa dello studente</span>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </Card>
 
         {stats.totaleAttivita === 0 ? (
           <Card className="border-dashed text-center text-sm text-ink-tertiary">

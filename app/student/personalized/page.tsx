@@ -1,0 +1,92 @@
+import Link from 'next/link'
+import { AppNav } from '@/components/shared/AppNav'
+import { Card } from '@/components/ui/Card'
+import { createClient } from '@/lib/supabase/server'
+import { getMyPersonalizedExercises } from './actions'
+
+const NAV_ITEMS = [
+  { href: '/student/write', label: 'Scrittura libera' },
+  { href: '/student/exercises', label: 'Esercizi' },
+  { href: '/student/guides', label: 'Guide' },
+  { href: '/student/personalized', label: 'Per te' },
+  { href: '/student/progress', label: 'I miei progressi' }
+]
+
+export default async function PersonalizedExercisesPage() {
+  const esercizi = await getMyPersonalizedExercises()
+  const supabase = createClient()
+
+  const submissionIds = esercizi
+    .map((e) => e.submission_id)
+    .filter((id): id is string => !!id)
+
+  let punteggiPerSubmission: Record<string, number | null> = {}
+  if (submissionIds.length > 0) {
+    const { data: relatedSubmissions } = await supabase
+      .from('submissions')
+      .select('id, valutazione_ia')
+      .in('id', submissionIds)
+
+    punteggiPerSubmission = Object.fromEntries(
+      (relatedSubmissions ?? []).map((s) => {
+        const v = s.valutazione_ia as Record<string, unknown> | null
+        const punteggio = typeof v?.punteggio_complessivo === 'number' ? v.punteggio_complessivo : null
+        return [s.id, punteggio]
+      })
+    )
+  }
+
+  return (
+    <>
+      <AppNav items={NAV_ITEMS} />
+      <main className="mx-auto max-w-3xl p-6">
+        <h1 className="mb-2 text-xl font-semibold text-ink-primary">Esercizi per te</h1>
+        <p className="mb-6 text-sm text-ink-secondary">
+          Esercizi creati dal tuo insegnante apposta per aiutarti sui punti su cui stai
+          lavorando.
+        </p>
+
+        {esercizi.length === 0 ? (
+          <Card className="border-dashed text-center text-sm text-ink-tertiary">
+            Il tuo insegnante non ha ancora creato esercizi personalizzati per te.
+          </Card>
+        ) : (
+          <div className="space-y-2">
+            {esercizi.map((e) => {
+              const punteggio = e.submission_id ? punteggiPerSubmission[e.submission_id] : null
+              return (
+                <Link key={e.id} href={`/student/personalized/${e.id}`}>
+                  <Card className="flex items-center justify-between transition-colors hover:bg-surface-tertiary">
+                    <div>
+                      <p className="text-sm font-medium text-ink-primary">{e.titolo}</p>
+                      <p className="text-xs text-ink-tertiary">
+                        {new Date(e.created_at).toLocaleDateString('it-IT', {
+                          day: '2-digit',
+                          month: '2-digit',
+                          year: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                    {e.submission_id ? (
+                      punteggio !== null ? (
+                        <span className="rounded-full bg-info-bg px-3 py-1 text-sm font-medium text-info-text">
+                          {punteggio}%
+                        </span>
+                      ) : (
+                        <span className="text-xs text-ink-tertiary">In valutazione</span>
+                      )
+                    ) : (
+                      <span className="rounded-full bg-guided-bg px-3 py-1 text-xs font-medium text-guided-text">
+                        Da svolgere
+                      </span>
+                    )}
+                  </Card>
+                </Link>
+              )
+            })}
+          </div>
+        )}
+      </main>
+    </>
+  )
+}

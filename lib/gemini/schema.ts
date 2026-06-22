@@ -58,6 +58,20 @@ export const valutazioneStrutturaSchema = z.object({
 export type ValutazioneStruttura = z.infer<typeof valutazioneStrutturaSchema>
 
 /**
+ * Schema per la GENERAZIONE (non valutazione) di un esercizio personalizzato
+ * da parte del docente, basato sui punti debili di uno studente specifico.
+ */
+export const esercizioPersonalizzatoSchema = z.object({
+  titolo: z.string().min(1).max(120),
+  teoria: z.string().min(1),
+  spiegazione: z.string().min(1),
+  esempio: z.string().min(1),
+  consegna: z.string().min(1)
+})
+
+export type EsercizioPersonalizzato = z.infer<typeof esercizioPersonalizzatoSchema>
+
+/**
  * Convierte un schema Zod (subset soportado: object/array/string/number/
  * boolean/enum/nullable) al formato responseSchema que espera la REST API
  * de Gemini (subset de OpenAPI 3.0 Schema Object).

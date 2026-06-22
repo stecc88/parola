@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: '/student/write', label: 'Scrittura libera' },
   { href: '/student/exercises', label: 'Esercizi' },
   { href: '/student/guides', label: 'Guide' },
+  { href: '/student/personalized', label: 'Per te' },
   { href: '/student/progress', label: 'I miei progressi' }
 ]
 
