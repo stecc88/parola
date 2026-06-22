@@ -197,7 +197,7 @@ export async function getUnseenDeliveries(): Promise<NotificaConsegna[]> {
     .select('id, titolo, student_id, created_at, profiles!student_id(nome, cognome)')
     .eq('teacher_id', userData.user.id)
     .eq('seen_by_teacher', false)
-    .not('submission_id', 'is', null)
+    .or('submission_id.not.is.null,completato_at.not.is.null')
     .order('created_at', { ascending: false })
 
   if (error) {

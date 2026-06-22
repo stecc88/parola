@@ -5,15 +5,28 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { generateEsercizioPersonalizzato } from '@/lib/gemini/prompts/generatore'
 import { computeStudentStats, type SubmissionRow } from '@/lib/analytics/studentStats'
+import type { TipoEsercizioPersonalizzato } from '@/lib/gemini/schema'
+
+export interface EsercizioItem {
+  domanda: string
+  opzioni: string[]
+  risposta_corretta: string
+  spiegazione_risposta: string
+}
 
 export interface PersonalizedExerciseRow {
   id: string
+  tipo_esercizio: TipoEsercizioPersonalizzato
   titolo: string
   teoria: string
   spiegazione: string
   esempio: string
   consegna: string
+  items: EsercizioItem[] | null
   submission_id: string | null
+  risposte_studente: string[] | null
+  punteggio_chiuso: number | null
+  completato_at: string | null
   seen_by_teacher: boolean
   created_at: string
 }
@@ -23,8 +36,14 @@ export interface PersonalizedExerciseRow {
  * aree di miglioramento e categorie di errore più frequenti (calcolate
  * dalle sue submissions valutate). Salva il risultato in
  * personalized_exercises, visibile allo studente da /student/personalized.
+ *
+ * tipoEsercizio: se omesso/null, lascia che sia l'IA a scegliere il tipo
+ * più adatto in base alle difficoltà rilevate.
  */
-export async function generatePersonalizedExercise(studentId: string) {
+export async function generatePersonalizedExercise(
+  studentId: string,
+  tipoEsercizio?: TipoEsercizioPersonalizzato
+) {
   const supabase = createClient()
   const { data: userData, error: authError } = await supabase.auth.getUser()
   if (authError || !userData.user) throw new Error('Non autenticato.')
@@ -63,7 +82,8 @@ export async function generatePersonalizedExercise(studentId: string) {
     esercizio = await generateEsercizioPersonalizzato({
       livelloTarget: profile.livello_target ?? undefined,
       areeDiMiglioramento: stats.areeMiglioramentoFrequenti.map((a) => a.testo),
-      categorieErroriFrequenti: categorieFrequenti
+      categorieErroriFrequenti: categorieFrequenti,
+      tipoEsercizio
     })
   } catch (err) {
     console.error('Errore generando esercizio personalizzato:', err)
@@ -75,15 +95,18 @@ export async function generatePersonalizedExercise(studentId: string) {
   const { error: insertError } = await supabase.from('personalized_exercises').insert({
     student_id: studentId,
     teacher_id: userData.user.id,
+    tipo_esercizio: esercizio.tipo_esercizio,
     titolo: esercizio.titolo,
     teoria: esercizio.teoria,
     spiegazione: esercizio.spiegazione,
     esempio: esercizio.esempio,
-    consegna: esercizio.consegna
+    consegna: esercizio.consegna,
+    items: esercizio.items.length > 0 ? esercizio.items : null
   })
 
   if (insertError) {
-    throw new Error('Errore salvando l\'esercizio personalizzato.')
+    console.error('Errore salvando esercizio personalizzato:', insertError)
+    throw new Error("Errore salvando l'esercizio personalizzato.")
   }
 
   revalidatePath(`/teacher/students/${studentId}`)
@@ -97,7 +120,7 @@ export async function getPersonalizedExercisesForStudent(
   const { data, error } = await supabase
     .from('personalized_exercises')
     .select(
-      'id, titolo, teoria, spiegazione, esempio, consegna, submission_id, seen_by_teacher, created_at'
+      'id, tipo_esercizio, titolo, teoria, spiegazione, esempio, consegna, items, submission_id, risposte_studente, punteggio_chiuso, completato_at, seen_by_teacher, created_at'
     )
     .eq('student_id', studentId)
     .order('created_at', { ascending: false })
@@ -107,13 +130,14 @@ export async function getPersonalizedExercisesForStudent(
     return []
   }
 
-  return data ?? []
+  return (data ?? []) as PersonalizedExerciseRow[]
 }
 
 /**
  * Marca come "letti" tutti gli esercizi personalizzati consegnati di
- * questo studente — chiamata quando il docente visita la sua pagina di
- * dettaglio, così la notifica smette di apparire.
+ * questo studente (sia di tipo scrittura, sia a risposta chiusa) —
+ * chiamata quando il docente visita la sua pagina di dettaglio, così la
+ * notifica smette di apparire.
  */
 export async function markPersonalizedExercisesSeen(studentId: string) {
   const supabase = createClient()
@@ -126,7 +150,7 @@ export async function markPersonalizedExercisesSeen(studentId: string) {
     .eq('student_id', studentId)
     .eq('teacher_id', userData.user.id)
     .eq('seen_by_teacher', false)
-    .not('submission_id', 'is', null)
+    .or('submission_id.not.is.null,completato_at.not.is.null')
 }
 
 /**

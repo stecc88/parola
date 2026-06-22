@@ -53,7 +53,36 @@ export default async function PersonalizedExercisesPage() {
         ) : (
           <div className="space-y-2">
             {esercizi.map((e) => {
+              const isScrittura = e.tipo_esercizio === 'scrittura'
               const punteggio = e.submission_id ? punteggiPerSubmission[e.submission_id] : null
+
+              let statoNode
+              if (isScrittura) {
+                statoNode = e.submission_id ? (
+                  punteggio !== null ? (
+                    <span className="rounded-full bg-info-bg px-3 py-1 text-sm font-medium text-info-text">
+                      {punteggio}%
+                    </span>
+                  ) : (
+                    <span className="text-xs text-ink-tertiary">In valutazione</span>
+                  )
+                ) : (
+                  <span className="rounded-full bg-guided-bg px-3 py-1 text-xs font-medium text-guided-text">
+                    Da svolgere
+                  </span>
+                )
+              } else {
+                statoNode = e.completato_at ? (
+                  <span className="rounded-full bg-info-bg px-3 py-1 text-sm font-medium text-info-text">
+                    {e.punteggio_chiuso}%
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-guided-bg px-3 py-1 text-xs font-medium text-guided-text">
+                    Da svolgere
+                  </span>
+                )
+              }
+
               return (
                 <Link key={e.id} href={`/student/personalized/${e.id}`}>
                   <Card className="flex items-center justify-between transition-colors hover:bg-surface-tertiary">
@@ -67,19 +96,7 @@ export default async function PersonalizedExercisesPage() {
                         })}
                       </p>
                     </div>
-                    {e.submission_id ? (
-                      punteggio !== null ? (
-                        <span className="rounded-full bg-info-bg px-3 py-1 text-sm font-medium text-info-text">
-                          {punteggio}%
-                        </span>
-                      ) : (
-                        <span className="text-xs text-ink-tertiary">In valutazione</span>
-                      )
-                    ) : (
-                      <span className="rounded-full bg-guided-bg px-3 py-1 text-xs font-medium text-guided-text">
-                        Da svolgere
-                      </span>
-                    )}
+                    {statoNode}
                   </Card>
                 </Link>
               )

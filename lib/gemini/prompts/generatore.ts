@@ -2,14 +2,15 @@ import { generateStructuredContent } from '../client'
 import {
   esercizioPersonalizzatoSchema,
   zodToGeminiSchema,
-  type EsercizioPersonalizzato
+  type EsercizioPersonalizzato,
+  type TipoEsercizioPersonalizzato
 } from '../schema'
 
 /**
  * Generatore di esercizi personalizzati per il docente. A differenza
  * dell'esaminatore (lib/gemini/prompts/examinador.ts), qui Gemini non valuta
  * un testo: CREA materiale didattico (teoria + spiegazione + esempio +
- * consegna pratica) su misura per le difficoltà specifiche di UNO studente.
+ * consegna/items) su misura per le difficoltà specifiche di UNO studente.
  *
  * RECORDATORIO: stesso vincolo del resto del progetto — mai menzionare
  * CILS/CELI/PLIDA, usare sempre "standard internazionali di lingua italiana".
@@ -21,9 +22,43 @@ export interface ProfiloDebolezzeStudente {
   livelloTarget?: string
   areeDiMiglioramento: string[] // già aggregate/contate altrove, qui solo i testi
   categorieErroriFrequenti: string[] // es. ['grammatica', 'ortografia']
+  // Se omesso, l'IA scegli il tipo più adatto alle difficoltà rilevate.
+  tipoEsercizio?: TipoEsercizioPersonalizzato
+}
+
+const TIPO_ISTRUZIONI: Record<TipoEsercizioPersonalizzato, string> = {
+  scrittura: `Tipo "scrittura": lascia "items" come array VUOTO. In "consegna" scrivi
+un compito di scrittura completo con almeno un requisito verificabile
+(numero minimo di frasi/parole, o un elemento grammaticale obbligatorio).`,
+  completamento: `Tipo "completamento": genera 5-8 frasi in "items", ciascuna con uno
+spazio vuoto segnato con "___" nel campo "domanda" (es. "Ieri io ___
+(andare) al mercato."). "opzioni" resta un array VUOTO (risposta aperta).
+"risposta_corretta" è la parola/forma esatta che completa la frase.
+"consegna" è una singola istruzione breve, es. "Completa ogni frase con
+la forma corretta della parola tra parentesi."`,
+  scelta_multipla: `Tipo "scelta_multipla": genera 5-8 domande in "items". Ogni "domanda"
+è una frase con uno spazio "___" o una domanda diretta. "opzioni" contiene
+3-4 alternative (solo una corretta). "risposta_corretta" deve essere
+identica testualmente a una delle "opzioni". "consegna" è una singola
+istruzione breve, es. "Scegli l'opzione corretta per completare ogni frase."`,
+  abbinamento: `Tipo "abbinamento": genera 5-8 item in "items". Ogni "domanda" è un
+elemento da abbinare (es. un pronome, un'espressione di tempo, l'inizio di
+una frase). "opzioni" contiene 4-6 possibili corrispondenze tra cui
+scegliere (incluse quelle corrette per tutti gli item, mescolate).
+"risposta_corretta" è la corrispondenza esatta per quella domanda, identica
+testualmente a una delle "opzioni". "consegna" è una singola istruzione
+breve, es. "Abbina ogni pronome alla forma verbale corretta."`,
+  trasformazione: `Tipo "trasformazione": genera 5-8 frasi in "items". Ogni "domanda" è
+una frase da trasformare (es. da presente a passato, da affermativa a
+negativa, da singolare a plurale). "opzioni" resta un array VUOTO.
+"risposta_corretta" è la frase trasformata, scritta per intero.
+"consegna" è una singola istruzione breve, es. "Trasforma ogni frase al
+passato prossimo."`
 }
 
 function buildPrompt(profilo: ProfiloDebolezzeStudente): string {
+  const livello = profilo.livelloTarget ?? 'B1'
+
   const areeText =
     profilo.areeDiMiglioramento.length > 0
       ? profilo.areeDiMiglioramento.map((a) => `- ${a}`).join('\n')
@@ -34,36 +69,62 @@ function buildPrompt(profilo: ProfiloDebolezzeStudente): string {
       ? `Le categorie di errore più frequenti nelle sue correzioni precedenti sono: ${profilo.categorieErroriFrequenti.join(', ')}.`
       : ''
 
+  const tipoText = profilo.tipoEsercizio
+    ? TIPO_ISTRUZIONI[profilo.tipoEsercizio]
+    : `Scegli TU il tipo più adatto alle difficoltà rilevate, tra: "scrittura",
+"completamento", "scelta_multipla", "abbinamento", "trasformazione".
+Istruzioni per ciascun tipo, da seguire ESATTAMENTE una volta scelto:
+${Object.values(TIPO_ISTRUZIONI).join('\n\n')}`
+
+  const livelloIstruzioni: Record<string, string> = {
+    A1: `Livello A1: usa frasi cortissime e dirette. La "teoria" deve essere
+estremamente semplice, massimo 3-4 frasi brevi, idealmente con una piccola
+lista a righe separate (una regola o un esempio per riga) invece di un
+paragrafo lungo. Evita termini grammaticali complessi senza spiegarli con
+parole quotidiane. Vocabolario molto comune e concreto.`,
+    A2: `Livello A2: frasi brevi e semplici. La "teoria" va organizzata in
+poche righe chiare, una idea per riga, con esempi concreti subito dopo
+ogni regola. Vocabolario quotidiano, pochissime eccezioni menzionate.`,
+    B1: `Livello B1: spiegazione chiara e diretta, in un paragrafo breve o
+poche righe. Puoi introdurre 1 eccezione o caso particolare se rilevante,
+ma senza appesantire troppo.`,
+    B2: `Livello B2: spiegazione più articolata, puoi collegare la regola a
+casi d'uso reali e un paio di eccezioni o sfumature di significato.`,
+    C1: `Livello C1: spiegazione approfondita, con attenzione a registro
+(formale/informale), connotazioni ed eccezioni meno comuni.`,
+    C2: `Livello C2: spiegazione sofisticata, orientata a sfumature
+stilistiche, registro, ed eventuali usi letterari o idiomatici della
+struttura.`
+  }
+
   return `Sei un insegnante esperto di lingua italiana per adolescenti che si
 preparano a superare standard internazionali di lingua italiana. Un docente
-ti chiede di creare un esercizio PERSONALIZZATO per UNO studente specifico${
-    profilo.livelloTarget ? ` con livello target ${profilo.livelloTarget}` : ''
-  }, basato sulle sue difficoltà ricorrenti.
+ti chiede di creare un esercizio PERSONALIZZATO per UNO studente specifico
+con livello target ${livello}, basato sulle sue difficoltà ricorrenti.
 
 Aree di miglioramento rilevate nelle correzioni precedenti dello studente:
 ${areeText}
 ${categorieText}
 
-Crea un esercizio completo con questi 5 elementi, pensati per un adolescente
+${livelloIstruzioni[livello] ?? livelloIstruzioni.B1}
+
+${tipoText}
+
+Crea l'esercizio completo con questi campi, pensati per un adolescente
 (linguaggio chiaro, motivante, non punitivo):
 
-1. "titolo": un titolo breve e specifico (es. "L'uso del condizionale per
+1. "tipo_esercizio": il tipo scelto (vedi sopra).
+2. "titolo": un titolo breve e specifico (es. "L'uso del condizionale per
    esprimere desideri").
-2. "teoria": una spiegazione chiara e concisa della regola grammaticale o
-   dell'abilità linguistica su cui lo studente deve lavorare, scritta in modo
-   semplice e diretto.
-3. "spiegazione": il motivo per cui questo punto è importante e perché lo
+3. "teoria": la spiegazione della regola, con la profondità e il formato
+   indicati per il livello ${livello} sopra.
+4. "spiegazione": il motivo per cui questo punto è importante e perché lo
    studente probabilmente lo sbaglia (collegandolo, se possibile, alle aree
    di miglioramento indicate sopra) — un paio di frasi, tono incoraggiante.
-4. "esempio": un esempio concreto e svolto (frase scorretta tipica →
+5. "esempio": un esempio concreto e svolto (frase scorretta tipica →
    versione corretta, con breve nota) che illustri la teoria in azione.
-5. "consegna": un compito pratico di scrittura che lo studente deve
-   svolgere per esercitarsi su questo punto specifico (es. "Scrivi 5 frasi
-   usando il condizionale per esprimere desideri legati al tuo futuro").
-   La consegna deve essere chiara, specifica, e contenere almeno un
-   requisito verificabile (es. un numero minimo di frasi/parole, o un
-   elemento grammaticale obbligatorio da usare), così da poter essere
-   valutata in modo oggettivo in seguito.
+6. "consegna" e "items": segui ESATTAMENTE le istruzioni del tipo scelto
+   sopra.
 
 Non menzionare mai nomi di certificazioni specifiche: usa sempre "standard
 internazionali di lingua italiana" se necessario.`

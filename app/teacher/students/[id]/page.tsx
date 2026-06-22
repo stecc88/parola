@@ -141,27 +141,36 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
           {personalizedExercises.length > 0 && (
             <div className="mt-4 space-y-2">
               {personalizedExercises.map((e: PersonalizedExerciseRow) => {
+                const isScrittura = e.tipo_esercizio === 'scrittura'
                 const punteggio = e.submission_id ? punteggiPerSubmission[e.submission_id] : null
-                const statoNode = e.submission_id ? (
-                  punteggio !== null ? (
+
+                let statoNode: React.ReactNode
+                if (isScrittura) {
+                  statoNode = e.submission_id ? (
+                    punteggio !== null ? (
+                      <span className="rounded-full bg-info-bg px-3 py-1 text-sm font-medium text-info-text">
+                        {punteggio}%
+                      </span>
+                    ) : (
+                      <span className="text-xs text-ink-tertiary">Consegnato, in valutazione</span>
+                    )
+                  ) : (
+                    <span className="text-xs text-warning-text">In attesa dello studente</span>
+                  )
+                } else {
+                  statoNode = e.completato_at ? (
                     <span className="rounded-full bg-info-bg px-3 py-1 text-sm font-medium text-info-text">
-                      {punteggio}%
+                      {e.punteggio_chiuso}%
                     </span>
                   ) : (
-                    <span className="text-xs text-ink-tertiary">Consegnato, in valutazione</span>
+                    <span className="text-xs text-warning-text">In attesa dello studente</span>
                   )
-                ) : (
-                  <span className="text-xs text-warning-text">In attesa dello studente</span>
-                )
+                }
 
                 return (
                   <PersonalizedExerciseEntry
                     key={e.id}
-                    titolo={e.titolo}
-                    teoria={e.teoria}
-                    spiegazione={e.spiegazione}
-                    esempio={e.esempio}
-                    consegna={e.consegna}
+                    esercizio={e}
                     dataLabel={new Date(e.created_at).toLocaleDateString('it-IT', {
                       day: '2-digit',
                       month: '2-digit',

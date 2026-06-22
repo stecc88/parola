@@ -60,13 +60,41 @@ export type ValutazioneStruttura = z.infer<typeof valutazioneStrutturaSchema>
 /**
  * Schema per la GENERAZIONE (non valutazione) di un esercizio personalizzato
  * da parte del docente, basato sui punti debili di uno studente specifico.
+ *
+ * "items" è usato per i tipi a risposta chiusa (completamento, scelta
+ * multipla, abbinamento, trasformazione) — vuoto per "scrittura", dove si
+ * usa invece "consegna" con il flusso di valutazione libera di Gemini.
  */
+export const tipoEsercizioPersonalizzatoSchema = z.enum([
+  'scrittura',
+  'completamento',
+  'scelta_multipla',
+  'abbinamento',
+  'trasformazione'
+])
+
+export type TipoEsercizioPersonalizzato = z.infer<typeof tipoEsercizioPersonalizzatoSchema>
+
 export const esercizioPersonalizzatoSchema = z.object({
+  tipo_esercizio: tipoEsercizioPersonalizzatoSchema,
   titolo: z.string().min(1).max(120),
   teoria: z.string().min(1),
   spiegazione: z.string().min(1),
   esempio: z.string().min(1),
-  consegna: z.string().min(1)
+  // Per "scrittura": il compito di scrittura completo. Per gli altri tipi:
+  // un'istruzione breve (es. "Completa ogni frase con la preposizione
+  // corretta").
+  consegna: z.string().min(1),
+  // Vuoto per "scrittura". 4-8 item per gli altri tipi.
+  items: z.array(
+    z.object({
+      domanda: z.string().min(1),
+      // Scelte per scelta_multipla/abbinamento; vuoto per completamento/trasformazione.
+      opzioni: z.array(z.string()),
+      risposta_corretta: z.string().min(1),
+      spiegazione_risposta: z.string().min(1)
+    })
+  )
 })
 
 export type EsercizioPersonalizzato = z.infer<typeof esercizioPersonalizzatoSchema>
