@@ -36,6 +36,18 @@ export default async function TeacherClassesPage() {
     <>
       <AppNav items={NAV_ITEMS} />
       <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
+        <Card className="mb-6 bg-guided-bg">
+          <p className="text-sm text-guided-text">Il tuo codice insegnante</p>
+          <p className="mt-1 font-mono text-2xl font-semibold text-guided-text">
+            {inviteCode ?? '—'}
+          </p>
+          <p className="mt-2 text-xs text-guided-text">
+            Condividi questo codice con i tuoi studenti — lo inseriranno al
+            momento della registrazione per unirsi a te. Dopo, potrai
+            assegnarli a una classe specifica qui sotto.
+          </p>
+        </Card>
+
         {notifiche.length > 0 && (
           <Card className="mb-6 border-warning-text/30 bg-warning-bg">
             <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-warning-text">
@@ -140,18 +152,6 @@ export default async function TeacherClassesPage() {
             </div>
           </Card>
         )}
-
-        <Card className="mb-6 bg-guided-bg">
-          <p className="text-sm text-guided-text">Il tuo codice insegnante</p>
-          <p className="mt-1 font-mono text-2xl font-semibold text-guided-text">
-            {inviteCode ?? '—'}
-          </p>
-          <p className="mt-2 text-xs text-guided-text">
-            Condividi questo codice con i tuoi studenti — lo inseriranno al
-            momento della registrazione per unirsi a te. Dopo, potrai
-            assegnarli a una classe specifica qui sotto.
-          </p>
-        </Card>
 
         {unassigned.length > 0 && (
           <Card className="mb-6">
