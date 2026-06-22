@@ -50,9 +50,12 @@ export default async function TeacherClassesPage() {
                   key={s.membership_id}
                   className="flex items-center justify-between rounded-md bg-surface-secondary p-3"
                 >
-                  <span className="text-sm text-ink-primary">
+                  <Link
+                    href={`/teacher/students/${s.student_id}`}
+                    className="text-sm text-ink-primary underline-offset-2 hover:underline"
+                  >
                     {s.nome} {s.cognome}
-                  </span>
+                  </Link>
                   <AssignStudentSelect
                     membershipId={s.membership_id}
                     classi={classi ?? []}

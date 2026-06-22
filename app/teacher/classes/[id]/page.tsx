@@ -67,9 +67,12 @@ export default async function ClassDetailPage({ params }: { params: { id: string
               const profile = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles
               return (
                 <Card key={m.id} className="flex items-center justify-between">
-                  <span className="text-sm text-ink-primary">
+                  <Link
+                    href={`/teacher/students/${m.student_id}`}
+                    className="text-sm text-ink-primary underline-offset-2 hover:underline"
+                  >
                     {profile?.nome} {profile?.cognome}
-                  </span>
+                  </Link>
                   <MoveStudentSelect
                     membershipId={m.id}
                     classi={altreClassi ?? []}
