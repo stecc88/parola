@@ -28,7 +28,7 @@ export default function JoinClassPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-surface-secondary p-6">
+    <main className="flex min-h-screen items-center justify-center bg-surface-secondary p-6 animate-fade-in">
       <Card className="w-full max-w-sm bg-surface">
         <div className="mb-6 flex flex-col items-center gap-3">
           <ParolaMascot mood="incoraggiante" />

@@ -17,7 +17,7 @@ export default function StudentDetailError({
   }, [error])
 
   return (
-    <main className="mx-auto max-w-3xl p-6">
+    <main className="mx-auto max-w-3xl p-6 animate-fade-in">
       <Card className="text-center">
         <h1 className="mb-2 text-lg font-semibold text-ink-primary">
           Qualcosa è andato storto

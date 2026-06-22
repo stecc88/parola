@@ -39,7 +39,7 @@ export default async function PersonalizedExercisesPage() {
   return (
     <>
       <AppNav items={NAV_ITEMS} />
-      <main className="mx-auto max-w-3xl p-6">
+      <main className="mx-auto max-w-3xl p-6 animate-fade-in">
         <h1 className="mb-2 text-xl font-semibold text-ink-primary">Esercizi per te</h1>
         <p className="mb-6 text-sm text-ink-secondary">
           Esercizi creati dal tuo insegnante apposta per aiutarti sui punti su cui stai
@@ -85,7 +85,7 @@ export default async function PersonalizedExercisesPage() {
 
               return (
                 <Link key={e.id} href={`/student/personalized/${e.id}`}>
-                  <Card className="flex items-center justify-between transition-colors hover:bg-surface-tertiary">
+                  <Card className="flex items-center justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:bg-surface-tertiary">
                     <div>
                       <p className="text-sm font-medium text-ink-primary">{e.titolo}</p>
                       <p className="text-xs text-ink-tertiary">

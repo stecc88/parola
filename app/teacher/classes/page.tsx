@@ -35,7 +35,7 @@ export default async function TeacherClassesPage() {
   return (
     <>
       <AppNav items={NAV_ITEMS} />
-      <main className="mx-auto max-w-3xl p-6">
+      <main className="mx-auto max-w-3xl p-6 animate-fade-in">
         {notifiche.length > 0 && (
           <Card className="mb-6 border-warning-text/30 bg-warning-bg">
             <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-warning-text">
@@ -193,7 +193,7 @@ export default async function TeacherClassesPage() {
           <div className="grid gap-3 sm:grid-cols-2">
             {classi.map((c) => (
               <Link href={`/teacher/classes/${c.id}`} key={c.id}>
-                <Card className="h-full transition-colors hover:bg-surface-tertiary">
+                <Card className="h-full transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:bg-surface-tertiary">
                   <h2 className="font-semibold text-ink-primary">{c.nome}</h2>
                   <div className="mt-2">
                     <ClassActions classId={c.id} nomeAttuale={c.nome} />

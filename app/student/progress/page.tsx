@@ -61,7 +61,7 @@ export default async function ProgressPage() {
   return (
     <>
       <AppNav items={NAV_ITEMS} />
-      <main className="mx-auto max-w-3xl p-6">
+      <main className="mx-auto max-w-3xl p-6 animate-fade-in">
         <h1 className="mb-6 text-xl font-semibold text-ink-primary">I miei progressi</h1>
 
         {stats.totaleAttivita === 0 ? (

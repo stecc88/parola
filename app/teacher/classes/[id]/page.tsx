@@ -43,7 +43,7 @@ export default async function ClassDetailPage({ params }: { params: { id: string
   return (
     <>
       <AppNav items={NAV_ITEMS} />
-      <main className="mx-auto max-w-3xl p-6">
+      <main className="mx-auto max-w-3xl p-6 animate-fade-in">
         <Link href="/teacher/classes" className="text-sm text-brand-400 underline">
           ← Tutte le classi
         </Link>

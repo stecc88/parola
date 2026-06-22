@@ -39,10 +39,18 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-surface-secondary p-6">
-      <Card className="w-full max-w-sm bg-surface">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-surface-secondary via-surface-secondary to-surface p-6 animate-fade-in">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -left-20 top-0 h-72 w-72 rounded-full bg-brand-400/10 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-16 bottom-0 h-72 w-72 rounded-full bg-sunshine-400/15 blur-3xl"
+      />
+      <Card className="relative w-full max-w-sm bg-surface shadow-xl">
         <div className="mb-6 flex flex-col items-center gap-3">
-          <ParolaMascot mood="felice" />
+          <ParolaMascot mood="felice" className="animate-float-slow" />
           <h1 className="text-xl font-semibold text-ink-primary">Accedi a Parola</h1>
         </div>
 
@@ -57,7 +65,7 @@ export default function LoginPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-ink-primary outline-none focus:border-brand-400"
+              className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-ink-primary outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
               autoComplete="email"
             />
           </div>
@@ -72,7 +80,7 @@ export default function LoginPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-ink-primary outline-none focus:border-brand-400"
+              className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-ink-primary outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
               autoComplete="current-password"
             />
           </div>

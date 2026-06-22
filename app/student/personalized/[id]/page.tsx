@@ -30,7 +30,7 @@ export default async function PersonalizedExerciseDetailPage({
   return (
     <>
       <AppNav items={NAV_ITEMS} />
-      <main className="mx-auto max-w-3xl p-6">
+      <main className="mx-auto max-w-3xl p-6 animate-fade-in">
         <PersonalizedExerciseClient esercizio={esercizio} valutazioneIniziale={valutazioneEsistente} />
       </main>
     </>

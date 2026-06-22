@@ -16,7 +16,7 @@ export default function GuidesPage() {
   return (
     <>
       <AppNav items={NAV_ITEMS} />
-      <main className="mx-auto max-w-3xl p-6">
+      <main className="mx-auto max-w-3xl p-6 animate-fade-in">
         <div className="mb-6 flex items-center gap-3">
           <ParolaMascot mood="neutro" />
           <div>
@@ -30,7 +30,7 @@ export default function GuidesPage() {
         <div className="grid gap-3 sm:grid-cols-2">
           {GUIDES.map((g) => (
             <Link key={g.slug} href={`/student/write?guida=${g.slug}`}>
-              <Card className="h-full transition-colors hover:bg-surface-tertiary">
+              <Card className="h-full transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:bg-surface-tertiary">
                 <h2 className="font-semibold text-ink-primary">{g.titolo}</h2>
                 <p className="mt-1 text-sm text-ink-secondary">{g.descrizione}</p>
               </Card>

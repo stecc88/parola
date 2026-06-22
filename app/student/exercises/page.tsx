@@ -31,7 +31,7 @@ export default function ExercisesPage() {
   return (
     <>
       <AppNav items={NAV_ITEMS} />
-      <main className="mx-auto max-w-3xl p-6">
+      <main className="mx-auto max-w-3xl p-6 animate-fade-in">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <ParolaMascot mood="pensieroso" />

@@ -80,10 +80,18 @@ export default function RegistratiPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-surface-secondary p-6">
-      <Card className="w-full max-w-sm bg-surface">
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-surface-secondary via-surface-secondary to-surface p-6 animate-fade-in">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -left-20 top-0 h-72 w-72 rounded-full bg-brand-400/10 blur-3xl"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-16 bottom-0 h-72 w-72 rounded-full bg-sunshine-400/15 blur-3xl"
+      />
+      <Card className="relative w-full max-w-sm bg-surface shadow-xl">
         <div className="mb-6 flex flex-col items-center gap-3">
-          <ParolaMascot mood="incoraggiante" />
+          <ParolaMascot mood="incoraggiante" className="animate-float-slow" />
           <h1 className="text-xl font-semibold text-ink-primary">Registrati</h1>
         </div>
 
@@ -113,7 +121,7 @@ export default function RegistratiPage() {
                 required
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
-                className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand-400"
+                className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
               />
             </div>
             <div className="flex-1">
@@ -122,7 +130,7 @@ export default function RegistratiPage() {
                 required
                 value={cognome}
                 onChange={(e) => setCognome(e.target.value)}
-                className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand-400"
+                className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
               />
             </div>
           </div>
@@ -134,7 +142,7 @@ export default function RegistratiPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand-400"
+              className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
               autoComplete="email"
             />
           </div>
@@ -147,7 +155,7 @@ export default function RegistratiPage() {
               minLength={6}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand-400"
+              className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
               autoComplete="new-password"
             />
           </div>
@@ -160,7 +168,7 @@ export default function RegistratiPage() {
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
                 placeholder="es. A3F7K9"
-                className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm uppercase outline-none focus:border-brand-400"
+                className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm uppercase outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
               />
               <p className="mt-1 text-xs text-ink-tertiary">
                 Te lo fornisce il tuo insegnante. Dopo potrà assegnarti a una classe.
