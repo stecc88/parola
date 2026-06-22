@@ -48,6 +48,12 @@ export default function LoginPage() {
         aria-hidden
         className="pointer-events-none absolute -right-16 bottom-0 h-72 w-72 rounded-full bg-sunshine-400/15 blur-3xl"
       />
+      <Link
+        href="/"
+        className="absolute left-4 top-4 z-10 text-sm text-ink-secondary hover:text-ink-primary"
+      >
+        ← Torna alla home
+      </Link>
       <Card className="relative w-full max-w-sm bg-surface shadow-xl">
         <div className="mb-6 flex flex-col items-center gap-3">
           <ParolaMascot mood="felice" className="animate-float-slow" />

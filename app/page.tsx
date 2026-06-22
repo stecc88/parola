@@ -114,6 +114,18 @@ function LandingPage() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
+      <header className="flex items-center justify-between px-6 py-4">
+        <Link href="/" className="flex items-center gap-2">
+          <ParolaMascot mood="neutro" className="h-9 w-9" />
+          <span className="font-semibold text-ink-primary">Parola</span>
+        </Link>
+        <Link href="/login">
+          <Button variant="secondary" className="px-4 py-1.5 text-sm">
+            Accedi
+          </Button>
+        </Link>
+      </header>
+
       {/* Hero */}
       <section className="notebook-lines relative border-b border-border bg-gradient-to-b from-surface-secondary via-surface-secondary to-surface px-6 py-24 sm:py-28">
         <div className="absolute right-4 top-4 z-10">
