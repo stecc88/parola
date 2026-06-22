@@ -1,5 +1,6 @@
 import { AppNav } from '@/components/shared/AppNav'
 import { Card } from '@/components/ui/Card'
+import { ParolaMascot } from '@/components/shared/ParolaMascot'
 import { createClient } from '@/lib/supabase/server'
 import { EvolutionChart } from '@/components/teacher/EvolutionChart'
 import {
@@ -66,6 +67,7 @@ export default async function ProgressPage() {
 
         {stats.totaleAttivita === 0 ? (
           <Card className="border-dashed text-center text-sm text-ink-tertiary">
+            <ParolaMascot mood="incoraggiante" className="mx-auto mb-2" />
             Nessuna attività ancora. Inizia con la scrittura libera o un esercizio.
           </Card>
         ) : (

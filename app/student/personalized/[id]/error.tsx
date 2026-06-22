@@ -2,7 +2,7 @@
 
 import { ErrorBoundaryContent } from '@/components/shared/ErrorBoundaryContent'
 
-export default function StudentDetailError({
+export default function PersonalizedExerciseError({
   error,
   reset
 }: {
@@ -13,9 +13,9 @@ export default function StudentDetailError({
     <ErrorBoundaryContent
       error={error}
       reset={reset}
-      contesto="pagina dettaglio studente"
-      tornaHref="/teacher/classes"
-      tornaLabel="Torna alle classi"
+      contesto="pagina esercizio personalizzato"
+      tornaHref="/student/personalized"
+      tornaLabel="Torna agli esercizi"
     />
   )
 }

@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { AppNav } from '@/components/shared/AppNav'
 import { Card } from '@/components/ui/Card'
+import { ParolaMascot } from '@/components/shared/ParolaMascot'
 import { createClient } from '@/lib/supabase/server'
 import { getMyPersonalizedExercises } from './actions'
 
@@ -48,6 +49,7 @@ export default async function PersonalizedExercisesPage() {
 
         {esercizi.length === 0 ? (
           <Card className="border-dashed text-center text-sm text-ink-tertiary">
+            <ParolaMascot mood="pensieroso" className="mx-auto mb-2" />
             Il tuo insegnante non ha ancora creato esercizi personalizzati per te.
           </Card>
         ) : (
