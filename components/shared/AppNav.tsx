@@ -28,6 +28,7 @@ export function AppNav({ items }: AppNavProps) {
             <li key={item.href} className="shrink-0">
               <Link
                 href={item.href}
+                aria-current={isActive ? 'page' : undefined}
                 className={cn(
                   'relative inline-flex items-center whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors duration-150',
                   isActive

@@ -16,7 +16,7 @@ export default function GuidesPage() {
   return (
     <>
       <AppNav items={NAV_ITEMS} />
-      <main className="mx-auto max-w-3xl p-6 animate-fade-in">
+      <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
         <div className="mb-6 flex items-center gap-3">
           <ParolaMascot mood="neutro" />
           <div>

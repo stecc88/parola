@@ -73,7 +73,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased">
+        <a href="#main-content" className="skip-to-content">
+          Vai al contenuto principale
+        </a>
+        {children}
+      </body>
     </html>
   )
 }

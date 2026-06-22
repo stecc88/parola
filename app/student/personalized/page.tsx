@@ -39,7 +39,7 @@ export default async function PersonalizedExercisesPage() {
   return (
     <>
       <AppNav items={NAV_ITEMS} />
-      <main className="mx-auto max-w-3xl p-6 animate-fade-in">
+      <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
         <h1 className="mb-2 text-xl font-semibold text-ink-primary">Esercizi per te</h1>
         <p className="mb-6 text-sm text-ink-secondary">
           Esercizi creati dal tuo insegnante apposta per aiutarti sui punti su cui stai

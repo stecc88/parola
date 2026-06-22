@@ -35,7 +35,7 @@ export default async function TeacherClassesPage() {
   return (
     <>
       <AppNav items={NAV_ITEMS} />
-      <main className="mx-auto max-w-3xl p-6 animate-fade-in">
+      <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
         {notifiche.length > 0 && (
           <Card className="mb-6 border-warning-text/30 bg-warning-bg">
             <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-warning-text">

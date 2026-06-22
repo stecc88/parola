@@ -75,7 +75,7 @@ const TRUST = [
 
 function LandingPage() {
   return (
-    <main className="min-h-screen overflow-x-hidden bg-surface">
+    <main id="main-content" className="min-h-screen overflow-x-hidden bg-surface">
       {/* Hero */}
       <section className="notebook-lines relative border-b border-border bg-gradient-to-b from-surface-secondary via-surface-secondary to-surface px-6 py-24 sm:py-28">
         <div className="absolute right-4 top-4 z-10">

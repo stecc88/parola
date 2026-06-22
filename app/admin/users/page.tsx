@@ -70,7 +70,7 @@ export default function AdminUsersPage() {
   return (
     <>
       <AppNav items={NAV_ITEMS} />
-      <main className="mx-auto max-w-3xl p-6 animate-fade-in">
+      <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
         <h1 className="mb-6 text-xl font-semibold text-ink-primary">Gestione insegnanti</h1>
 
         {error && (

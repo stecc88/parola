@@ -35,7 +35,7 @@ export default async function TeacherPendingPage() {
     STATUS_MESSAGE[profile.teacher_status ?? 'pending'] ?? STATUS_MESSAGE.pending
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-surface-secondary p-6 animate-fade-in">
+    <main id="main-content" className="flex min-h-screen items-center justify-center bg-surface-secondary p-6 animate-fade-in">
       <Card className="w-full max-w-sm bg-surface text-center">
         <ParolaMascot mood="pensieroso" className="mx-auto mb-4 h-16 w-16" />
         <h1 className="mb-2 text-lg font-semibold text-ink-primary">
