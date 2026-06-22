@@ -171,3 +171,49 @@ export async function deleteClass(classId: string) {
   if (error) throw new Error('Errore eliminando la classe.')
   revalidatePath('/teacher/classes')
 }
+
+export interface NotificaConsegna {
+  id: string
+  titolo: string
+  student_id: string
+  nome: string
+  cognome: string
+  created_at: string
+}
+
+/**
+ * Notifiche per il docente: esercizi personalizzati che lo studente ha
+ * consegnato e che il docente non ha ancora visto (seen_by_teacher=false).
+ * Si "leggono" automaticamente visitando /teacher/students/[id] di quello
+ * studente (vedi markPersonalizedExercisesSeen).
+ */
+export async function getUnseenDeliveries(): Promise<NotificaConsegna[]> {
+  const supabase = createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return []
+
+  const { data, error } = await supabase
+    .from('personalized_exercises')
+    .select('id, titolo, student_id, created_at, profiles!student_id(nome, cognome)')
+    .eq('teacher_id', userData.user.id)
+    .eq('seen_by_teacher', false)
+    .not('submission_id', 'is', null)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Errore caricando le notifiche:', error)
+    return []
+  }
+
+  return (data ?? []).map((row) => {
+    const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles
+    return {
+      id: row.id,
+      titolo: row.titolo,
+      student_id: row.student_id,
+      nome: profile?.nome ?? '',
+      cognome: profile?.cognome ?? '',
+      created_at: row.created_at
+    }
+  })
+}

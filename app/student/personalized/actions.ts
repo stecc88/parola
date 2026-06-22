@@ -90,7 +90,7 @@ export async function submitPersonalizedExerciseResponse(
 
   const { error: updateError } = await supabase
     .from('personalized_exercises')
-    .update({ submission_id: submission.id })
+    .update({ submission_id: submission.id, seen_by_teacher: false })
     .eq('id', exerciseId)
     .eq('student_id', userData.user.id)
 

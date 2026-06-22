@@ -6,7 +6,7 @@ import { requireApprovedTeacher } from '@/lib/teacher/guard'
 import { CreateClassForm } from './CreateClassForm'
 import { AssignStudentSelect } from './AssignStudentSelect'
 import { ClassActions } from './ClassActions'
-import { getTeacherInviteCode, getUnassignedStudents } from './actions'
+import { getTeacherInviteCode, getUnassignedStudents, getUnseenDeliveries } from './actions'
 
 const NAV_ITEMS = [{ href: '/teacher/classes', label: 'Le mie classi' }]
 
@@ -14,19 +14,48 @@ export default async function TeacherClassesPage() {
   await requireApprovedTeacher()
   const supabase = createClient()
 
-  const [{ data: classi }, inviteCode, unassigned] = await Promise.all([
+  const [{ data: classi }, inviteCode, unassigned, notifiche] = await Promise.all([
     supabase
       .from('classes')
       .select('id, nome, created_at')
       .order('created_at', { ascending: false }),
     getTeacherInviteCode(),
-    getUnassignedStudents()
+    getUnassignedStudents(),
+    getUnseenDeliveries()
   ])
 
   return (
     <>
       <AppNav items={NAV_ITEMS} />
       <main className="mx-auto max-w-3xl p-6">
+        {notifiche.length > 0 && (
+          <Card className="mb-6 border-warning-text/30 bg-warning-bg">
+            <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-warning-text">
+              🔔 Nuove consegne ({notifiche.length})
+            </h2>
+            <div className="space-y-2">
+              {notifiche.map((n) => (
+                <Link key={n.id} href={`/teacher/students/${n.student_id}`}>
+                  <div className="flex items-center justify-between rounded-md bg-surface p-3 hover:bg-surface-tertiary">
+                    <div>
+                      <p className="text-sm font-medium text-ink-primary">
+                        {n.nome} {n.cognome}
+                      </p>
+                      <p className="text-xs text-ink-tertiary">{n.titolo}</p>
+                    </div>
+                    <span className="text-xs text-ink-tertiary">
+                      {new Date(n.created_at).toLocaleDateString('it-IT', {
+                        day: '2-digit',
+                        month: '2-digit'
+                      })}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </Card>
+        )}
+
         <Card className="mb-6 bg-guided-bg">
           <p className="text-sm text-guided-text">Il tuo codice insegnante</p>
           <p className="mt-1 font-mono text-2xl font-semibold text-guided-text">

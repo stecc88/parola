@@ -12,9 +12,12 @@ import {
 } from '@/lib/analytics/studentStats'
 import {
   getPersonalizedExercisesForStudent,
+  getLastSignInForStudent,
+  markPersonalizedExercisesSeen,
   type PersonalizedExerciseRow
 } from './actions'
 import { GeneratePersonalizedExerciseButton } from './GeneratePersonalizedExerciseButton'
+import { SubmissionHistoryEntry } from './SubmissionHistoryEntry'
 
 const NAV_ITEMS = [{ href: '/teacher/classes', label: 'Le mie classi' }]
 
@@ -57,7 +60,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
   // Stessa logica: submissions_select_by_active_teacher filtra già per noi.
   const { data: submissions, error } = await supabase
     .from('submissions')
-    .select('id, tipo, created_at, consegna, valutazione_ia')
+    .select('id, tipo, created_at, consegna, testo_studente, valutazione_ia')
     .eq('student_id', params.id)
     .order('created_at', { ascending: false })
 
@@ -67,7 +70,14 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
 
   const stats = computeStudentStats((submissions as SubmissionRow[]) ?? [])
 
-  const personalizedExercises = await getPersonalizedExercisesForStudent(params.id)
+  // Side-effect deliberato: visitare questa pagina marca come "lette" le
+  // consegne in attesa — stesso pattern di qualsiasi notifica in-app.
+  await markPersonalizedExercisesSeen(params.id)
+
+  const [personalizedExercises, ultimoAccesso] = await Promise.all([
+    getPersonalizedExercisesForStudent(params.id),
+    getLastSignInForStudent(params.id)
+  ])
   const submissionIds = personalizedExercises
     .map((e) => e.submission_id)
     .filter((id): id is string => !!id)
@@ -100,11 +110,21 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
           <h1 className="text-xl font-semibold text-ink-primary">
             {profile.nome} {profile.cognome}
           </h1>
-          {profile.livello_target && (
-            <p className="text-sm text-ink-tertiary">
-              Livello target: {profile.livello_target}
-            </p>
-          )}
+          <div className="flex flex-wrap items-center gap-3 text-sm text-ink-tertiary">
+            {profile.livello_target && <span>Livello target: {profile.livello_target}</span>}
+            <span>
+              Ultimo accesso:{' '}
+              {ultimoAccesso
+                ? new Date(ultimoAccesso).toLocaleString('it-IT', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })
+                : 'mai'}
+            </span>
+          </div>
         </div>
 
         <Card className="mb-6">
@@ -306,7 +326,9 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
 
             {/* Storico attività */}
             <Card>
-              <h2 className="mb-3 text-sm font-semibold text-ink-primary">Storico attività</h2>
+              <h2 className="mb-3 text-sm font-semibold text-ink-primary">
+                Storico attività e produzione scritta
+              </h2>
               <div className="space-y-2">
                 {(submissions ?? []).map((s) => {
                   const v =
@@ -325,50 +347,22 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                     | undefined
 
                   return (
-                    <div
+                    <SubmissionHistoryEntry
                       key={s.id}
-                      className="flex items-center justify-between rounded-md bg-surface-secondary p-3"
-                    >
-                      <div>
-                        <p className="text-sm font-medium text-ink-primary">
-                          {TIPO_LABEL[s.tipo] ?? s.tipo}
-                        </p>
-                        <p className="text-xs text-ink-tertiary">
-                          {new Date(s.created_at).toLocaleDateString('it-IT', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {rispettoConsegna && (
-                          <span
-                            className={`text-xs ${
-                              rispettoConsegna.rispetta_consegna
-                                ? 'text-success-text'
-                                : 'text-warning-text'
-                            }`}
-                            title={
-                              rispettoConsegna.rispetta_consegna
-                                ? 'Consegna rispettata'
-                                : 'Consegna non completamente rispettata'
-                            }
-                          >
-                            {rispettoConsegna.rispetta_consegna ? '✓' : '⚠'}
-                          </span>
-                        )}
-                        {punteggio !== null ? (
-                          <span className="rounded-full bg-info-bg px-3 py-1 text-sm font-medium text-info-text">
-                            {punteggio}%
-                          </span>
-                        ) : (
-                          <span className="text-xs text-ink-tertiary">In attesa</span>
-                        )}
-                      </div>
-                    </div>
+                      id={s.id}
+                      studentId={params.id}
+                      tipoLabel={TIPO_LABEL[s.tipo] ?? s.tipo}
+                      dataLabel={new Date(s.created_at).toLocaleDateString('it-IT', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                      testo={s.testo_studente}
+                      punteggio={punteggio}
+                      rispettaConsegna={rispettoConsegna ? rispettoConsegna.rispetta_consegna : null}
+                    />
                   )
                 })}
               </div>

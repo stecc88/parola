@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { generateEsercizioPersonalizzato } from '@/lib/gemini/prompts/generatore'
 import { computeStudentStats, type SubmissionRow } from '@/lib/analytics/studentStats'
 
@@ -13,6 +14,7 @@ export interface PersonalizedExerciseRow {
   esempio: string
   consegna: string
   submission_id: string | null
+  seen_by_teacher: boolean
   created_at: string
 }
 
@@ -94,7 +96,9 @@ export async function getPersonalizedExercisesForStudent(
 
   const { data, error } = await supabase
     .from('personalized_exercises')
-    .select('id, titolo, teoria, spiegazione, esempio, consegna, submission_id, created_at')
+    .select(
+      'id, titolo, teoria, spiegazione, esempio, consegna, submission_id, seen_by_teacher, created_at'
+    )
     .eq('student_id', studentId)
     .order('created_at', { ascending: false })
 
@@ -104,4 +108,63 @@ export async function getPersonalizedExercisesForStudent(
   }
 
   return data ?? []
+}
+
+/**
+ * Marca come "letti" tutti gli esercizi personalizzati consegnati di
+ * questo studente — chiamata quando il docente visita la sua pagina di
+ * dettaglio, così la notifica smette di apparire.
+ */
+export async function markPersonalizedExercisesSeen(studentId: string) {
+  const supabase = createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return
+
+  await supabase
+    .from('personalized_exercises')
+    .update({ seen_by_teacher: true })
+    .eq('student_id', studentId)
+    .eq('teacher_id', userData.user.id)
+    .eq('seen_by_teacher', false)
+    .not('submission_id', 'is', null)
+}
+
+/**
+ * Data dell'ultimo accesso dello studente, letta da auth.users tramite
+ * service role (non accessibile via RLS normale). Va chiamata SOLO dopo
+ * aver già verificato — tramite una query soggetta a RLS, come
+ * profiles_select_by_teacher — che questo studente è effettivamente
+ * attivo sotto il docente corrente: questa funzione di per sé non fa
+ * alcun controllo di autorizzazione, perché il service role bypassa RLS.
+ */
+export async function getLastSignInForStudent(studentId: string): Promise<string | null> {
+  try {
+    const admin = createAdminClient()
+    const { data, error } = await admin.auth.admin.getUserById(studentId)
+    if (error || !data.user) return null
+    return data.user.last_sign_in_at ?? null
+  } catch (err) {
+    console.error('Errore recuperando ultimo accesso:', err)
+    return null
+  }
+}
+
+/**
+ * Elimina permanentemente una submission. Si appoggia sulla RLS
+ * submissions_delete_by_active_teacher (is_active_teacher_of) — un
+ * docente non può eliminare submission di studenti che non sono suoi.
+ *
+ * ATTENZIONE: cancellazione reale, non reversibile (vedi nota in
+ * migrazione 0009 sul cambio di design rispetto all'immutabilità
+ * storica originale).
+ */
+export async function deleteSubmission(submissionId: string, studentId: string) {
+  const supabase = createClient()
+  const { error } = await supabase.from('submissions').delete().eq('id', submissionId)
+
+  if (error) {
+    throw new Error("Errore eliminando lo scritto. Potrebbe non essere più tuo da gestire.")
+  }
+
+  revalidatePath(`/teacher/students/${studentId}`)
 }
