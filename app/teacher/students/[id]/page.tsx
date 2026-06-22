@@ -19,6 +19,7 @@ import {
 import { GeneratePersonalizedExerciseButton } from './GeneratePersonalizedExerciseButton'
 import { SubmissionHistoryEntry } from './SubmissionHistoryEntry'
 import { PersonalizedExerciseEntry } from './PersonalizedExerciseEntry'
+import { ListChecks, TrendingUp, GraduationCap, Target } from 'lucide-react'
 
 const NAV_ITEMS = [{ href: '/teacher/classes', label: 'Le mie classi' }]
 
@@ -192,19 +193,22 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
           <>
             {/* Riepilogo numerico */}
             <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <Card className="text-center">
+              <Card className="animate-fade-in-up text-center transition-shadow hover:shadow-md">
+                <ListChecks className="mx-auto mb-1 h-5 w-5 text-info-text" strokeWidth={1.75} />
                 <p className="text-2xl font-semibold text-ink-primary">
                   {stats.totaleAttivita}
                 </p>
                 <p className="text-xs text-ink-tertiary">Attività totali</p>
               </Card>
-              <Card className="text-center">
+              <Card className="animate-fade-in-up delay-1 text-center transition-shadow hover:shadow-md">
+                <TrendingUp className="mx-auto mb-1 h-5 w-5 text-success-text" strokeWidth={1.75} />
                 <p className="text-2xl font-semibold text-ink-primary">
                   {stats.mediaGenerale !== null ? `${stats.mediaGenerale}%` : '—'}
                 </p>
                 <p className="text-xs text-ink-tertiary">Punteggio medio</p>
               </Card>
-              <Card className="text-center">
+              <Card className="animate-fade-in-up delay-2 text-center transition-shadow hover:shadow-md">
+                <GraduationCap className="mx-auto mb-1 h-5 w-5 text-brand-400" strokeWidth={1.75} />
                 <p className="text-2xl font-semibold text-ink-primary">
                   {stats.livelloAttuale ?? '—'}
                 </p>
@@ -217,7 +221,8 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                   )}
                 </p>
               </Card>
-              <Card className="text-center">
+              <Card className="animate-fade-in-up delay-3 text-center transition-shadow hover:shadow-md">
+                <Target className="mx-auto mb-1 h-5 w-5 text-warning-text" strokeWidth={1.75} />
                 <p className="text-2xl font-semibold text-ink-primary">
                   {stats.consegna.percentuale !== null ? `${stats.consegna.percentuale}%` : '—'}
                 </p>

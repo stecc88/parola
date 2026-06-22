@@ -5,6 +5,7 @@ import { tryAutoJoinFromMetadata, hasActiveMembership } from '@/app/student/join
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { ParolaMascot } from '@/components/shared/ParolaMascot'
+import { ThemeToggle } from '@/components/shared/ThemeToggle'
 import { PenLine, ListChecks, BookOpen, TrendingUp, Sparkles, ShieldCheck, Users } from 'lucide-react'
 
 export default async function HomePage() {
@@ -77,6 +78,9 @@ function LandingPage() {
     <main className="min-h-screen overflow-x-hidden bg-surface">
       {/* Hero */}
       <section className="notebook-lines relative border-b border-border bg-gradient-to-b from-surface-secondary via-surface-secondary to-surface px-6 py-24 sm:py-28">
+        <div className="absolute right-4 top-4 z-10">
+          <ThemeToggle />
+        </div>
         {/* Blob decorativi, puramente estetici, ispirati alla palette del brand */}
         <div
           aria-hidden

@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { ParolaMascot } from './ParolaMascot'
 import { LogoutButton } from './LogoutButton'
+import { ThemeToggle } from './ThemeToggle'
 
 interface AppNavProps {
   items: { href: string; label: string }[]
@@ -44,6 +45,7 @@ export function AppNav({ items }: AppNavProps) {
         })}
       </ul>
 
+      <ThemeToggle />
       <LogoutButton />
     </nav>
   )
