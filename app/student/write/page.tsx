@@ -10,6 +10,7 @@ import { LivelloSelector } from '@/components/shared/LivelloSelector'
 import { createScritturaLiberaSubmission } from './actions'
 import type { ValutazioneEsaminatore } from '@/lib/gemini/schema'
 import { getGuidaBySlug } from '@/lib/guides'
+import { ValutazioneCard } from '@/components/shared/ValutazioneCard'
 
 const NAV_ITEMS = [
   { href: '/student/write', label: 'Scrittura libera' },
@@ -30,6 +31,7 @@ function WritePageInner() {
   const [stato, setStato] = useState<Stato>('idle')
   const [errore, setErrore] = useState<string | null>(null)
   const [valutazione, setValutazione] = useState<ValutazioneEsaminatore | null>(null)
+  const [submissionId, setSubmissionId] = useState<string | null>(null)
 
   const consegnaEffettiva = guida ? guida.consegna : consegnaLibera
 
@@ -50,6 +52,7 @@ function WritePageInner() {
 
     try {
       const submissionId = await createScritturaLiberaSubmission(testo, consegnaEffettiva)
+      setSubmissionId(submissionId)
 
       setStato('valutando')
       const res = await fetch('/api/gemini/evaluate', {
@@ -146,88 +149,8 @@ function WritePageInner() {
           </div>
         </Card>
 
-        {valutazione && (
-          <Card className="mt-6">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-ink-primary">Valutazione</h2>
-              <div className="flex items-center gap-2">
-                <span className="rounded-full bg-info-bg px-3 py-1 text-sm font-medium text-info-text">
-                  Livello {valutazione.livello_stimato}
-                </span>
-                <span className="rounded-full bg-success-bg px-3 py-1 text-sm font-medium text-success-text">
-                  {valutazione.punteggio_complessivo}/100
-                </span>
-              </div>
-            </div>
-
-            <p className="mb-4 text-sm text-ink-primary">{valutazione.feedback_generale}</p>
-
-            {valutazione.rispetto_consegna && (
-              <div
-                className={`mb-4 rounded-md p-3 text-sm ${
-                  valutazione.rispetto_consegna.rispetta_consegna
-                    ? 'bg-success-bg text-success-text'
-                    : 'bg-warning-bg text-warning-text'
-                }`}
-              >
-                <p className="font-semibold">
-                  {valutazione.rispetto_consegna.rispetta_consegna
-                    ? '✓ Consegna rispettata'
-                    : '⚠ Consegna non completamente rispettata'}
-                </p>
-                <p className="mt-1">{valutazione.rispetto_consegna.commento}</p>
-                {valutazione.rispetto_consegna.punti_mancanti.length > 0 && (
-                  <div className="mt-2">
-                    <p className="font-medium">Punti mancanti:</p>
-                    <ul className="ml-4 list-disc">
-                      {valutazione.rispetto_consegna.punti_mancanti.map((p, i) => (
-                        <li key={i}>{p}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <h3 className="mb-2 text-sm font-semibold text-success-text">Punti di forza</h3>
-                <ul className="space-y-1 text-sm text-ink-secondary">
-                  {valutazione.punti_forza.map((p, i) => (
-                    <li key={i}>• {p}</li>
-                  ))}
-                </ul>
-              </div>
-              <div>
-                <h3 className="mb-2 text-sm font-semibold text-warning-text">
-                  Aree di miglioramento
-                </h3>
-                <ul className="space-y-1 text-sm text-ink-secondary">
-                  {valutazione.aree_di_miglioramento.map((p, i) => (
-                    <li key={i}>• {p}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-
-            {valutazione.errori.length > 0 && (
-              <div className="mt-4">
-                <h3 className="mb-2 text-sm font-semibold text-ink-primary">Errori specifici</h3>
-                <div className="space-y-2">
-                  {valutazione.errori.map((err, i) => (
-                    <div key={i} className="rounded-md bg-surface-secondary p-3 text-sm">
-                      <p>
-                        <span className="text-danger-text line-through">{err.testo_originale}</span>
-                        {' → '}
-                        <span className="text-success-text">{err.correzione}</span>
-                      </p>
-                      <p className="mt-1 text-xs text-ink-tertiary">{err.spiegazione}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </Card>
+        {valutazione && submissionId && (
+          <ValutazioneCard valutazione={valutazione} submissionId={submissionId} />
         )}
       </main>
     </>
