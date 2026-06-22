@@ -32,6 +32,7 @@ function WritePageInner() {
   const [errore, setErrore] = useState<string | null>(null)
   const [valutazione, setValutazione] = useState<ValutazioneEsaminatore | null>(null)
   const [submissionId, setSubmissionId] = useState<string | null>(null)
+  const [testoValutato, setTestoValutato] = useState('')
 
   const consegnaEffettiva = guida ? guida.consegna : consegnaLibera
 
@@ -53,6 +54,7 @@ function WritePageInner() {
     try {
       const submissionId = await createScritturaLiberaSubmission(testo, consegnaEffettiva)
       setSubmissionId(submissionId)
+      setTestoValutato(testo)
 
       setStato('valutando')
       const res = await fetch('/api/gemini/evaluate', {
@@ -150,7 +152,11 @@ function WritePageInner() {
         </Card>
 
         {valutazione && submissionId && (
-          <ValutazioneCard valutazione={valutazione} submissionId={submissionId} />
+          <ValutazioneCard
+            valutazione={valutazione}
+            submissionId={submissionId}
+            testo={testoValutato}
+          />
         )}
       </main>
     </>

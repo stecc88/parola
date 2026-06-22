@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Card } from '@/components/ui/Card'
 import type { ValutazioneEsaminatore } from '@/lib/gemini/schema'
 import { getPreviousScritturaScore, getMyPastErrorCategoryCounts } from '@/app/student/write/actions'
+import { AnnotatedText } from './AnnotatedText'
 
 const CATEGORIA_LABEL: Record<string, string> = {
   grammatica: 'grammatica',
@@ -21,10 +22,12 @@ const CATEGORIA_LABEL: Record<string, string> = {
  */
 export function ValutazioneCard({
   valutazione,
-  submissionId
+  submissionId,
+  testo
 }: {
   valutazione: ValutazioneEsaminatore
   submissionId: string
+  testo: string
 }) {
   const [puntiPrecedenti, setPuntiPrecedenti] = useState<number | null | undefined>(undefined)
   const [conteggiPassati, setConteggiPassati] = useState<Record<string, number>>({})
@@ -69,6 +72,18 @@ export function ValutazioneCard({
       )}
 
       <p className="mb-4 text-sm text-ink-primary">{valutazione.feedback_generale}</p>
+
+      {valutazione.errori.length > 0 && (
+        <div className="mb-4">
+          <h3 className="mb-2 text-sm font-semibold text-ink-primary">Il tuo testo</h3>
+          <p className="mb-2 text-xs text-ink-tertiary">
+            Passa il mouse (o tocca) sulle parole sottolineate per vedere la correzione.
+          </p>
+          <div className="rounded-md bg-surface-secondary p-3">
+            <AnnotatedText testo={testo} errori={valutazione.errori} />
+          </div>
+        </div>
+      )}
 
       {valutazione.rispetto_consegna && (
         <div
@@ -117,9 +132,11 @@ export function ValutazioneCard({
       </div>
 
       {valutazione.errori.length > 0 && (
-        <div className="mt-4">
-          <h3 className="mb-2 text-sm font-semibold text-ink-primary">Errori specifici</h3>
-          <div className="space-y-2">
+        <details className="mt-4">
+          <summary className="cursor-pointer text-sm font-semibold text-ink-primary">
+            Vedi la spiegazione completa di ogni errore ({valutazione.errori.length})
+          </summary>
+          <div className="mt-2 space-y-2">
             {valutazione.errori.map((err, i) => {
               const volte = conteggiPassati[err.categoria] ?? 0
               return (
@@ -143,7 +160,7 @@ export function ValutazioneCard({
               )
             })}
           </div>
-        </div>
+        </details>
       )}
     </Card>
   )

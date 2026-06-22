@@ -23,15 +23,22 @@ export default async function PersonalizedExerciseDetailPage({
     notFound()
   }
 
-  const valutazioneEsistente = esercizio.submission_id
-    ? ((await getSubmissionValutazione(esercizio.submission_id)) as ValutazioneEsaminatore | null)
+  const submissionData = esercizio.submission_id
+    ? await getSubmissionValutazione(esercizio.submission_id)
     : null
+
+  const valutazioneEsistente = submissionData?.valutazione as ValutazioneEsaminatore | null
+  const testoConsegnato = submissionData?.testo ?? null
 
   return (
     <>
       <AppNav items={NAV_ITEMS} />
       <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
-        <PersonalizedExerciseClient esercizio={esercizio} valutazioneIniziale={valutazioneEsistente} />
+        <PersonalizedExerciseClient
+          esercizio={esercizio}
+          valutazioneIniziale={valutazioneEsistente}
+          testoConsegnato={testoConsegnato}
+        />
       </main>
     </>
   )

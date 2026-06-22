@@ -24,13 +24,21 @@ const TIPO_LABEL: Record<string, string> = {
 
 export function PersonalizedExerciseClient({
   esercizio,
-  valutazioneIniziale
+  valutazioneIniziale,
+  testoConsegnato
 }: {
   esercizio: PersonalizedExerciseDetail
   valutazioneIniziale: ValutazioneEsaminatore | null
+  testoConsegnato: string | null
 }) {
   if (esercizio.tipo_esercizio === 'scrittura') {
-    return <ScritturaEsercizio esercizio={esercizio} valutazioneIniziale={valutazioneIniziale} />
+    return (
+      <ScritturaEsercizio
+        esercizio={esercizio}
+        valutazioneIniziale={valutazioneIniziale}
+        testoConsegnato={testoConsegnato}
+      />
+    )
   }
   return <ChiusoEsercizio esercizio={esercizio} />
 }
@@ -76,10 +84,12 @@ function Intestazione({ esercizio }: { esercizio: PersonalizedExerciseDetail }) 
 
 function ScritturaEsercizio({
   esercizio,
-  valutazioneIniziale
+  valutazioneIniziale,
+  testoConsegnato
 }: {
   esercizio: PersonalizedExerciseDetail
   valutazioneIniziale: ValutazioneEsaminatore | null
+  testoConsegnato: string | null
 }) {
   const [testo, setTesto] = useState('')
   const [stato, setStato] = useState<Stato>(esercizio.submission_id ? 'pronto' : 'idle')
@@ -88,6 +98,7 @@ function ScritturaEsercizio({
     valutazioneIniziale
   )
   const [submissionId, setSubmissionId] = useState<string | null>(esercizio.submission_id)
+  const [testoValutato, setTestoValutato] = useState(testoConsegnato ?? '')
   const giaConsegnato = !!esercizio.submission_id
 
   async function handleSubmit() {
@@ -106,6 +117,7 @@ function ScritturaEsercizio({
         esercizio.consegna
       )
       setSubmissionId(nuovoSubmissionId)
+      setTestoValutato(testo)
 
       setStato('valutando')
       const res = await fetch('/api/gemini/evaluate', {
@@ -160,7 +172,7 @@ function ScritturaEsercizio({
       )}
 
       {valutazione && submissionId && (
-        <ValutazioneCard valutazione={valutazione} submissionId={submissionId} />
+        <ValutazioneCard valutazione={valutazione} submissionId={submissionId} testo={testoValutato} />
       )}
 
       {giaConsegnato && !valutazione && stato !== 'errore' && (

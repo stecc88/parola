@@ -63,15 +63,18 @@ export async function getPersonalizedExerciseById(
   return data as PersonalizedExerciseDetail
 }
 
-export async function getSubmissionValutazione(submissionId: string): Promise<unknown | null> {
+export async function getSubmissionValutazione(
+  submissionId: string
+): Promise<{ valutazione: unknown | null; testo: string } | null> {
   const supabase = createClient()
   const { data } = await supabase
     .from('submissions')
-    .select('valutazione_ia')
+    .select('valutazione_ia, testo_studente')
     .eq('id', submissionId)
     .single()
 
-  return data?.valutazione_ia ?? null
+  if (!data) return null
+  return { valutazione: data.valutazione_ia ?? null, testo: data.testo_studente }
 }
 
 /**
