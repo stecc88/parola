@@ -25,7 +25,7 @@ export default async function ClassDetailPage({ params }: { params: { id: string
 
   const { data: memberships } = await supabase
     .from('class_memberships')
-    .select('id, student_id, profiles(nome, cognome)')
+    .select('id, student_id, profiles!student_id(nome, cognome)')
     .eq('class_id', params.id)
     .is('left_at', null)
 

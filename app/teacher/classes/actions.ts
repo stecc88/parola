@@ -94,12 +94,17 @@ export async function getUnassignedStudents(): Promise<UnassignedStudent[]> {
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return []
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('class_memberships')
-    .select('id, student_id, profiles(nome, cognome)')
+    .select('id, student_id, profiles!student_id(nome, cognome)')
     .eq('teacher_id', userData.user.id)
     .is('class_id', null)
     .is('left_at', null)
+
+  if (error) {
+    console.error('Errore caricando gli studenti non assegnati:', error)
+    return []
+  }
 
   return (data ?? []).map((m) => {
     const profile = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles
