@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { ParolaMascot } from '@/components/shared/ParolaMascot'
 import { ThemeToggle } from '@/components/shared/ThemeToggle'
-import { PenLine, ListChecks, BookOpen, TrendingUp, Sparkles, ShieldCheck, Users } from 'lucide-react'
+import { PenLine, ListChecks, BookOpen, TrendingUp, Sparkles, ShieldCheck, Users, UserPlus, FileEdit, BarChart3 } from 'lucide-react'
 
 export default async function HomePage() {
   const supabase = createClient()
@@ -67,6 +67,27 @@ const FEATURES = [
   }
 ]
 
+const HOW_IT_WORKS = [
+  {
+    numero: '1',
+    icon: UserPlus,
+    titolo: 'Crea il tuo account',
+    descrizione: 'In meno di un minuto, come studente o come insegnante. Nessuna carta richiesta.'
+  },
+  {
+    numero: '2',
+    icon: FileEdit,
+    titolo: 'Scrivi o assegna',
+    descrizione: 'Lo studente scrive un testo, l\u2019insegnante crea esercizi su misura — l\u2019IA si occupa della correzione.'
+  },
+  {
+    numero: '3',
+    icon: BarChart3,
+    titolo: 'Vedi i progressi crescere',
+    descrizione: 'Grafici, punti di forza ricorrenti e aree su cui lavorare, attività dopo attività.'
+  }
+]
+
 const TRUST = [
   { icon: Sparkles, testo: 'Correzioni dettagliate generate da IA' },
   { icon: Users, testo: 'Pensato per docenti e studenti' },
@@ -74,8 +95,25 @@ const TRUST = [
 ]
 
 function LandingPage() {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'EducationalOrganization',
+    name: 'Parola',
+    description:
+      "Piattaforma di apprendimento dell'italiano per adolescenti, con correzioni generate dall'IA ed esercizi personalizzati.",
+    url: 'https://parola-puce.vercel.app',
+    audience: {
+      '@type': 'EducationalAudience',
+      educationalRole: 'student'
+    }
+  }
+
   return (
     <main id="main-content" className="min-h-screen overflow-x-hidden bg-surface">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       {/* Hero */}
       <section className="notebook-lines relative border-b border-border bg-gradient-to-b from-surface-secondary via-surface-secondary to-surface px-6 py-24 sm:py-28">
         <div className="absolute right-4 top-4 z-10">
@@ -135,6 +173,35 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* Come funziona */}
+      <section className="px-6 py-16">
+        <div className="mx-auto max-w-4xl">
+          <h2 className="mb-10 text-center font-display text-2xl italic text-ink-primary">
+            Come funziona
+          </h2>
+          <div className="grid gap-8 sm:grid-cols-3">
+            {HOW_IT_WORKS.map((step, i) => {
+              const delayClass = ['delay-1', 'delay-2', 'delay-3'][i] ?? ''
+              return (
+                <div
+                  key={step.numero}
+                  className={`animate-fade-in-up ${delayClass} flex flex-col items-center text-center`}
+                >
+                  <div className="relative mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-brand-600 text-white shadow-md">
+                    <step.icon className="h-6 w-6" strokeWidth={1.75} />
+                    <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-sunshine-400 text-xs font-bold text-ink-primary ring-2 ring-surface">
+                      {step.numero}
+                    </span>
+                  </div>
+                  <h3 className="font-medium text-ink-primary">{step.titolo}</h3>
+                  <p className="mt-1 text-sm text-ink-secondary">{step.descrizione}</p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* Cosa puoi fare */}
       <section className="px-6 py-20">
         <div className="mx-auto max-w-4xl">
@@ -190,8 +257,24 @@ function LandingPage() {
         </div>
       </section>
 
-      <footer className="px-6 py-10 text-center text-xs text-ink-tertiary">
-        Parola — uno spazio per scrivere, sbagliare, migliorare.
+      <footer className="border-t border-border px-6 py-10">
+        <div className="mx-auto flex max-w-4xl flex-col items-center gap-4 text-center sm:flex-row sm:justify-between sm:text-left">
+          <div className="flex items-center gap-2">
+            <ParolaMascot mood="neutro" className="h-8 w-8" />
+            <span className="font-semibold text-ink-primary">Parola</span>
+          </div>
+          <nav className="flex gap-5 text-sm text-ink-secondary">
+            <Link href="/login" className="hover:text-ink-primary">
+              Accedi
+            </Link>
+            <Link href="/registrati" className="hover:text-ink-primary">
+              Registrati
+            </Link>
+          </nav>
+          <p className="text-xs text-ink-tertiary">
+            © {new Date().getFullYear()} Parola — uno spazio per scrivere, sbagliare, migliorare.
+          </p>
+        </div>
       </footer>
     </main>
   )
