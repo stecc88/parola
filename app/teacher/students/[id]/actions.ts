@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { generateEsercizioPersonalizzato } from '@/lib/gemini/prompts/generatore'
+import { GeminiError, isQuotaExhausted } from '@/lib/gemini/client'
 import { computeStudentStats, type SubmissionRow } from '@/lib/analytics/studentStats'
 import type { TipoEsercizioPersonalizzato } from '@/lib/gemini/schema'
 
@@ -87,6 +88,11 @@ export async function generatePersonalizedExercise(
     })
   } catch (err) {
     console.error('Errore generando esercizio personalizzato:', err)
+    if (err instanceof GeminiError && isQuotaExhausted(err)) {
+      throw new Error(
+        "Il servizio IA ha raggiunto il limite giornaliero di richieste gratuite. Riprova più tardi (si resetta a mezzanotte, fuso orario USA/Pacifico) oppure passa a un piano a pagamento su Google AI Studio."
+      )
+    }
     throw new Error(
       "L'IA è temporaneamente sovraccarica e non ha potuto generare l'esercizio. Riprova tra qualche istante."
     )

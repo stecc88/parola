@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { evaluateScritturaLibera } from '@/lib/gemini/prompts/examinador'
+import { GeminiError, isQuotaExhausted } from '@/lib/gemini/client'
 import { checkSubmissionRateLimit } from '@/lib/student/rate-limit'
 
 /**
@@ -115,6 +116,16 @@ export async function POST(request: NextRequest) {
 
     if (err instanceof Error && err.message.includes('limite di')) {
       return NextResponse.json({ error: err.message }, { status: 429 })
+    }
+
+    if (err instanceof GeminiError && isQuotaExhausted(err)) {
+      return NextResponse.json(
+        {
+          error:
+            "Il servizio di correzione IA ha raggiunto il limite giornaliero di richieste gratuite. Riprova più tardi (il limite si resetta a mezzanotte, fuso orario USA/Pacifico) oppure contatta l'amministratore della piattaforma."
+        },
+        { status: 503 }
+      )
     }
 
     return NextResponse.json(

@@ -47,6 +47,21 @@ export class GeminiError extends Error {
 }
 
 /**
+ * Distingue una cuota agotada (RESOURCE_EXHAUSTED — límite diario/por
+ * minuto del plan gratuito de Gemini) de una sobrecarga transitoria
+ * (503/otros 429 de rate limiting de corta duración). La primera NO se
+ * arregla reintentando con nuestro backoff de milisegundos — Gemini
+ * mismo indica "retry in Xs" donde X suele ser varios segundos, más de
+ * lo que conviene esperar dentro de una función serverless. Reintentar
+ * igual solo desperdicia cuota y tiempo.
+ */
+export function isQuotaExhausted(err: GeminiError): boolean {
+  if (err.status !== 429) return false
+  const body = err.body as { error?: { status?: string } } | undefined
+  return body?.error?.status === 'RESOURCE_EXHAUSTED'
+}
+
+/**
  * Llama a generateContent con reintentos simples ante 429/5xx.
  * No reintenta ante 4xx de validación (400) — esos son errores de
  * nuestro propio payload, reintentar no ayuda.
@@ -126,7 +141,9 @@ export async function generateContent(
     } catch (err) {
       lastError = err
       const isRetryable =
-        err instanceof GeminiError && (err.status === undefined || err.status >= 429)
+        err instanceof GeminiError &&
+        (err.status === undefined || err.status >= 429) &&
+        !isQuotaExhausted(err)
 
       if (!isRetryable || attempt === maxRetries) {
         break
