@@ -5,7 +5,7 @@ import { tryAutoJoinFromMetadata, hasActiveMembership } from '@/app/student/join
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { ParolaMascot } from '@/components/shared/ParolaMascot'
-import { PenLine, ListChecks, BookOpen, TrendingUp } from 'lucide-react'
+import { PenLine, ListChecks, BookOpen, TrendingUp, Sparkles, ShieldCheck, Users } from 'lucide-react'
 
 export default async function HomePage() {
   const supabase = createClient()
@@ -29,11 +29,6 @@ export default async function HomePage() {
     redirect(profile.teacher_status === 'approved' ? '/teacher/classes' : '/teacher/pending')
   }
 
-  // Estudiante: si no tiene membership activa, intenta el join automático
-  // con el invite_code guardado en metadata (caso confirmación de email
-  // activada, donde el join no se pudo hacer durante el signup porque
-  // todavía no había sesión). Si falla o no había código, lo manda a
-  // unirse manualmente.
   if (!(await hasActiveMembership())) {
     const joined = await tryAutoJoinFromMetadata()
     if (!joined) {
@@ -48,101 +43,150 @@ const FEATURES = [
   {
     icon: PenLine,
     titolo: 'Scrittura libera',
-    descrizione: 'Scrivi un testo e ricevi una correzione dettagliata, errore per errore.'
+    descrizione: 'Scrivi un testo e ricevi una correzione dettagliata, errore per errore.',
+    accent: 'bg-info-bg text-info-text'
   },
   {
     icon: ListChecks,
-    titolo: 'Esercizi di struttura',
-    descrizione: 'Completa frasi, riordina parole, scegli la preposizione giusta.'
+    titolo: 'Esercizi su misura',
+    descrizione: 'Completamento, scelta multipla, abbinamento — generati sui tuoi punti debili.',
+    accent: 'bg-guided-bg text-guided-text'
   },
   {
     icon: BookOpen,
     titolo: 'Guide di scrittura',
-    descrizione: 'Una consegna per ogni tipo di testo: lettera, email, racconto, articolo.'
+    descrizione: 'Una consegna per ogni tipo di testo: lettera, email, racconto, articolo.',
+    accent: 'bg-success-bg text-success-text'
   },
   {
     icon: TrendingUp,
     titolo: 'I tuoi progressi',
-    descrizione: 'Vedi come cambia il tuo punteggio nel tempo, attività dopo attività.'
+    descrizione: 'Grafici, punti di forza e aree di miglioramento, attività dopo attività.',
+    accent: 'bg-warning-bg text-warning-text'
   }
+]
+
+const TRUST = [
+  { icon: Sparkles, testo: 'Correzioni dettagliate generate da IA' },
+  { icon: Users, testo: 'Pensato per docenti e studenti' },
+  { icon: ShieldCheck, testo: 'I tuoi dati restano privati' }
 ]
 
 function LandingPage() {
   return (
-    <main className="min-h-screen bg-surface">
-      {/* Hero: textura de cuaderno sutil tras el titular, único elemento
-          de firma visual de la página — el resto se mantiene contenido. */}
-      <section className="notebook-lines border-b border-border bg-surface-secondary px-6 py-20">
-        <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
-          <ParolaMascot mood="felice" className="mb-6 h-16 w-16" />
+    <main className="min-h-screen overflow-x-hidden bg-surface">
+      {/* Hero */}
+      <section className="notebook-lines relative border-b border-border bg-gradient-to-b from-surface-secondary via-surface-secondary to-surface px-6 py-24 sm:py-28">
+        {/* Blob decorativi, puramente estetici, ispirati alla palette del brand */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -left-16 top-10 h-56 w-56 rounded-full bg-brand-400/15 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-10 top-32 h-64 w-64 rounded-full bg-sunshine-400/20 blur-3xl"
+        />
 
-          <span className="mb-3 text-xs font-medium uppercase tracking-[0.2em] text-brand-400">
+        <div className="relative mx-auto flex max-w-2xl flex-col items-center text-center">
+          <div className="animate-fade-in-up">
+            <ParolaMascot mood="felice" className="mb-6 h-20 w-20 animate-float-slow" />
+          </div>
+
+          <span className="animate-fade-in-up delay-1 mb-3 inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-brand-400 shadow-sm ring-1 ring-border">
+            <Sparkles className="h-3.5 w-3.5" />
             Italiano per adolescenti
           </span>
 
-          <h1 className="font-display text-4xl italic text-ink-primary sm:text-5xl">
+          <h1 className="animate-fade-in-up delay-2 font-display text-5xl italic text-ink-primary sm:text-6xl">
             Parola
           </h1>
 
-          <p className="mt-5 max-w-md text-balance text-ink-secondary">
+          <p className="animate-fade-in-up delay-3 mt-5 max-w-md text-balance text-base text-ink-secondary sm:text-lg">
             Scrivi, sbaglia, migliora. Un quaderno digitale che corregge i
             tuoi testi e ti prepara a superare standard internazionali di
             lingua italiana.
           </p>
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+          <div className="animate-fade-in-up delay-4 mt-9 flex flex-col gap-3 sm:flex-row">
             <Link href="/registrati">
-              <Button className="w-full sm:w-auto">Inizia a scrivere</Button>
+              <Button className="w-full px-8 py-3 text-base sm:w-auto">
+                Inizia a scrivere — gratis
+              </Button>
             </Link>
             <Link href="/login">
-              <Button variant="secondary" className="w-full sm:w-auto">
+              <Button variant="secondary" className="w-full px-8 py-3 text-base sm:w-auto">
                 Ho già un account
               </Button>
             </Link>
           </div>
-        </div>
-      </section>
 
-      {/* Cosa puoi fare */}
-      <section className="px-6 py-16">
-        <div className="mx-auto max-w-4xl">
-          <h2 className="mb-8 text-center font-display text-2xl italic text-ink-primary">
-            Cosa puoi fare
-          </h2>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            {FEATURES.map((f) => (
-              <Card key={f.titolo} className="flex items-start gap-4">
-                <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-guided-bg text-guided-accent">
-                  <f.icon className="h-5 w-5" strokeWidth={1.75} />
-                </div>
-                <div>
-                  <h3 className="font-medium text-ink-primary">{f.titolo}</h3>
-                  <p className="mt-1 text-sm text-ink-secondary">{f.descrizione}</p>
-                </div>
-              </Card>
+          <div className="animate-fade-in delay-4 mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-ink-tertiary">
+            {TRUST.map((t) => (
+              <span key={t.testo} className="inline-flex items-center gap-1.5">
+                <t.icon className="h-3.5 w-3.5 text-brand-400" strokeWidth={1.75} />
+                {t.testo}
+              </span>
             ))}
           </div>
         </div>
       </section>
 
+      {/* Cosa puoi fare */}
+      <section className="px-6 py-20">
+        <div className="mx-auto max-w-4xl">
+          <div className="mb-10 text-center">
+            <h2 className="font-display text-3xl italic text-ink-primary">Cosa puoi fare</h2>
+            <p className="mt-2 text-sm text-ink-secondary">
+              Tutto quello che serve per scrivere meglio in italiano, in un solo posto.
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            {FEATURES.map((f, i) => {
+              const delayClass = ['delay-1', 'delay-2', 'delay-3', 'delay-4'][i] ?? ''
+              return (
+                <Card
+                  key={f.titolo}
+                  className={`animate-fade-in-up ${delayClass} flex items-start gap-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg`}
+                >
+                  <div
+                    className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full ${f.accent}`}
+                  >
+                    <f.icon className="h-5 w-5" strokeWidth={1.75} />
+                  </div>
+                  <div>
+                    <h3 className="font-medium text-ink-primary">{f.titolo}</h3>
+                    <p className="mt-1 text-sm text-ink-secondary">{f.descrizione}</p>
+                  </div>
+                </Card>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* Per gli insegnanti */}
-      <section className="border-t border-border bg-surface-secondary px-6 py-14">
-        <div className="mx-auto flex max-w-2xl flex-col items-center text-center">
-          <h2 className="font-display text-xl italic text-ink-primary">
-            Sei un insegnante?
-          </h2>
-          <p className="mt-2 max-w-sm text-sm text-ink-secondary">
-            Crea le tue classi, condividi un codice di accesso e segui i
-            progressi di ogni studente.
+      <section className="relative overflow-hidden border-t border-border bg-gradient-to-br from-brand-800 to-brand-600 px-6 py-16 text-white">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-sunshine-400/20 blur-3xl"
+        />
+        <div className="relative mx-auto flex max-w-2xl flex-col items-center text-center">
+          <h2 className="font-display text-2xl italic sm:text-3xl">Sei un insegnante?</h2>
+          <p className="mt-3 max-w-md text-sm text-white/85 sm:text-base">
+            Crea le tue classi, condividi un codice di accesso, monitora i
+            progressi di ogni studente e genera esercizi personalizzati con
+            l&apos;IA, su misura per ognuno.
           </p>
-          <Link href="/registrati" className="mt-5">
-            <Button variant="secondary">Registra la tua classe</Button>
+          <Link href="/registrati" className="mt-6">
+            <Button className="bg-white px-8 py-3 text-base text-brand-800 shadow-lg hover:bg-sunshine-50 hover:text-brand-800">
+              Registra la tua classe
+            </Button>
           </Link>
         </div>
       </section>
 
-      <footer className="px-6 py-8 text-center text-xs text-ink-tertiary">
+      <footer className="px-6 py-10 text-center text-xs text-ink-tertiary">
         Parola — uno spazio per scrivere, sbagliare, migliorare.
       </footer>
     </main>
