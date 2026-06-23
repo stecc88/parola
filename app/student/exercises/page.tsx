@@ -22,12 +22,12 @@ const NAV_ITEMS = [
 ]
 
 const TIPI = [
-  { id: 1, label: 'Completa la frase', fedele: false },
-  { id: 2, label: 'Riordina le parole', fedele: false },
-  { id: 3, label: 'Scegli la preposizione', fedele: false },
-  { id: 4, label: 'Trasforma la frase', fedele: false },
-  { id: 5, label: 'Completamento lessicale', fedele: true },
-  { id: 6, label: 'Situazioni comunicative', fedele: true }
+  { id: 1, label: 'Completa la frase' },
+  { id: 2, label: 'Riordina le parole' },
+  { id: 3, label: 'Scegli la preposizione' },
+  { id: 4, label: 'Trasforma la frase' },
+  { id: 5, label: 'Completamento lessicale' },
+  { id: 6, label: 'Situazioni comunicative' }
 ] as const
 
 export default function ExercisesPage() {
@@ -45,7 +45,7 @@ export default function ExercisesPage() {
                 Esercizi di analisi delle strutture
               </h1>
               <p className="text-sm text-ink-secondary">
-                6 tipi di esercizio. ⭐ = stesso formato della prova reale d&apos;esame.
+                6 tipi di esercizio.
               </p>
             </div>
           </div>
@@ -57,7 +57,6 @@ export default function ExercisesPage() {
             <button
               key={t.id}
               onClick={() => setTipo(t.id)}
-              title={t.fedele ? 'Stesso formato della prova reale d\'esame' : undefined}
               className={cn(
                 'rounded-md px-3 py-1.5 text-sm transition-colors',
                 tipo === t.id
@@ -65,7 +64,6 @@ export default function ExercisesPage() {
                   : 'bg-surface-secondary text-ink-secondary hover:bg-surface-tertiary'
               )}
             >
-              {t.fedele && '⭐ '}
               {t.label}
             </button>
           ))}

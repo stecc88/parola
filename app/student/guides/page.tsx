@@ -31,8 +31,7 @@ export default function GuidesPage() {
           <div>
             <h1 className="text-xl font-semibold text-ink-primary">Guide di scrittura</h1>
             <p className="text-sm text-ink-secondary">
-              Scegli un tipo di testo e scrivi seguendo una consegna guidata. ⭐ = stesso
-              tipo di testo richiesto nell&apos;esame reale.
+              Scegli un tipo di testo e scrivi seguendo una consegna guidata.
             </p>
           </div>
         </div>
@@ -46,10 +45,7 @@ export default function GuidesPage() {
                     {CATEGORIA_LABEL[g.categoria]}
                   </span>
                 )}
-                <h2 className="font-semibold text-ink-primary">
-                  {g.fedele && '⭐ '}
-                  {g.titolo}
-                </h2>
+                <h2 className="font-semibold text-ink-primary">{g.titolo}</h2>
                 <p className="mt-1 text-sm text-ink-secondary">{g.descrizione}</p>
               </Card>
             </Link>
