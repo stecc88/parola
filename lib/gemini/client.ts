@@ -192,12 +192,20 @@ export async function generateContent(
   try {
     return await callModel(GEMINI_MODEL_PRIMARY, body, apiKey, maxRetries)
   } catch (err) {
-    if (err instanceof GeminiError && isQuotaExhausted(err)) {
+    // Cambia al modelo de respaldo ante CUALQUIER error no-400 del
+    // principal (cuota agotada, sobrecarga 503, rate limit transitorio) —
+    // no solo cuota agotada. Un 503 "alta demanda" es exactamente el caso
+    // donde probar un modelo distinto (con su propia capacidad/cuota)
+    // tiene sentido, no solo cuando la cuota numérica se agotó.
+    const shouldFallback = err instanceof GeminiError && err.status !== 400
+    if (shouldFallback) {
       console.warn(
-        `Cuota agotada en ${GEMINI_MODEL_PRIMARY}, reintentando con modelo de respaldo ${GEMINI_MODEL_FALLBACK}.`
+        `Error en ${GEMINI_MODEL_PRIMARY} (status ${
+          (err as GeminiError).status
+        }), reintentando con modelo de respaldo ${GEMINI_MODEL_FALLBACK}.`
       )
       // Un solo reintento adicional en el fallback alcanza: si éste
-      // también está agotado, no tiene sentido seguir insistiendo.
+      // también falla, no tiene sentido seguir insistiendo.
       return await callModel(GEMINI_MODEL_FALLBACK, body, apiKey, 1)
     }
     throw err
