@@ -8,6 +8,14 @@ export interface Guida {
   // Esempio Prova N.1 e N.2) — il manuale ufficiale ne specifica solo 2:
   // descrizione di una persona, e lettera informale/email a un amico.
   fedele: boolean
+  // Una delle 5 tipologie testuali fondamentali del sillabo (descrittivo,
+  // narrativo, espositivo, regolativo, argomentativo) — o null se la
+  // guida è un genere specifico che non rientra in una sola categoria
+  // pura (es. l'email formale mescola elementi regolativi e descrittivi).
+  categoria: 'descrittivo' | 'narrativo' | 'espositivo' | 'regolativo' | 'argomentativo' | null
+  // Spiegazione semplice di COS'È questo tipo testuale in generale —
+  // per chi non ha mai sentito questi nomi e non sa cosa significano.
+  categoriaSpiegazione: string
   // Lunghezza consigliata in parole, come negli esami reali — aiuta lo
   // studente a capire quanto scrivere senza doverlo indovinare.
   paroleMin: number
@@ -42,6 +50,8 @@ export const GUIDES: Guida[] = [
     consegna:
       'Descrivi una persona della tua famiglia o un amico. Parla del suo aspetto fisico, del carattere, di cosa fa nella vita e di perché è importante per te.',
     fedele: true,
+    categoria: 'descrittivo',
+    categoriaSpiegazione: 'Il tipo descrittivo presenta le caratteristiche di una persona, un luogo o un oggetto: com\'è, che aspetto ha, quali qualità lo distinguono. Non racconta una storia né un\'opinione: "fotografa" qualcosa a parole.',
     paroleMin: 100,
     paroleMax: 120,
     struttura: [
@@ -65,6 +75,8 @@ export const GUIDES: Guida[] = [
     consegna:
       'Scrivi una lettera informale a un amico/a raccontando qualcosa che ti è successo di recente. Usa un registro colloquiale, saluti iniziali e finali tipici di una lettera personale.',
     fedele: true,
+    categoria: null,
+    categoriaSpiegazione: 'Una lettera o email informale non è una delle 5 tipologie testuali pure: mescola elementi narrativi (racconti cosa è successo) e descrittivi (descrivi persone o luoghi), con un registro colloquiale tipico della corrispondenza personale.',
     paroleMin: 80,
     paroleMax: 100,
     struttura: [
@@ -87,6 +99,8 @@ export const GUIDES: Guida[] = [
     consegna:
       'Scrivi una email formale per richiedere informazioni su un corso, un servizio o un prodotto. Usa un registro formale, formule di apertura e chiusura appropriate.',
     fedele: false,
+    categoria: 'regolativo',
+    categoriaSpiegazione: 'Una email formale è in parte di tipo regolativo: segue regole fisse di formattazione e cortesia (formule di apertura/chiusura obbligatorie) più che raccontare o descrivere qualcosa.',
     paroleMin: 80,
     paroleMax: 100,
     struttura: [
@@ -109,6 +123,8 @@ export const GUIDES: Guida[] = [
     consegna:
       "Scrivi un racconto breve (introduzione, sviluppo, conclusione) su un argomento a tua scelta. Presta attenzione alla coerenza temporale e all'uso dei tempi verbali del passato.",
     fedele: false,
+    categoria: 'narrativo',
+    categoriaSpiegazione: 'Il tipo narrativo racconta una storia o una sequenza di eventi nel tempo: cosa è successo, in che ordine, con quali personaggi. Usa soprattutto i tempi del passato (passato prossimo, imperfetto).',
     paroleMin: 100,
     paroleMax: 130,
     struttura: [
@@ -130,6 +146,8 @@ export const GUIDES: Guida[] = [
     consegna:
       'Scrivi un breve articolo di opinione su un tema di attualità a tua scelta. Presenta una tesi chiara, almeno due argomenti a supporto e una conclusione.',
     fedele: false,
+    categoria: 'argomentativo',
+    categoriaSpiegazione: 'Il tipo argomentativo presenta una tesi (la tua opinione) e la sostiene con argomenti ed esempi, per convincere chi legge. Non basta dire cosa pensi: devi spiegare perché.',
     paroleMin: 120,
     paroleMax: 150,
     struttura: [
@@ -144,6 +162,54 @@ export const GUIDES: Guida[] = [
       { sezione: 'Per concludere', frasi: ['In conclusione,...', 'Per questi motivi, credo che...', 'In definitiva,...', 'Spero che in futuro...'] }
     ],
     vocabolarioChiave: ['secondo me', 'a mio parere', 'innanzitutto', 'inoltre', 'tuttavia', 'in conclusione', 'sostenere', 'argomentare']
+  },
+  {
+    slug: 'esposizione',
+    titolo: 'Esposizione di un argomento',
+    descrizione: 'Spiega in modo chiaro e oggettivo un argomento che conosci.',
+    consegna:
+      'Scegli un argomento che conosci bene (una tradizione del tuo paese, una città, un\'attività che pratichi) e spiega le sue caratteristiche principali in modo chiaro e oggettivo, organizzando le informazioni in modo logico.',
+    fedele: false,
+    categoria: 'espositivo',
+    categoriaSpiegazione: 'Il tipo espositivo presenta informazioni su un argomento in modo oggettivo e organizzato, per far capire qualcosa a chi legge — non per raccontare una storia né per convincere di un\'opinione, ma per spiegare fatti e caratteristiche in modo chiaro.',
+    paroleMin: 100,
+    paroleMax: 130,
+    struttura: [
+      { titolo: 'Presentazione del tema', descrizione: 'Dì di cosa parlerai e perché lo conosci o lo trovi interessante.' },
+      { titolo: 'Caratteristiche principali', descrizione: 'Organizza le informazioni per punti: cosa è, come funziona, quali sono i suoi aspetti principali.' },
+      { titolo: 'Dettagli ed esempi', descrizione: 'Aggiungi dettagli concreti o un esempio che aiuti a capire meglio.' },
+      { titolo: 'Conclusione', descrizione: 'Riassumi brevemente i punti principali esposti.' }
+    ],
+    frasiUtili: [
+      { sezione: 'Per iniziare', frasi: ['Voglio parlare di...', '[Argomento] è...', 'Una delle cose più interessanti di [argomento] è...'] },
+      { sezione: 'Per esporre', frasi: ['Prima di tutto,...', 'Per quanto riguarda...', 'È importante sapere che...', 'Si tratta di...', 'Funziona così:...'] },
+      { sezione: 'Per concludere', frasi: ['Riassumendo,...', 'In breve,...', 'Questo è in generale come funziona...'] }
+    ],
+    vocabolarioChiave: ['per quanto riguarda', 'si tratta di', 'consiste in', 'caratteristica', 'in generale', 'funzionare']
+  },
+  {
+    slug: 'regole-istruzioni',
+    titolo: 'Istruzioni e regole',
+    descrizione: 'Spiega come fare qualcosa, passo dopo passo (es. una ricetta).',
+    consegna:
+      'Scrivi le istruzioni per fare qualcosa che sai fare bene (una ricetta, un gioco, un\'attività). Spiega cosa serve e i passaggi in ordine, usando l\'imperativo o il "si" impersonale.',
+    fedele: false,
+    categoria: 'regolativo',
+    categoriaSpiegazione: 'Il tipo regolativo dà istruzioni o regole da seguire — come fare qualcosa, in che ordine, cosa serve. Usa verbi all\'imperativo ("mescola", "aggiungi") o il "si" impersonale ("si mescola", "si aggiunge"), ed è organizzato in passaggi, non in un racconto continuo.',
+    paroleMin: 80,
+    paroleMax: 110,
+    struttura: [
+      { titolo: 'Cosa otterrai', descrizione: 'Dì brevemente cosa si imparerà a fare o ottenere seguendo queste istruzioni.' },
+      { titolo: 'Cosa serve', descrizione: 'Elenca gli ingredienti, i materiali o le condizioni necessarie prima di iniziare.' },
+      { titolo: 'I passaggi in ordine', descrizione: 'Scrivi i passaggi uno dopo l\'altro, nell\'ordine esatto in cui vanno fatti.' },
+      { titolo: 'Consiglio finale', descrizione: 'Aggiungi un consiglio utile o un avvertimento per riuscire meglio.' }
+    ],
+    frasiUtili: [
+      { sezione: 'Per iniziare', frasi: ['Per fare [nome], avrai bisogno di...', 'Ecco come si prepara/si gioca a...', 'Prima di iniziare, procurati...'] },
+      { sezione: 'Per i passaggi', frasi: ['Prima di tutto,...', 'Poi,...', 'A questo punto,...', 'Mescola/Aggiungi/Versa...', 'Si mescola/Si aggiunge...', 'Infine,...'] },
+      { sezione: 'Per concludere', frasi: ['Il consiglio è di...', 'Attenzione a non...', 'È pronto quando...'] }
+    ],
+    vocabolarioChiave: ['prima di tutto', 'poi', 'infine', 'a questo punto', 'mescolare', 'aggiungere', 'procurarsi', 'attenzione a']
   }
 ]
 

@@ -117,6 +117,13 @@ function WritePageInner() {
                 </p>
               </div>
 
+              {guida.categoria && (
+                <div className="rounded-md bg-guided-bg p-3 text-sm text-guided-text">
+                  <p className="font-medium">Cos&apos;è il &quot;{guida.categoria}&quot;?</p>
+                  <p className="mt-1">{guida.categoriaSpiegazione}</p>
+                </div>
+              )}
+
               <details className="rounded-md border border-border">
                 <summary className="cursor-pointer p-3 text-sm font-medium text-ink-primary">
                   📋 Struttura suggerita — da dove iniziare

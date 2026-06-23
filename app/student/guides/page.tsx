@@ -13,6 +13,14 @@ const NAV_ITEMS = [
   { href: '/account', label: 'Account' }
 ]
 
+const CATEGORIA_LABEL: Record<string, string> = {
+  descrittivo: 'Tipo descrittivo',
+  narrativo: 'Tipo narrativo',
+  espositivo: 'Tipo espositivo',
+  regolativo: 'Tipo regolativo',
+  argomentativo: 'Tipo argomentativo'
+}
+
 export default function GuidesPage() {
   return (
     <>
@@ -33,6 +41,11 @@ export default function GuidesPage() {
           {GUIDES.map((g) => (
             <Link key={g.slug} href={`/student/write?guida=${g.slug}`}>
               <Card className="h-full transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:bg-surface-tertiary">
+                {g.categoria && (
+                  <span className="mb-2 inline-block rounded-full bg-guided-bg px-2 py-0.5 text-xs text-guided-text">
+                    {CATEGORIA_LABEL[g.categoria]}
+                  </span>
+                )}
                 <h2 className="font-semibold text-ink-primary">
                   {g.fedele && '⭐ '}
                   {g.titolo}
