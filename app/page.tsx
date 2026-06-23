@@ -47,7 +47,7 @@ export default async function HomePage() {
     }
   }
 
-  redirect('/student/write')
+  redirect('/student/progress')
 }
 
 const FEATURES = [

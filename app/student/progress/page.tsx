@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/Card'
 import { ParolaMascot } from '@/components/shared/ParolaMascot'
 import { createClient } from '@/lib/supabase/server'
 import { EvolutionChart } from '@/components/teacher/EvolutionChart'
+import { ListChecks, CheckCircle2, TrendingUp, GraduationCap } from 'lucide-react'
 import {
   computeStudentStats,
   type SubmissionRow,
@@ -10,11 +11,11 @@ import {
 } from '@/lib/analytics/studentStats'
 
 const NAV_ITEMS = [
+  { href: '/student/progress', label: 'I miei progressi' },
   { href: '/student/write', label: 'Scrittura libera' },
   { href: '/student/exercises', label: 'Esercizi' },
   { href: '/student/guides', label: 'Guide' },
   { href: '/student/personalized', label: 'Per te' },
-  { href: '/student/progress', label: 'I miei progressi' },
   { href: '/account', label: 'Account' }
 ]
 
@@ -53,12 +54,15 @@ export default async function ProgressPage() {
   const supabase = createClient()
   const { data: userData } = await supabase.auth.getUser()
 
-  const { data: submissions } = await supabase
-    .from('submissions')
-    .select('id, tipo, created_at, consegna, valutazione_completed_at, valutazione_ia')
-    .eq('student_id', userData.user?.id ?? '')
-    .order('created_at', { ascending: false })
-    .limit(50)
+  const [{ data: submissions }, { data: profile }] = await Promise.all([
+    supabase
+      .from('submissions')
+      .select('id, tipo, created_at, consegna, valutazione_completed_at, valutazione_ia')
+      .eq('student_id', userData.user?.id ?? '')
+      .order('created_at', { ascending: false })
+      .limit(50),
+    supabase.from('profiles').select('nome').eq('id', userData.user?.id ?? '').single()
+  ])
 
   const stats = computeStudentStats((submissions as SubmissionRow[]) ?? [])
 
@@ -66,7 +70,22 @@ export default async function ProgressPage() {
     <>
       <AppNav items={NAV_ITEMS} />
       <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
-        <h1 className="mb-6 text-xl font-semibold text-ink-primary">I miei progressi</h1>
+        {/* Hero di benvenuto */}
+        <div className="relative mb-6 overflow-hidden rounded-xl bg-gradient-to-br from-brand-600 to-brand-400 p-6 text-white shadow-lg">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-sunshine-400/25 blur-3xl"
+          />
+          <div className="relative flex items-center gap-4">
+            <ParolaMascot mood="felice" className="h-16 w-16 animate-float-slow" />
+            <div>
+              <h1 className="text-2xl font-semibold">
+                Ciao{profile?.nome ? `, ${profile.nome}` : ''}! 👋
+              </h1>
+              <p className="text-sm text-white/85">Ecco come stai andando con il tuo italiano.</p>
+            </div>
+          </div>
+        </div>
 
         {stats.totaleAttivita === 0 ? (
           <Card className="border-dashed text-center text-sm text-ink-tertiary">
@@ -76,21 +95,25 @@ export default async function ProgressPage() {
         ) : (
           <>
             <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <Card className="text-center">
+              <Card className="animate-fade-in-up text-center transition-shadow hover:shadow-md">
+                <ListChecks className="mx-auto mb-1 h-5 w-5 text-info-text" strokeWidth={1.75} />
                 <p className="text-2xl font-semibold text-ink-primary">{stats.totaleAttivita}</p>
                 <p className="text-xs text-ink-tertiary">Attività totali</p>
               </Card>
-              <Card className="text-center">
+              <Card className="animate-fade-in-up delay-1 text-center transition-shadow hover:shadow-md">
+                <CheckCircle2 className="mx-auto mb-1 h-5 w-5 text-success-text" strokeWidth={1.75} />
                 <p className="text-2xl font-semibold text-ink-primary">{stats.valutate}</p>
                 <p className="text-xs text-ink-tertiary">Valutate</p>
               </Card>
-              <Card className="text-center">
+              <Card className="animate-fade-in-up delay-2 text-center transition-shadow hover:shadow-md">
+                <TrendingUp className="mx-auto mb-1 h-5 w-5 text-brand-400" strokeWidth={1.75} />
                 <p className="text-2xl font-semibold text-ink-primary">
                   {stats.mediaGenerale !== null ? `${stats.mediaGenerale}%` : '—'}
                 </p>
                 <p className="text-xs text-ink-tertiary">Punteggio medio</p>
               </Card>
-              <Card className="text-center">
+              <Card className="animate-fade-in-up delay-3 text-center transition-shadow hover:shadow-md">
+                <GraduationCap className="mx-auto mb-1 h-5 w-5 text-warning-text" strokeWidth={1.75} />
                 <p className="text-2xl font-semibold text-ink-primary">
                   {stats.livelloAttuale ?? '—'}
                 </p>
@@ -188,7 +211,7 @@ export default async function ProgressPage() {
                         </span>
                         <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface-tertiary">
                           <div
-                            className="h-full rounded-full bg-brand-400"
+                            className="h-full rounded-full bg-brand-400 transition-all duration-700"
                             style={{ width: `${(conteggio / max) * 100}%` }}
                           />
                         </div>
