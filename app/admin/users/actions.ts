@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient, assertIsAdmin } from '@/lib/supabase/admin'
+import { notifyTeacherAccountStatus } from '@/lib/email/teacherAccountStatus'
 
 async function requireAdminUserId(): Promise<string> {
   const supabase = createClient()
@@ -23,6 +24,7 @@ export async function approveTeacher(teacherId: string) {
     .eq('role', 'teacher')
 
   if (error) throw new Error('Errore approvando l\'insegnante.')
+  await notifyTeacherAccountStatus({ teacherId, esito: 'approved' })
   revalidatePath('/admin/users')
 }
 
@@ -37,6 +39,7 @@ export async function rejectTeacher(teacherId: string) {
     .eq('role', 'teacher')
 
   if (error) throw new Error('Errore rifiutando l\'insegnante.')
+  await notifyTeacherAccountStatus({ teacherId, esito: 'rejected' })
   revalidatePath('/admin/users')
 }
 
