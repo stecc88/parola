@@ -198,6 +198,7 @@ export default function AdminUsersPage() {
                     <p className="truncate font-medium text-ink-primary">
                       {s.nome} {s.cognome}
                     </p>
+                    <p className="truncate text-xs text-ink-tertiary">{s.email}</p>
                     <p className="truncate text-xs text-ink-tertiary">
                       {s.teacherNome
                         ? `Insegnante: ${s.teacherNome} ${s.teacherCognome}`
@@ -229,6 +230,7 @@ export default function AdminUsersPage() {
                   <p className="font-medium text-ink-primary">
                     {t.nome} {t.cognome}
                   </p>
+                  <p className="text-xs text-ink-tertiary">{t.email}</p>
                   <span
                     className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs ${STATUS_CLASS[t.teacher_status]}`}
                   >
@@ -503,6 +505,7 @@ function ManageStudentModal({
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 p-6">
       <Card className="w-full max-w-sm bg-surface">
         <h2 className="mb-1 text-lg font-semibold text-ink-primary">{fullName}</h2>
+        <p className="mb-1 text-xs text-ink-tertiary">{student.email}</p>
         <p className="mb-4 text-sm text-ink-tertiary">
           {student.teacherNome
             ? `Insegnante attuale: ${student.teacherNome} ${student.teacherCognome}`

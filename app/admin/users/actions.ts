@@ -13,6 +13,30 @@ async function requireAdminUserId(): Promise<string> {
   return data.user.id
 }
 
+/**
+ * Mappa id -> email per TUTTI gli utenti, leggendo da auth.users via
+ * service role (non accessibile via RLS normale, e profiles non
+ * memorizza l'email). Una sola chiamata paginata invece di N+1 — accettabile
+ * per il volume tipico di questa piattaforma; da rivedere se diventasse
+ * un collo di bottiglia con migliaia di utenti.
+ */
+async function getEmailMap(): Promise<Map<string, string>> {
+  const admin = createAdminClient()
+  const map = new Map<string, string>()
+  let page = 1
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 })
+    if (error || !data) break
+    for (const u of data.users) {
+      if (u.email) map.set(u.id, u.email)
+    }
+    if (data.users.length < 200) break
+    page += 1
+  }
+  return map
+}
+
 export async function approveTeacher(teacherId: string) {
   await requireAdminUserId()
   const admin = createAdminClient()
@@ -160,6 +184,7 @@ export interface TeacherRow {
   id: string
   nome: string
   cognome: string
+  email: string
   teacher_status: 'pending' | 'approved' | 'rejected' | 'disabled'
   created_at: string
 }
@@ -168,14 +193,17 @@ export async function getTeachers(): Promise<TeacherRow[]> {
   await requireAdminUserId()
   const admin = createAdminClient()
 
-  const { data, error } = await admin
-    .from('profiles')
-    .select('id, nome, cognome, teacher_status, created_at')
-    .eq('role', 'teacher')
-    .order('created_at', { ascending: false })
+  const [{ data, error }, emailMap] = await Promise.all([
+    admin
+      .from('profiles')
+      .select('id, nome, cognome, teacher_status, created_at')
+      .eq('role', 'teacher')
+      .order('created_at', { ascending: false }),
+    getEmailMap()
+  ])
 
   if (error) throw new Error('Errore caricando gli insegnanti.')
-  return (data ?? []) as TeacherRow[]
+  return (data ?? []).map((t) => ({ ...t, email: emailMap.get(t.id) ?? '' })) as TeacherRow[]
 }
 
 export async function getApprovedTeachersExcept(excludeId: string): Promise<TeacherRow[]> {
@@ -191,7 +219,7 @@ export async function getApprovedTeachersExcept(excludeId: string): Promise<Teac
     .order('nome', { ascending: true })
 
   if (error) throw new Error('Errore caricando gli insegnanti disponibili.')
-  return (data ?? []) as TeacherRow[]
+  return (data ?? []).map((t) => ({ ...t, email: '' })) as TeacherRow[]
 }
 
 export async function approveStudent(studentId: string) {
@@ -226,6 +254,7 @@ export interface StudentAdminRow {
   id: string
   nome: string
   cognome: string
+  email: string
   student_status: 'pending' | 'approved' | 'rejected' | 'disabled'
   created_at: string
   teacherId: string | null
@@ -242,7 +271,7 @@ export async function getAllStudentsAdmin(): Promise<StudentAdminRow[]> {
   await requireAdminUserId()
   const admin = createAdminClient()
 
-  const [{ data: students, error }, { data: memberships }] = await Promise.all([
+  const [{ data: students, error }, { data: memberships }, emailMap] = await Promise.all([
     admin
       .from('profiles')
       .select('id, nome, cognome, student_status, created_at')
@@ -251,7 +280,8 @@ export async function getAllStudentsAdmin(): Promise<StudentAdminRow[]> {
     admin
       .from('class_memberships')
       .select('student_id, teacher_id, profiles!teacher_id(nome, cognome)')
-      .is('left_at', null)
+      .is('left_at', null),
+    getEmailMap()
   ])
 
   if (error) throw new Error('Errore caricando gli studenti.')
@@ -272,6 +302,7 @@ export async function getAllStudentsAdmin(): Promise<StudentAdminRow[]> {
       id: s.id,
       nome: s.nome,
       cognome: s.cognome,
+      email: emailMap.get(s.id) ?? '',
       student_status: s.student_status,
       created_at: s.created_at,
       teacherId: teacher?.id ?? null,
@@ -293,7 +324,7 @@ export async function getApprovedTeachers(): Promise<TeacherRow[]> {
     .order('nome', { ascending: true })
 
   if (error) throw new Error('Errore caricando gli insegnanti disponibili.')
-  return (data ?? []) as TeacherRow[]
+  return (data ?? []).map((t) => ({ ...t, email: '' })) as TeacherRow[]
 }
 
 export async function disableStudentAccount(studentId: string) {
