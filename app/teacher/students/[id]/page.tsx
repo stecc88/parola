@@ -20,6 +20,7 @@ import { GeneratePersonalizedExerciseButton } from './GeneratePersonalizedExerci
 import { SubmissionHistoryEntry } from './SubmissionHistoryEntry'
 import { PersonalizedExerciseEntry } from './PersonalizedExerciseEntry'
 import { ListChecks, TrendingUp, GraduationCap, Target } from 'lucide-react'
+import { ExportReportButton } from './ExportReportButton'
 
 const NAV_ITEMS = [
   { href: '/teacher/classes', label: 'Le mie classi' },
@@ -111,25 +112,35 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
           ← Tutte le classi
         </Link>
 
-        <div className="mt-2 mb-6">
-          <h1 className="text-xl font-semibold text-ink-primary">
-            {profile.nome} {profile.cognome}
-          </h1>
-          <div className="flex flex-wrap items-center gap-3 text-sm text-ink-tertiary">
-            {profile.livello_target && <span>Livello target: {profile.livello_target}</span>}
-            <span>
-              Ultimo accesso:{' '}
-              {ultimoAccesso
-                ? new Date(ultimoAccesso).toLocaleString('it-IT', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })
-                : 'mai'}
-            </span>
+        <div className="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h1 className="text-xl font-semibold text-ink-primary">
+              {profile.nome} {profile.cognome}
+            </h1>
+            <div className="flex flex-wrap items-center gap-3 text-sm text-ink-tertiary">
+              {profile.livello_target && <span>Livello target: {profile.livello_target}</span>}
+              <span>
+                Ultimo accesso:{' '}
+                {ultimoAccesso
+                  ? new Date(ultimoAccesso).toLocaleString('it-IT', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })
+                  : 'mai'}
+              </span>
+            </div>
           </div>
+          {stats.totaleAttivita > 0 && (
+            <ExportReportButton
+              nomeCompleto={`${profile.nome} ${profile.cognome}`}
+              livelloTarget={profile.livello_target}
+              stats={stats}
+              ultimoAccesso={ultimoAccesso}
+            />
+          )}
         </div>
 
         <Card className="mb-6">

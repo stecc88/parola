@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import type { TipoEsercizioPersonalizzato } from '@/lib/gemini/schema'
+import { notifyTeacherOfDelivery } from '@/lib/email/teacherNotification'
 
 export interface EsercizioItem {
   domanda: string
@@ -117,6 +118,8 @@ export async function submitPersonalizedExerciseResponse(
     throw new Error("Risposta salvata, ma errore collegando l'esercizio.")
   }
 
+  await avvisaDocente(exerciseId, userData.user.id)
+
   return submission.id
 }
 
@@ -168,5 +171,34 @@ export async function submitClosedExerciseAnswers(
     throw new Error('Errore salvando le risposte.')
   }
 
+  await avvisaDocente(exerciseId, userData.user.id)
+
   return { punteggio }
+}
+
+/**
+ * Helper condiviso: recupera teacher_id/titolo dell'esercizio e il nome
+ * dello studente, poi invia la notifica (in-app già aggiornata da
+ * seen_by_teacher=false; qui solo l'email best-effort aggiuntiva).
+ */
+async function avvisaDocente(exerciseId: string, studentId: string) {
+  const supabase = createClient()
+
+  const [{ data: esercizio }, { data: profilo }] = await Promise.all([
+    supabase
+      .from('personalized_exercises')
+      .select('teacher_id, titolo')
+      .eq('id', exerciseId)
+      .single(),
+    supabase.from('profiles').select('nome, cognome').eq('id', studentId).single()
+  ])
+
+  if (!esercizio || !profilo) return
+
+  await notifyTeacherOfDelivery({
+    teacherId: esercizio.teacher_id,
+    nomeStudente: `${profilo.nome} ${profilo.cognome}`,
+    titoloEsercizio: esercizio.titolo,
+    studentId
+  })
 }
