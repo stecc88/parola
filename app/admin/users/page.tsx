@@ -36,6 +36,15 @@ const STATUS_CLASS: Record<TeacherRow['teacher_status'], string> = {
   disabled: 'bg-surface-tertiary text-ink-tertiary'
 }
 
+// I docenti "in attesa" sono l'azione piu urgente — vanno mostrati primi,
+// indipendentemente dalla data di registrazione.
+const STATUS_ORDER: Record<TeacherRow['teacher_status'], number> = {
+  pending: 0,
+  approved: 1,
+  disabled: 2,
+  rejected: 3
+}
+
 export default function AdminUsersPage() {
   const [teachers, setTeachers] = useState<TeacherRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -70,11 +79,29 @@ export default function AdminUsersPage() {
     })
   }
 
+  const inAttesa = teachers.filter((t) => t.teacher_status === 'pending').length
+  const approvati = teachers.filter((t) => t.teacher_status === 'approved').length
+  const teachersOrdinati = [...teachers].sort(
+    (a, b) =>
+      STATUS_ORDER[a.teacher_status] - STATUS_ORDER[b.teacher_status] ||
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  )
+
   return (
     <>
       <AppNav items={NAV_ITEMS} />
       <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
-        <h1 className="mb-6 text-xl font-semibold text-ink-primary">Gestione insegnanti</h1>
+        <h1 className="mb-2 text-xl font-semibold text-ink-primary">Gestione insegnanti</h1>
+        {!loading && teachers.length > 0 && (
+          <p className="mb-6 text-sm text-ink-tertiary">
+            {teachers.length} insegnanti totali · {approvati} approvati
+            {inAttesa > 0 && (
+              <span className="ml-1 font-medium text-warning-text">
+                · {inAttesa} in attesa di approvazione
+              </span>
+            )}
+          </p>
+        )}
 
         {error && (
           <p className="mb-4 rounded-md bg-danger-bg px-3 py-2 text-sm text-danger-text">
@@ -90,7 +117,7 @@ export default function AdminUsersPage() {
           </Card>
         ) : (
           <div className="space-y-3">
-            {teachers.map((t) => (
+            {teachersOrdinati.map((t) => (
               <Card key={t.id} className="flex items-center justify-between gap-4">
                 <div>
                   <p className="font-medium text-ink-primary">
