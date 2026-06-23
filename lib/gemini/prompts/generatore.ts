@@ -5,6 +5,7 @@ import {
   type EsercizioPersonalizzato,
   type TipoEsercizioPersonalizzato
 } from '../schema'
+import { descrizioneLivelloGenerazione } from '../cefrLevels'
 
 /**
  * Generatore di esercizi personalizzati per il docente. A differenza
@@ -76,27 +77,6 @@ function buildPrompt(profilo: ProfiloDebolezzeStudente): string {
 Istruzioni per ciascun tipo, da seguire ESATTAMENTE una volta scelto:
 ${Object.values(TIPO_ISTRUZIONI).join('\n\n')}`
 
-  const livelloIstruzioni: Record<string, string> = {
-    A1: `Livello A1: usa frasi cortissime e dirette. La "teoria" deve essere
-estremamente semplice, massimo 3-4 frasi brevi, idealmente con una piccola
-lista a righe separate (una regola o un esempio per riga) invece di un
-paragrafo lungo. Evita termini grammaticali complessi senza spiegarli con
-parole quotidiane. Vocabolario molto comune e concreto.`,
-    A2: `Livello A2: frasi brevi e semplici. La "teoria" va organizzata in
-poche righe chiare, una idea per riga, con esempi concreti subito dopo
-ogni regola. Vocabolario quotidiano, pochissime eccezioni menzionate.`,
-    B1: `Livello B1: spiegazione chiara e diretta, in un paragrafo breve o
-poche righe. Puoi introdurre 1 eccezione o caso particolare se rilevante,
-ma senza appesantire troppo.`,
-    B2: `Livello B2: spiegazione più articolata, puoi collegare la regola a
-casi d'uso reali e un paio di eccezioni o sfumature di significato.`,
-    C1: `Livello C1: spiegazione approfondita, con attenzione a registro
-(formale/informale), connotazioni ed eccezioni meno comuni.`,
-    C2: `Livello C2: spiegazione sofisticata, orientata a sfumature
-stilistiche, registro, ed eventuali usi letterari o idiomatici della
-struttura.`
-  }
-
   return `Sei un insegnante esperto di lingua italiana per persone — adolescenti o adulte — che si
 preparano a superare standard internazionali di lingua italiana. Un docente
 ti chiede di creare un esercizio PERSONALIZZATO per UNO studente specifico
@@ -106,7 +86,7 @@ Aree di miglioramento rilevate nelle correzioni precedenti dello studente:
 ${areeText}
 ${categorieText}
 
-${livelloIstruzioni[livello] ?? livelloIstruzioni.B1}
+${descrizioneLivelloGenerazione(livello)}
 
 ${tipoText}
 

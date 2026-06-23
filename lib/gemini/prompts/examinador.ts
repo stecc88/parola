@@ -4,6 +4,7 @@ import {
   zodToGeminiSchema,
   type ValutazioneEsaminatore
 } from '../schema'
+import { descrizioneLivelloValutazione } from '../cefrLevels'
 
 /**
  * Evaluador de "scrittura libera". Activa thinking (presupuesto medio)
@@ -21,6 +22,10 @@ function buildPrompt(testoStudente: string, livelloTarget?: string, consegna?: s
   return `Sei un esaminatore esperto di lingua italiana per persone — adolescenti o adulte — che si
 preparano a superare standard internazionali di lingua italiana. Valuta il
 testo seguente, scritto da uno studente${livelloTarget ? ` con livello target ${livelloTarget}` : ''}.
+
+Calibrazione delle aspettative per questo livello — leggi con attenzione,
+è la parte più importante per dare un punteggio giusto:
+${descrizioneLivelloValutazione(livelloTarget)}
 ${
   consegna
     ? `\nConsegna data allo studente dal docente: "${consegna}"

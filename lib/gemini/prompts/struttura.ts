@@ -1,6 +1,7 @@
 import { generateStructuredContent } from '../client'
 import { zodToGeminiSchema } from '../schema'
 import { z } from 'zod'
+import { descrizioneLivelloGenerazione } from '../cefrLevels'
 
 /**
  * Los 4 tipi di esercizio di analisi delle strutture (contrato definitivo):
@@ -38,6 +39,8 @@ export async function generateEsercizioStruttura1(livello: string): Promise<Fras
 standard internazionali di lingua italiana. Ogni frase deve avere un buco
 segnato con ___ e indicare tra parentesi il verbo o la struttura da usare.
 Varia il contesto grammaticale (tempi verbali, preposizioni, concordanza).
+${descrizioneLivelloGenerazione(livello)}
+
 Non menzionare mai nomi di certificazioni specifiche.`
 
   const raw = await generateStructuredContent({
@@ -115,7 +118,11 @@ che si prepara a superare standard internazionali di lingua italiana. Per
 ogni frase fornisci le parole in ordine SBAGLIATO (casuale, non l'ordine
 corretto) come array di stringhe, e indica il contesto grammaticale che
 l'ordine corretto evidenzia (es. posizione dell'aggettivo, ordine clitici,
-struttura interrogativa). Non menzionare mai nomi di certificazioni
+struttura interrogativa).
+
+${descrizioneLivelloGenerazione(livello)}
+
+Non menzionare mai nomi di certificazioni
 specifiche.`
 
   const raw = await generateStructuredContent({
@@ -179,7 +186,11 @@ export async function generateEsercizioStruttura3(livello: string): Promise<Doma
 italiano per uno studente di livello ${livello} che si prepara a superare
 standard internazionali di lingua italiana. Ogni domanda ha una frase con
 un buco e 4 opzioni di preposizione (solo una corretta, le altre devono
-essere errori comuni plausibili). Non menzionare mai nomi di certificazioni
+essere errori comuni plausibili).
+
+${descrizioneLivelloGenerazione(livello)}
+
+Non menzionare mai nomi di certificazioni
 specifiche.`
 
   const raw = await generateStructuredContent({
@@ -242,6 +253,8 @@ trasformazione (cambio di tempo verbale, forma attiva/passiva o discorso
 diretto/indiretto) per uno studente di livello ${livello} che si prepara a
 superare standard internazionali di lingua italiana. Per ogni frase fornisci
 la frase originale e un'istruzione chiara di trasformazione. Non menzionare
+${descrizioneLivelloGenerazione(livello)}
+
 mai nomi di certificazioni specifiche.`
 
   const raw = await generateStructuredContent({
@@ -316,7 +329,11 @@ poi 4-6 frasi con un buco numerato ciascuna, e per ognuna 4 opzioni di
 parole semanticamente vicine tra loro (sinonimi parziali, parole dello
 stesso campo semantico) di cui solo una è quella corretta nel contesto
 specifico — le opzioni sbagliate devono essere parole plausibili, non
-ovviamente sbagliate. Non menzionare mai nomi di certificazioni
+ovviamente sbagliate.
+
+${descrizioneLivelloGenerazione(livello)}
+
+Non menzionare mai nomi di certificazioni
 specifiche.`
 
   const raw = await generateStructuredContent({
@@ -391,6 +408,8 @@ negozio, in un'email), e 4 opzioni che descrivono possibili situazioni di
 comunicazione in cui quella frase potrebbe essere detta — solo una
 corretta, le altre plausibili ma sbagliate (stesso contesto generale ma
 dettaglio diverso, es. interlocutore o luogo diverso). Non menzionare mai
+${descrizioneLivelloGenerazione(livello)}
+
 nomi di certificazioni specifiche.`
 
   const raw = await generateStructuredContent({
