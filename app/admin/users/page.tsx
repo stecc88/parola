@@ -13,12 +13,17 @@ import {
   deleteTeacher,
   getTeacherBlockers,
   getApprovedTeachersExcept,
+  getApprovedTeachers,
   reassignAllClasses,
-  getIndependentStudents,
+  getAllStudentsAdmin,
   approveStudent,
   rejectStudent,
+  disableStudentAccount,
+  reenableStudentAccount,
+  reassignStudentTeacher,
+  deleteStudentCompletely,
   type TeacherRow,
-  type StudentRow
+  type StudentAdminRow
 } from './actions'
 
 const NAV_ITEMS = [
@@ -40,6 +45,20 @@ const STATUS_CLASS: Record<TeacherRow['teacher_status'], string> = {
   disabled: 'bg-surface-tertiary text-ink-tertiary'
 }
 
+const STUDENT_STATUS_LABEL: Record<StudentAdminRow['student_status'], string> = {
+  pending: 'In attesa',
+  approved: 'Attivo',
+  rejected: 'Rifiutato',
+  disabled: 'Disabilitato'
+}
+
+const STUDENT_STATUS_CLASS: Record<StudentAdminRow['student_status'], string> = {
+  pending: 'bg-warning-bg text-warning-text',
+  approved: 'bg-success-bg text-success-text',
+  rejected: 'bg-danger-bg text-danger-text',
+  disabled: 'bg-surface-tertiary text-ink-tertiary'
+}
+
 // I docenti "in attesa" sono l'azione piu urgente — vanno mostrati primi,
 // indipendentemente dalla data di registrazione.
 const STATUS_ORDER: Record<TeacherRow['teacher_status'], number> = {
@@ -51,18 +70,25 @@ const STATUS_ORDER: Record<TeacherRow['teacher_status'], number> = {
 
 export default function AdminUsersPage() {
   const [teachers, setTeachers] = useState<TeacherRow[]>([])
-  const [students, setStudents] = useState<StudentRow[]>([])
+  const [students, setStudents] = useState<StudentAdminRow[]>([])
+  const [approvedTeachers, setApprovedTeachers] = useState<TeacherRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
   const [deleteTarget, setDeleteTarget] = useState<TeacherRow | null>(null)
+  const [manageTarget, setManageTarget] = useState<StudentAdminRow | null>(null)
 
   async function reload() {
     setLoading(true)
     try {
-      const [t, s] = await Promise.all([getTeachers(), getIndependentStudents()])
+      const [t, s, at] = await Promise.all([
+        getTeachers(),
+        getAllStudentsAdmin(),
+        getApprovedTeachers()
+      ])
       setTeachers(t)
       setStudents(s)
+      setApprovedTeachers(at)
       setError(null)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Errore caricando gli insegnanti.')
@@ -156,6 +182,37 @@ export default function AdminUsersPage() {
           </Card>
         )}
 
+        {!loading && students.length > 0 && (
+          <Card className="mb-6">
+            <h2 className="mb-3 text-sm font-semibold text-ink-primary">
+              Tutti gli studenti ({students.length})
+            </h2>
+            <div className="space-y-1">
+              {students.map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => setManageTarget(s)}
+                  className="flex w-full items-center justify-between gap-3 rounded-md p-2 text-left text-sm hover:bg-surface-secondary"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium text-ink-primary">
+                      {s.nome} {s.cognome}
+                    </p>
+                    <p className="truncate text-xs text-ink-tertiary">
+                      {s.teacherNome
+                        ? `Insegnante: ${s.teacherNome} ${s.teacherCognome}`
+                        : 'Indipendente'}
+                    </p>
+                  </div>
+                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${STUDENT_STATUS_CLASS[s.student_status]}`}>
+                    {STUDENT_STATUS_LABEL[s.student_status]}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </Card>
+        )}
+
         <h2 className="mb-3 text-sm font-semibold text-ink-tertiary">Insegnanti</h2>
 
         {loading ? (
@@ -242,6 +299,19 @@ export default function AdminUsersPage() {
             onError={(msg) => setError(msg)}
           />
         )}
+
+        {manageTarget && (
+          <ManageStudentModal
+            student={manageTarget}
+            approvedTeachers={approvedTeachers}
+            onClose={() => setManageTarget(null)}
+            onChanged={() => {
+              setManageTarget(null)
+              reload()
+            }}
+            onError={(msg) => setError(msg)}
+          />
+        )}
       </main>
     </>
   )
@@ -260,13 +330,17 @@ function DeleteTeacherModal({
 }) {
   const [confirmName, setConfirmName] = useState('')
   const [classi, setClassi] = useState<{ id: string; nome: string }[] | null>(null)
+  const [studentiCount, setStudentiCount] = useState(0)
   const [candidates, setCandidates] = useState<TeacherRow[]>([])
   const [targetTeacherId, setTargetTeacherId] = useState('')
   const [pending, startTransition] = useTransition()
   const fullName = `${teacher.nome} ${teacher.cognome}`
 
   useEffect(() => {
-    getTeacherBlockers(teacher.id).then((r) => setClassi(r.classi))
+    getTeacherBlockers(teacher.id).then((r) => {
+      setClassi(r.classi)
+      setStudentiCount(r.studentiCount)
+    })
     getApprovedTeachersExcept(teacher.id).then(setCandidates)
   }, [teacher.id])
 
@@ -276,6 +350,7 @@ function DeleteTeacherModal({
       try {
         await reassignAllClasses(teacher.id, targetTeacherId)
         setClassi([])
+        setStudentiCount(0)
       } catch (e) {
         onError(e instanceof Error ? e.message : 'Errore riassegnando.')
       }
@@ -293,7 +368,7 @@ function DeleteTeacherModal({
     })
   }
 
-  const hasClassi = classi && classi.length > 0
+  const hasBlockers = classi !== null && (classi.length > 0 || studentiCount > 0)
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/40 p-6">
@@ -304,17 +379,18 @@ function DeleteTeacherModal({
 
         {classi === null ? (
           <p className="text-sm text-ink-tertiary">Verifica in corso...</p>
-        ) : hasClassi ? (
+        ) : hasBlockers ? (
           <div className="space-y-3">
             <div className="rounded-md bg-warning-bg p-3 text-sm text-warning-text">
-              Questo insegnante ha ancora {classi!.length} classe/i (
-              {classi!.map((c) => c.nome).join(', ')}). Riassegnale a un altro
-              insegnante prima di poter eliminare l'account.
+              Questo insegnante ha ancora {studentiCount} studente/i assegnato/i
+              {classi.length > 0 &&
+                ` (in ${classi.length} classe/i: ${classi.map((c) => c.nome).join(', ')})`}
+              . Riassegnali a un altro insegnante prima di poter eliminare l&apos;account.
             </div>
 
             {candidates.length === 0 ? (
               <p className="text-sm text-ink-tertiary">
-                Non ci sono altri insegnanti approvati a cui riassegnare le classi.
+                Non ci sono altri insegnanti approvati a cui riassegnare gli studenti.
               </p>
             ) : (
               <div className="flex items-center gap-2">
@@ -356,7 +432,7 @@ function DeleteTeacherModal({
           <Button variant="ghost" onClick={onClose} disabled={pending}>
             Annulla
           </Button>
-          {!hasClassi && classi !== null && (
+          {!hasBlockers && classi !== null && (
             <Button
               variant="danger"
               disabled={pending || confirmName.trim() !== fullName}
@@ -365,6 +441,161 @@ function DeleteTeacherModal({
               {pending ? 'Eliminando...' : 'Elimina definitivamente'}
             </Button>
           )}
+        </div>
+      </Card>
+    </div>
+  )
+}
+
+function ManageStudentModal({
+  student,
+  approvedTeachers,
+  onClose,
+  onChanged,
+  onError
+}: {
+  student: StudentAdminRow
+  approvedTeachers: TeacherRow[]
+  onClose: () => void
+  onChanged: () => void
+  onError: (msg: string) => void
+}) {
+  const [confirmName, setConfirmName] = useState('')
+  const [targetTeacherId, setTargetTeacherId] = useState('')
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [pending, startTransition] = useTransition()
+  const fullName = `${student.nome} ${student.cognome}`
+
+  function run(action: () => Promise<unknown>) {
+    startTransition(async () => {
+      try {
+        await action()
+        onChanged()
+      } catch (e) {
+        onError(e instanceof Error ? e.message : 'Errore inatteso.')
+      }
+    })
+  }
+
+  function handleReassign() {
+    startTransition(async () => {
+      try {
+        await reassignStudentTeacher(student.id, targetTeacherId || null)
+        onChanged()
+      } catch (e) {
+        onError(e instanceof Error ? e.message : 'Errore riassegnando.')
+      }
+    })
+  }
+
+  function handleDelete() {
+    startTransition(async () => {
+      try {
+        await deleteStudentCompletely(student.id, confirmName, fullName)
+        onChanged()
+      } catch (e) {
+        onError(e instanceof Error ? e.message : 'Errore eliminando.')
+      }
+    })
+  }
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-black/40 p-6">
+      <Card className="w-full max-w-sm bg-surface">
+        <h2 className="mb-1 text-lg font-semibold text-ink-primary">{fullName}</h2>
+        <p className="mb-4 text-sm text-ink-tertiary">
+          {student.teacherNome
+            ? `Insegnante attuale: ${student.teacherNome} ${student.teacherCognome}`
+            : 'Indipendente (nessun insegnante)'}
+        </p>
+
+        <div className="space-y-4">
+          <div>
+            <p className="mb-2 text-sm font-medium text-ink-primary">Riassegna a un insegnante</p>
+            <div className="flex items-center gap-2">
+              <select
+                value={targetTeacherId}
+                onChange={(e) => setTargetTeacherId(e.target.value)}
+                className="flex-1 rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand-400"
+              >
+                <option value="">Indipendente (nessun insegnante)</option>
+                {approvedTeachers.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.nome} {t.cognome}
+                  </option>
+                ))}
+              </select>
+              <Button disabled={pending} onClick={handleReassign}>
+                {pending ? '...' : 'Salva'}
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between border-t border-border pt-4">
+            <p className="text-sm font-medium text-ink-primary">
+              Stato: {STUDENT_STATUS_LABEL[student.student_status]}
+            </p>
+            {student.student_status === 'disabled' ? (
+              <Button
+                variant="secondary"
+                disabled={pending}
+                onClick={() => run(() => reenableStudentAccount(student.id))}
+              >
+                Riattiva
+              </Button>
+            ) : (
+              <Button
+                variant="secondary"
+                disabled={pending}
+                onClick={() => run(() => disableStudentAccount(student.id))}
+              >
+                Disabilita
+              </Button>
+            )}
+          </div>
+
+          <div className="border-t border-border pt-4">
+            {confirmingDelete ? (
+              <div className="space-y-2">
+                <p className="text-sm text-ink-secondary">
+                  Questa azione elimina <strong>definitivamente</strong> l&apos;account e TUTTI
+                  i dati (scritti, esercizi, storico). Digita <strong>{fullName}</strong> per
+                  confermare.
+                </p>
+                <input
+                  value={confirmName}
+                  onChange={(e) => setConfirmName(e.target.value)}
+                  className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-danger-text"
+                />
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="ghost"
+                    disabled={pending}
+                    onClick={() => setConfirmingDelete(false)}
+                  >
+                    Annulla
+                  </Button>
+                  <Button
+                    variant="danger"
+                    disabled={pending || confirmName.trim() !== fullName}
+                    onClick={handleDelete}
+                  >
+                    {pending ? 'Eliminando...' : 'Elimina definitivamente'}
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Button variant="danger" disabled={pending} onClick={() => setConfirmingDelete(true)}>
+                Elimina account e tutti i dati
+              </Button>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-4 flex justify-end">
+          <Button variant="ghost" onClick={onClose} disabled={pending}>
+            Chiudi
+          </Button>
         </div>
       </Card>
     </div>

@@ -84,23 +84,49 @@ export async function getTeacherBlockers(teacherId: string) {
     .select('id, nome')
     .eq('teacher_id', teacherId)
 
-  return { classi: classi ?? [] }
+  // El vínculo que realmente bloquea el delete (restrict FK) es
+  // class_memberships.teacher_id — un alumno sin clase asignada (class_id
+  // null) también bloquea, aunque no aparezca en "classes".
+  const { count: studentiCount } = await admin
+    .from('class_memberships')
+    .select('id', { count: 'exact', head: true })
+    .eq('teacher_id', teacherId)
+    .is('left_at', null)
+
+  return { classi: classi ?? [], studentiCount: studentiCount ?? 0 }
 }
 
 /**
  * Reasigna TODAS las classi de un profesor a otro profesor de una sola vez.
  * No toca submissions/exercises (siguen ligadas a student_id, no a teacher_id).
  */
+/**
+ * Riassegna TUTTO ciò che lega uno studente a questo insegnante: sia le
+ * classi (tabella classes) sia i collegamenti diretti studente-insegnante
+ * (class_memberships.teacher_id) — quest'ultima è la colonna che il
+ * vincolo "on delete restrict" controlla davvero quando si elimina un
+ * insegnante. Aggiornare solo "classes" (come faceva prima questa
+ * funzione) lasciava class_memberships ancora puntato al vecchio
+ * insegnante, bloccando silenziosamente l'eliminazione più avanti.
+ */
 export async function reassignAllClasses(fromTeacherId: string, toTeacherId: string) {
   await requireAdminUserId()
   const admin = createAdminClient()
 
-  const { error } = await admin
+  const { error: classesError } = await admin
     .from('classes')
     .update({ teacher_id: toTeacherId })
     .eq('teacher_id', fromTeacherId)
 
-  if (error) throw new Error('Errore riassegnando le classi.')
+  if (classesError) throw new Error('Errore riassegnando le classi.')
+
+  const { error: membershipsError } = await admin
+    .from('class_memberships')
+    .update({ teacher_id: toTeacherId })
+    .eq('teacher_id', fromTeacherId)
+
+  if (membershipsError) throw new Error('Errore riassegnando gli studenti.')
+
   revalidatePath('/admin/users')
 }
 
@@ -168,34 +194,6 @@ export async function getApprovedTeachersExcept(excludeId: string): Promise<Teac
   return (data ?? []) as TeacherRow[]
 }
 
-export interface StudentRow {
-  id: string
-  nome: string
-  cognome: string
-  student_status: 'pending' | 'approved' | 'rejected' | null
-  created_at: string
-}
-
-/**
- * Studenti SENZA insegnante (si sono registrati senza codice) — quelli
- * con un insegnante sono già approvati automaticamente al momento
- * dell'iscrizione (vedi joinClassWithCode) e non compaiono qui.
- */
-export async function getIndependentStudents(): Promise<StudentRow[]> {
-  await requireAdminUserId()
-  const admin = createAdminClient()
-
-  const { data, error } = await admin
-    .from('profiles')
-    .select('id, nome, cognome, student_status, created_at')
-    .eq('role', 'student')
-    .not('student_status', 'is', null)
-    .order('created_at', { ascending: false })
-
-  if (error) throw new Error('Errore caricando gli studenti.')
-  return (data ?? []) as StudentRow[]
-}
-
 export async function approveStudent(studentId: string) {
   await requireAdminUserId()
   const admin = createAdminClient()
@@ -221,5 +219,195 @@ export async function rejectStudent(studentId: string) {
     .eq('role', 'student')
 
   if (error) throw new Error('Errore rifiutando lo studente.')
+  revalidatePath('/admin/users')
+}
+
+export interface StudentAdminRow {
+  id: string
+  nome: string
+  cognome: string
+  student_status: 'pending' | 'approved' | 'rejected' | 'disabled'
+  created_at: string
+  teacherId: string | null
+  teacherNome: string | null
+  teacherCognome: string | null
+}
+
+/**
+ * TUTTI gli studenti, con il loro insegnante attuale (se ne hanno uno) —
+ * permette all'amministratore di vedere a colpo d'occhio chi è assegnato
+ * a chi e chi è indipendente, in un'unica vista.
+ */
+export async function getAllStudentsAdmin(): Promise<StudentAdminRow[]> {
+  await requireAdminUserId()
+  const admin = createAdminClient()
+
+  const [{ data: students, error }, { data: memberships }] = await Promise.all([
+    admin
+      .from('profiles')
+      .select('id, nome, cognome, student_status, created_at')
+      .eq('role', 'student')
+      .order('created_at', { ascending: false }),
+    admin
+      .from('class_memberships')
+      .select('student_id, teacher_id, profiles!teacher_id(nome, cognome)')
+      .is('left_at', null)
+  ])
+
+  if (error) throw new Error('Errore caricando gli studenti.')
+
+  const teacherByStudent = new Map<string, { id: string; nome: string; cognome: string }>()
+  for (const m of memberships ?? []) {
+    const teacherProfile = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles
+    teacherByStudent.set(m.student_id, {
+      id: m.teacher_id,
+      nome: teacherProfile?.nome ?? '',
+      cognome: teacherProfile?.cognome ?? ''
+    })
+  }
+
+  return (students ?? []).map((s) => {
+    const teacher = teacherByStudent.get(s.id)
+    return {
+      id: s.id,
+      nome: s.nome,
+      cognome: s.cognome,
+      student_status: s.student_status,
+      created_at: s.created_at,
+      teacherId: teacher?.id ?? null,
+      teacherNome: teacher?.nome ?? null,
+      teacherCognome: teacher?.cognome ?? null
+    }
+  })
+}
+
+export async function getApprovedTeachers(): Promise<TeacherRow[]> {
+  await requireAdminUserId()
+  const admin = createAdminClient()
+
+  const { data, error } = await admin
+    .from('profiles')
+    .select('id, nome, cognome, teacher_status, created_at')
+    .eq('role', 'teacher')
+    .eq('teacher_status', 'approved')
+    .order('nome', { ascending: true })
+
+  if (error) throw new Error('Errore caricando gli insegnanti disponibili.')
+  return (data ?? []) as TeacherRow[]
+}
+
+export async function disableStudentAccount(studentId: string) {
+  await requireAdminUserId()
+  const admin = createAdminClient()
+
+  const { error } = await admin
+    .from('profiles')
+    .update({ student_status: 'disabled' })
+    .eq('id', studentId)
+    .eq('role', 'student')
+
+  if (error) throw new Error('Errore disabilitando lo studente.')
+  revalidatePath('/admin/users')
+}
+
+export async function reenableStudentAccount(studentId: string) {
+  await requireAdminUserId()
+  const admin = createAdminClient()
+
+  const { error } = await admin
+    .from('profiles')
+    .update({ student_status: 'approved' })
+    .eq('id', studentId)
+    .eq('role', 'student')
+
+  if (error) throw new Error('Errore riattivando lo studente.')
+  revalidatePath('/admin/users')
+}
+
+/**
+ * Riassegna uno studente a un altro insegnante (o lo rende indipendente
+ * se newTeacherId è null). Se lo studente era pending/rejected, riceverne
+ * uno lo approva automaticamente (il docente fa da garante) — se era
+ * disabled, resta disabled: riattivarlo è una decisione separata
+ * dell'amministratore.
+ */
+export async function reassignStudentTeacher(studentId: string, newTeacherId: string | null) {
+  await requireAdminUserId()
+  const admin = createAdminClient()
+
+  const { error: endError } = await admin
+    .from('class_memberships')
+    .update({ left_at: new Date().toISOString() })
+    .eq('student_id', studentId)
+    .is('left_at', null)
+
+  if (endError) throw new Error('Errore concludendo l\'iscrizione attuale.')
+
+  if (newTeacherId) {
+    const { error: insertError } = await admin.from('class_memberships').insert({
+      student_id: studentId,
+      teacher_id: newTeacherId,
+      class_id: null
+    })
+    if (insertError) throw new Error('Errore assegnando il nuovo insegnante.')
+
+    const { data: profile } = await admin
+      .from('profiles')
+      .select('student_status')
+      .eq('id', studentId)
+      .single()
+
+    if (profile?.student_status === 'pending' || profile?.student_status === 'rejected') {
+      await admin.from('profiles').update({ student_status: 'approved' }).eq('id', studentId)
+    }
+  }
+
+  revalidatePath('/admin/users')
+}
+
+/**
+ * Elimina PERMANENTEMENTE uno studente e TUTTI i suoi dati (submissions,
+ * esercizi personalizzati, iscrizioni) — richiesta esplicita del
+ * proprietario del prodotto, stessa logica di irreversibilità già
+ * accettata per l'eliminazione di singole submission da parte del
+ * docente (migrazione 0009). L'ordine di cancellazione rispetta i
+ * vincoli "on delete restrict" dello schema: prima le righe che
+ * referenziano il profilo, poi l'utente in auth.users (che fa cascare
+ * l'eliminazione del profilo stesso).
+ */
+export async function deleteStudentCompletely(
+  studentId: string,
+  confirmName: string,
+  expectedName: string
+) {
+  await requireAdminUserId()
+
+  if (confirmName.trim() !== expectedName.trim()) {
+    throw new Error('Il nome non corrisponde. Eliminazione annullata.')
+  }
+
+  const admin = createAdminClient()
+
+  const { error: exercisesError } = await admin
+    .from('personalized_exercises')
+    .delete()
+    .eq('student_id', studentId)
+  if (exercisesError) throw new Error('Errore eliminando gli esercizi personalizzati.')
+
+  const { error: submissionsError } = await admin
+    .from('submissions')
+    .delete()
+    .eq('student_id', studentId)
+  if (submissionsError) throw new Error('Errore eliminando le submissions.')
+
+  const { error: membershipsError } = await admin
+    .from('class_memberships')
+    .delete()
+    .eq('student_id', studentId)
+  if (membershipsError) throw new Error('Errore eliminando le iscrizioni.')
+
+  const { error: deleteUserError } = await admin.auth.admin.deleteUser(studentId)
+  if (deleteUserError) throw new Error('Errore eliminando l\'account.')
+
   revalidatePath('/admin/users')
 }

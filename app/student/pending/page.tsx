@@ -9,7 +9,9 @@ import Link from 'next/link'
 const STATUS_MESSAGE: Record<string, string> = {
   pending:
     'Il tuo account è in attesa di approvazione da parte di un amministratore. Riceverai accesso non appena verrà confermato.',
-  rejected: 'La tua registrazione non è stata approvata. Contatta un amministratore per maggiori informazioni.'
+  rejected:
+    'La tua registrazione non è stata approvata. Contatta un amministratore per maggiori informazioni.',
+  disabled: 'Il tuo account è stato disabilitato. Contatta un amministratore per maggiori informazioni.'
 }
 
 export default async function StudentPendingPage() {

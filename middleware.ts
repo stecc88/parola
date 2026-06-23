@@ -35,7 +35,11 @@ export async function middleware(request: NextRequest) {
       .eq('id', userData.user.id)
       .single()
 
-    if (profile?.role === 'student' && profile.student_status === 'pending') {
+    if (
+      profile?.role === 'student' &&
+      profile.student_status !== 'approved' &&
+      profile.student_status !== null
+    ) {
       return NextResponse.redirect(new URL('/student/pending', request.url))
     }
   }
