@@ -100,7 +100,7 @@ function LandingPage() {
     '@type': 'EducationalOrganization',
     name: 'Parola',
     description:
-      "Piattaforma di apprendimento dell'italiano per adolescenti, con correzioni generate dall'IA ed esercizi personalizzati.",
+      "Piattaforma di allenamento per l'italiano, con correzioni generate dall'IA ed esercizi personalizzati, per chi si prepara a superare standard internazionali di lingua italiana.",
     url: 'https://parola-puce.vercel.app',
     audience: {
       '@type': 'EducationalAudience',
@@ -148,7 +148,7 @@ function LandingPage() {
 
           <span className="animate-fade-in-up delay-1 mb-3 inline-flex items-center gap-1.5 rounded-full bg-surface px-3 py-1 text-xs font-semibold uppercase tracking-[0.15em] text-brand-400 shadow-sm ring-1 ring-border">
             <Sparkles className="h-3.5 w-3.5" />
-            Italiano per adolescenti
+            Allenamento per esami internazionali di italiano
           </span>
 
           <h1 className="animate-fade-in-up delay-2 font-display text-5xl italic text-ink-primary sm:text-6xl">

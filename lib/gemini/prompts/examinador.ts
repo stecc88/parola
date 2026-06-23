@@ -18,7 +18,7 @@ import {
 const RESPONSE_SCHEMA = zodToGeminiSchema(valutazioneEsaminatoreSchema)
 
 function buildPrompt(testoStudente: string, livelloTarget?: string, consegna?: string): string {
-  return `Sei un esaminatore esperto di lingua italiana per adolescenti che si
+  return `Sei un esaminatore esperto di lingua italiana per persone — adolescenti o adulte — che si
 preparano a superare standard internazionali di lingua italiana. Valuta il
 testo seguente, scritto da uno studente${livelloTarget ? ` con livello target ${livelloTarget}` : ''}.
 ${
@@ -43,7 +43,7 @@ Testo dello studente:
 ${testoStudente}
 """
 
-Fornisci una valutazione completa, costruttiva e adatta a un adolescente.
+Fornisci una valutazione completa, costruttiva, con un tono incoraggiante adatto sia ad adolescenti che ad adulti.
 
 Per "punti_forza" e "aree_di_miglioramento", segui queste regole ESATTE
 — sono il problema più comune da evitare: NON scrivere voci generiche o

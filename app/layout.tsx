@@ -2,9 +2,9 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 const SITE_URL = 'https://parola-puce.vercel.app'
-const TITLE = 'Parola — Italiano per adolescenti'
+const TITLE = 'Parola — Allenati per gli esami di italiano'
 const DESCRIPTION =
-  "Piattaforma di apprendimento dell'italiano per adolescenti: scrittura libera corretta dall'IA, esercizi su misura e monitoraggio dei progressi, pensata per preparare gli studenti a superare standard internazionali di lingua italiana."
+  "Piattaforma di allenamento per l'italiano: scrittura libera corretta dall'IA, esercizi su misura e monitoraggio dei progressi, pensata per chiunque si prepari a superare standard internazionali di lingua italiana, dagli adolescenti agli adulti."
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     'lingua italiana',
     'scrittura italiano',
     'esercizi italiano',
-    'adolescenti',
+    'esame italiano', 'preparazione esame',
     'CEFR',
     'A1 A2 B1 B2 C1 C2'
   ],

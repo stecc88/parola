@@ -43,7 +43,7 @@ export default function OpengraphImage() {
             maxWidth: 760
           }}
         >
-          Scrivi, sbaglia, migliora — italiano per adolescenti
+          Scrivi, sbaglia, migliora — allenati per gli esami di italiano
         </div>
       </div>
     ),

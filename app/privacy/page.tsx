@@ -16,8 +16,9 @@ export default function PrivacyPage() {
 
         <Card className="mb-6 bg-warning-bg">
           <p className="text-sm text-warning-text">
-            <strong>Nota importante:</strong> Parola è pensata per essere usata da adolescenti.
-            Se sei minorenne, ti chiediamo di usare la piattaforma con il consenso di un
+            <strong>Nota importante:</strong> Parola è una piattaforma di allenamento aperta a
+            chiunque si prepari a un esame internazionale di lingua italiana — adolescenti e
+            adulti. Se sei minorenne, ti chiediamo di usare la piattaforma con il consenso di un
             genitore, tutore o insegnante responsabile. Questa informativa descrive in modo
             chiaro quali dati raccogliamo e perché — non è una consulenza legale formale;
             chi gestisce un&apos;istituzione che usa Parola con minori dovrebbe verificare gli

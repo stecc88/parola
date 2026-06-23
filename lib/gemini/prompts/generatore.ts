@@ -97,7 +97,7 @@ stilistiche, registro, ed eventuali usi letterari o idiomatici della
 struttura.`
   }
 
-  return `Sei un insegnante esperto di lingua italiana per adolescenti che si
+  return `Sei un insegnante esperto di lingua italiana per persone — adolescenti o adulte — che si
 preparano a superare standard internazionali di lingua italiana. Un docente
 ti chiede di creare un esercizio PERSONALIZZATO per UNO studente specifico
 con livello target ${livello}, basato sulle sue difficoltà ricorrenti.
@@ -110,8 +110,8 @@ ${livelloIstruzioni[livello] ?? livelloIstruzioni.B1}
 
 ${tipoText}
 
-Crea l'esercizio completo con questi campi, pensati per un adolescente
-(linguaggio chiaro, motivante, non punitivo):
+Crea l'esercizio completo con questi campi, con un linguaggio chiaro,
+motivante e non punitivo, adatto sia ad adolescenti che ad adulti:
 
 1. "tipo_esercizio": il tipo scelto (vedi sopra).
 2. "titolo": un titolo breve e specifico (es. "L'uso del condizionale per

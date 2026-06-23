@@ -14,8 +14,9 @@ export default function TerminiPage() {
           <section>
             <h2 className="mb-2 text-base font-semibold text-ink-primary">1. Il servizio</h2>
             <p>
-              Parola è una piattaforma didattica per l&apos;apprendimento dell&apos;italiano,
-              pensata per studenti adolescenti e i loro insegnanti. Offre scrittura libera con
+              Parola è una piattaforma di allenamento per l&apos;italiano, pensata per chiunque
+              si prepari a superare standard internazionali di lingua italiana — adolescenti e
+              adulti — e per i loro insegnanti. Offre scrittura libera con
               correzione generata da intelligenza artificiale, esercizi personalizzati e
               monitoraggio dei progressi.
             </p>
