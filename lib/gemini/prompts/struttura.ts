@@ -281,3 +281,154 @@ possibile, e un breve feedback didattico.`
   if (!parsed.success) throw new Error(`Risposta di Gemini non valida: ${parsed.error.message}`)
   return parsed.data
 }
+
+// ---------------------------------------------------------------------------
+// TIPO 5 — Completamento lessicale a scelta multipla ⭐ fedele al formato
+// reale dell'esame: stessa struttura della prova "Analisi delle strutture
+// di comunicazione" che verifica il lessico (testo con buchi numerati,
+// 4 opzioni semanticamente vicine per ognuno, solo una corretta nel
+// contesto).
+// ---------------------------------------------------------------------------
+
+export const completamentoLessicaleSchema = z.object({
+  testo_introduttivo: z.string(),
+  domande: z
+    .array(
+      z.object({
+        id: z.string(),
+        testo_con_buco: z.string(),
+        opzioni: z.array(z.string()).length(4)
+      })
+    )
+    .min(4)
+    .max(6)
+})
+
+export type CompletamentoLessicale = z.infer<typeof completamentoLessicaleSchema>
+
+export async function generateEsercizioStruttura5(livello: string): Promise<CompletamentoLessicale> {
+  const prompt = `Genera un esercizio di completamento lessicale a scelta
+multipla in italiano per uno studente di livello ${livello} che si prepara
+a superare standard internazionali di lingua italiana, nello stesso
+formato della prova "Analisi delle strutture di comunicazione" che
+verifica il lessico: un breve testo introduttivo (1-2 frasi di contesto),
+poi 4-6 frasi con un buco numerato ciascuna, e per ognuna 4 opzioni di
+parole semanticamente vicine tra loro (sinonimi parziali, parole dello
+stesso campo semantico) di cui solo una è quella corretta nel contesto
+specifico — le opzioni sbagliate devono essere parole plausibili, non
+ovviamente sbagliate. Non menzionare mai nomi di certificazioni
+specifiche.`
+
+  const raw = await generateStructuredContent({
+    prompt,
+    responseSchema: zodToGeminiSchema(completamentoLessicaleSchema),
+    temperature: 0.6
+  })
+  const parsed = completamentoLessicaleSchema.safeParse(raw)
+  if (!parsed.success) throw new Error(`Risposta di Gemini non valida: ${parsed.error.message}`)
+  return parsed.data
+}
+
+export async function evaluateEsercizioStruttura5(
+  domande: CompletamentoLessicale['domande'],
+  risposte: { id: string; opzione_scelta: string }[]
+): Promise<ValutazioneRisposteStruttura> {
+  const prompt = `Valuta le risposte di uno studente a un esercizio di
+completamento lessicale a scelta multipla in italiano.
+
+Domande e risposte:
+${domande
+  .map((d) => {
+    const r = risposte.find((x) => x.id === d.id)
+    return `- "${d.testo_con_buco}" opzioni: [${d.opzioni.join(', ')}] → scelta dello studente: "${r?.opzione_scelta ?? ''}"`
+  })
+  .join('\n')}
+
+Per ogni domanda indica se è corretta, qual è l'opzione corretta, e un breve
+feedback didattico che spiega la differenza di significato/uso tra
+l'opzione corretta e quella scelta (se diversa).`
+
+  const raw = await generateStructuredContent({
+    prompt,
+    responseSchema: zodToGeminiSchema(valutazioneRisposteSchema),
+    temperature: 0.1
+  })
+  const parsed = valutazioneRisposteSchema.safeParse(raw)
+  if (!parsed.success) throw new Error(`Risposta di Gemini non valida: ${parsed.error.message}`)
+  return parsed.data
+}
+
+// ---------------------------------------------------------------------------
+// TIPO 6 — Situazioni comunicative ⭐ fedele al formato reale dell'esame:
+// stessa struttura della prova "Analisi delle strutture di comunicazione"
+// che verifica l'uso pragmatico della lingua (un'espressione/frase, 4
+// situazioni di comunicazione possibili, solo una corretta).
+// ---------------------------------------------------------------------------
+
+export const situazioniComunicativeSchema = z.object({
+  domande: z
+    .array(
+      z.object({
+        id: z.string(),
+        espressione: z.string(),
+        opzioni: z.array(z.string()).length(4)
+      })
+    )
+    .min(4)
+    .max(8)
+})
+
+export type SituazioniComunicative = z.infer<typeof situazioniComunicativeSchema>
+
+export async function generateEsercizioStruttura6(livello: string): Promise<SituazioniComunicative> {
+  const prompt = `Genera un esercizio "situazioni comunicative" in italiano
+per uno studente di livello ${livello} che si prepara a superare standard
+internazionali di lingua italiana, nello stesso formato della prova
+"Analisi delle strutture di comunicazione" che verifica l'uso pragmatico
+della lingua: per ogni domanda, fornisci una breve espressione o frase che
+qualcuno direbbe in una situazione reale (es. al bar, al telefono, in un
+negozio, in un'email), e 4 opzioni che descrivono possibili situazioni di
+comunicazione in cui quella frase potrebbe essere detta — solo una
+corretta, le altre plausibili ma sbagliate (stesso contesto generale ma
+dettaglio diverso, es. interlocutore o luogo diverso). Non menzionare mai
+nomi di certificazioni specifiche.`
+
+  const raw = await generateStructuredContent({
+    prompt,
+    responseSchema: zodToGeminiSchema(situazioniComunicativeSchema),
+    temperature: 0.6
+  })
+  const parsed = situazioniComunicativeSchema.safeParse(raw)
+  if (!parsed.success) throw new Error(`Risposta di Gemini non valida: ${parsed.error.message}`)
+  return parsed.data
+}
+
+export async function evaluateEsercizioStruttura6(
+  domande: SituazioniComunicative['domande'],
+  risposte: { id: string; opzione_scelta: string }[]
+): Promise<ValutazioneRisposteStruttura> {
+  const prompt = `Valuta le risposte di uno studente a un esercizio
+"situazioni comunicative" in italiano (collegare un'espressione alla
+situazione di comunicazione corretta).
+
+Domande e risposte:
+${domande
+  .map((d) => {
+    const r = risposte.find((x) => x.id === d.id)
+    return `- "${d.espressione}" opzioni: [${d.opzioni.join(', ')}] → scelta dello studente: "${r?.opzione_scelta ?? ''}"`
+  })
+  .join('\n')}
+
+Per ogni domanda indica se è corretta, qual è l'opzione corretta, e un breve
+feedback didattico che spiega cosa rendeva plausibile/implausibile ogni
+opzione.`
+
+  const raw = await generateStructuredContent({
+    prompt,
+    responseSchema: zodToGeminiSchema(valutazioneRisposteSchema),
+    temperature: 0.1
+  })
+  const parsed = valutazioneRisposteSchema.safeParse(raw)
+  if (!parsed.success) throw new Error(`Risposta di Gemini non valida: ${parsed.error.message}`)
+  return parsed.data
+}

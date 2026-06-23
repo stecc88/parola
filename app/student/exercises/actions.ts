@@ -12,10 +12,16 @@ import {
   evaluateEsercizioStruttura3,
   generateEsercizioStruttura4,
   evaluateEsercizioStruttura4,
+  generateEsercizioStruttura5,
+  evaluateEsercizioStruttura5,
+  generateEsercizioStruttura6,
+  evaluateEsercizioStruttura6,
   type FraseDaCompletare,
   type FrasiDaRiordinare,
   type DomandePreposizione,
   type FrasiDaTrasformare,
+  type CompletamentoLessicale,
+  type SituazioniComunicative,
   type ValutazioneRisposteStruttura
 } from '@/lib/gemini/prompts/struttura'
 
@@ -42,6 +48,14 @@ export async function startEsercizio3(): Promise<DomandePreposizione> {
 export async function startEsercizio4(): Promise<FrasiDaTrasformare> {
   await requireStudentAndCheckLimit()
   return generateEsercizioStruttura4(await getLivelloTarget())
+}
+export async function startEsercizio5(): Promise<CompletamentoLessicale> {
+  await requireStudentAndCheckLimit()
+  return generateEsercizioStruttura5(await getLivelloTarget())
+}
+export async function startEsercizio6(): Promise<SituazioniComunicative> {
+  await requireStudentAndCheckLimit()
+  return generateEsercizioStruttura6(await getLivelloTarget())
 }
 
 async function persistSubmission(tipo: string, testo: string, valutazione: ValutazioneRisposteStruttura) {
@@ -105,6 +119,32 @@ export async function submitEsercizio4(
   await persistSubmission(
     'esercizio_struttura_4',
     risposte.map((r) => `${r.id}: ${r.frase_trasformata}`).join(' | '),
+    valutazione
+  )
+  return valutazione
+}
+
+export async function submitEsercizio5(
+  domande: CompletamentoLessicale['domande'],
+  risposte: { id: string; opzione_scelta: string }[]
+) {
+  const valutazione = await evaluateEsercizioStruttura5(domande, risposte)
+  await persistSubmission(
+    'esercizio_struttura_5',
+    risposte.map((r) => `${r.id}: ${r.opzione_scelta}`).join(' | '),
+    valutazione
+  )
+  return valutazione
+}
+
+export async function submitEsercizio6(
+  domande: SituazioniComunicative['domande'],
+  risposte: { id: string; opzione_scelta: string }[]
+) {
+  const valutazione = await evaluateEsercizioStruttura6(domande, risposte)
+  await persistSubmission(
+    'esercizio_struttura_6',
+    risposte.map((r) => `${r.id}: ${r.opzione_scelta}`).join(' | '),
     valutazione
   )
   return valutazione

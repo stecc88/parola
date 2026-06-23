@@ -40,7 +40,9 @@ const TIPO_LABEL: Record<string, string> = {
   esercizio_struttura_1: 'Completa la frase',
   esercizio_struttura_2: 'Riordina le parole',
   esercizio_struttura_3: 'Scegli la preposizione',
-  esercizio_struttura_4: 'Trasforma la frase'
+  esercizio_struttura_4: 'Trasforma la frase',
+  esercizio_struttura_5: 'Completamento lessicale ⭐',
+  esercizio_struttura_6: 'Situazioni comunicative ⭐'
 }
 
 export default async function StudentDetailPage({ params }: { params: { id: string } }) {
