@@ -167,3 +167,59 @@ export async function getApprovedTeachersExcept(excludeId: string): Promise<Teac
   if (error) throw new Error('Errore caricando gli insegnanti disponibili.')
   return (data ?? []) as TeacherRow[]
 }
+
+export interface StudentRow {
+  id: string
+  nome: string
+  cognome: string
+  student_status: 'pending' | 'approved' | 'rejected' | null
+  created_at: string
+}
+
+/**
+ * Studenti SENZA insegnante (si sono registrati senza codice) — quelli
+ * con un insegnante sono già approvati automaticamente al momento
+ * dell'iscrizione (vedi joinClassWithCode) e non compaiono qui.
+ */
+export async function getIndependentStudents(): Promise<StudentRow[]> {
+  await requireAdminUserId()
+  const admin = createAdminClient()
+
+  const { data, error } = await admin
+    .from('profiles')
+    .select('id, nome, cognome, student_status, created_at')
+    .eq('role', 'student')
+    .not('student_status', 'is', null)
+    .order('created_at', { ascending: false })
+
+  if (error) throw new Error('Errore caricando gli studenti.')
+  return (data ?? []) as StudentRow[]
+}
+
+export async function approveStudent(studentId: string) {
+  await requireAdminUserId()
+  const admin = createAdminClient()
+
+  const { error } = await admin
+    .from('profiles')
+    .update({ student_status: 'approved' })
+    .eq('id', studentId)
+    .eq('role', 'student')
+
+  if (error) throw new Error('Errore approvando lo studente.')
+  revalidatePath('/admin/users')
+}
+
+export async function rejectStudent(studentId: string) {
+  await requireAdminUserId()
+  const admin = createAdminClient()
+
+  const { error } = await admin
+    .from('profiles')
+    .update({ student_status: 'rejected' })
+    .eq('id', studentId)
+    .eq('role', 'student')
+
+  if (error) throw new Error('Errore rifiutando lo studente.')
+  revalidatePath('/admin/users')
+}

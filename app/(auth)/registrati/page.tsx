@@ -53,7 +53,7 @@ export default function RegistratiPage() {
     // y podemos unir al estudiante a la clase de inmediato. Si requiere
     // confirmación, data.session será null y el join deberá hacerse después
     // del primer login (no cubierto en este flujo mínimo).
-    if (ruolo === 'student' && data.session) {
+    if (ruolo === 'student' && data.session && inviteCode.trim()) {
       const res = await fetch('/api/classes/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -168,17 +168,25 @@ export default function RegistratiPage() {
 
           {ruolo === 'student' && (
             <div>
-              <label className="mb-1 block text-sm text-ink-secondary">Codice insegnante</label>
+              <label className="mb-1 block text-sm text-ink-secondary">
+                Codice insegnante <span className="text-ink-tertiary">(opzionale)</span>
+              </label>
               <input
-                required
                 value={inviteCode}
                 onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
                 placeholder="es. A3F7K9"
                 className="w-full rounded-md border border-border bg-surface px-3 py-2 text-sm uppercase outline-none transition-colors focus:border-brand-400 focus:ring-2 focus:ring-brand-400/20"
               />
-              <p className="mt-1 text-xs text-ink-tertiary">
-                Te lo fornisce il tuo insegnante. Dopo potrà assegnarti a una classe.
-              </p>
+              {inviteCode.trim() ? (
+                <p className="mt-1 text-xs text-ink-tertiary">
+                  Te lo fornisce il tuo insegnante. Dopo potrà assegnarti a una classe.
+                </p>
+              ) : (
+                <p className="mt-1 text-xs text-ink-tertiary">
+                  Ti stai allenando da solo? Lascia vuoto: il tuo account dovrà essere
+                  approvato da un amministratore prima di poter accedere.
+                </p>
+              )}
             </div>
           )}
 

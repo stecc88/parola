@@ -22,7 +22,23 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  await supabase.auth.getUser()
+  const { data: userData } = await supabase.auth.getUser()
+
+  const { pathname } = request.nextUrl
+  const isStudentArea = pathname.startsWith('/student')
+  const isExempt = pathname === '/student/pending' || pathname === '/student/join-class'
+
+  if (userData.user && isStudentArea && !isExempt) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role, student_status')
+      .eq('id', userData.user.id)
+      .single()
+
+    if (profile?.role === 'student' && profile.student_status === 'pending') {
+      return NextResponse.redirect(new URL('/student/pending', request.url))
+    }
+  }
 
   return response
 }

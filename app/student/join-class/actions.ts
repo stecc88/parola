@@ -36,6 +36,13 @@ export async function joinClassWithCode(inviteCode: string) {
   })
 
   if (insertError) throw new Error('Errore unendosi al gruppo dell\'insegnante.')
+
+  // Un codice insegnante valido fa da garante: lo studente passa subito
+  // ad approved anche se si era registrato senza codice ed era pending.
+  await supabase
+    .from('profiles')
+    .update({ student_status: 'approved' })
+    .eq('id', userData.user.id)
 }
 
 /**
@@ -72,4 +79,24 @@ export async function hasActiveMembership(): Promise<boolean> {
     .maybeSingle()
 
   return !!data
+}
+
+/**
+ * Stato di approvazione per uno studente SENZA insegnante (si è registrato
+ * senza codice). NULL se l'utente non è uno studente, o se ha un
+ * student_status NULL (caso legacy/con insegnante — vedi migrazione 0012).
+ */
+export async function getMyStudentStatus(): Promise<'pending' | 'approved' | 'rejected' | null> {
+  const supabase = createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return null
+
+  const { data } = await supabase
+    .from('profiles')
+    .select('role, student_status')
+    .eq('id', userData.user.id)
+    .single()
+
+  if (data?.role !== 'student') return null
+  return data.student_status
 }

@@ -18,7 +18,7 @@ export default async function HomePage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, teacher_status')
+    .select('role, teacher_status, student_status')
     .eq('id', data.user.id)
     .single()
 
@@ -33,7 +33,17 @@ export default async function HomePage() {
   if (!(await hasActiveMembership())) {
     const joined = await tryAutoJoinFromMetadata()
     if (!joined) {
-      redirect('/student/join-class')
+      // Senza un insegnante, lo studente è "indipendente": se è pending
+      // (registrato senza codice, in attesa di un admin) va alla pagina
+      // di attesa; se è approved (admin lo ha già confermato, o caso
+      // legacy) può usare comunque la scrittura libera e gli esercizi di
+      // struttura, che non richiedono un insegnante.
+      if (profile?.student_status === 'pending') {
+        redirect('/student/pending')
+      }
+      if (profile?.student_status === 'rejected') {
+        redirect('/student/pending')
+      }
     }
   }
 

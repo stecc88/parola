@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/Card'
 import { ParolaMascot } from '@/components/shared/ParolaMascot'
 import { createClient } from '@/lib/supabase/server'
 import { getMyPersonalizedExercises } from './actions'
+import { hasActiveMembership } from '@/app/student/join-class/actions'
 
 const NAV_ITEMS = [
   { href: '/student/write', label: 'Scrittura libera' },
@@ -16,6 +17,7 @@ const NAV_ITEMS = [
 
 export default async function PersonalizedExercisesPage() {
   const esercizi = await getMyPersonalizedExercises()
+  const haInsegnante = await hasActiveMembership()
   const supabase = createClient()
 
   const submissionIds = esercizi
@@ -51,7 +53,17 @@ export default async function PersonalizedExercisesPage() {
         {esercizi.length === 0 ? (
           <Card className="border-dashed text-center text-sm text-ink-tertiary">
             <ParolaMascot mood="pensieroso" className="mx-auto mb-2" />
-            Il tuo insegnante non ha ancora creato esercizi personalizzati per te.
+            {haInsegnante ? (
+              'Il tuo insegnante non ha ancora creato esercizi personalizzati per te.'
+            ) : (
+              <>
+                Gli esercizi personalizzati richiedono un insegnante che li generi su misura
+                per te.{' '}
+                <Link href="/student/join-class" className="text-brand-400 underline">
+                  Hai un codice insegnante? Inseriscilo qui.
+                </Link>
+              </>
+            )}
           </Card>
         ) : (
           <div className="space-y-2">

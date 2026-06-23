@@ -14,7 +14,11 @@ import {
   getTeacherBlockers,
   getApprovedTeachersExcept,
   reassignAllClasses,
-  type TeacherRow
+  getIndependentStudents,
+  approveStudent,
+  rejectStudent,
+  type TeacherRow,
+  type StudentRow
 } from './actions'
 
 const NAV_ITEMS = [
@@ -47,6 +51,7 @@ const STATUS_ORDER: Record<TeacherRow['teacher_status'], number> = {
 
 export default function AdminUsersPage() {
   const [teachers, setTeachers] = useState<TeacherRow[]>([])
+  const [students, setStudents] = useState<StudentRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
@@ -55,7 +60,9 @@ export default function AdminUsersPage() {
   async function reload() {
     setLoading(true)
     try {
-      setTeachers(await getTeachers())
+      const [t, s] = await Promise.all([getTeachers(), getIndependentStudents()])
+      setTeachers(t)
+      setStudents(s)
       setError(null)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Errore caricando gli insegnanti.')
@@ -108,6 +115,48 @@ export default function AdminUsersPage() {
             {error}
           </p>
         )}
+
+        {!loading && students.filter((s) => s.student_status === 'pending').length > 0 && (
+          <Card className="mb-6 border-warning-text/30 bg-warning-bg">
+            <h2 className="mb-3 text-sm font-semibold text-warning-text">
+              Studenti indipendenti in attesa di approvazione (
+              {students.filter((s) => s.student_status === 'pending').length})
+            </h2>
+            <div className="space-y-2">
+              {students
+                .filter((s) => s.student_status === 'pending')
+                .map((s) => (
+                  <div
+                    key={s.id}
+                    className="flex items-center justify-between gap-3 rounded-md bg-surface p-3"
+                  >
+                    <p className="text-sm font-medium text-ink-primary">
+                      {s.nome} {s.cognome}
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        disabled={pending}
+                        onClick={() => run(() => approveStudent(s.id))}
+                        className="px-3 py-1.5 text-sm"
+                      >
+                        Approva
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        disabled={pending}
+                        onClick={() => run(() => rejectStudent(s.id))}
+                        className="px-3 py-1.5 text-sm"
+                      >
+                        Rifiuta
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </Card>
+        )}
+
+        <h2 className="mb-3 text-sm font-semibold text-ink-tertiary">Insegnanti</h2>
 
         {loading ? (
           <p className="text-sm text-ink-tertiary">Caricamento...</p>

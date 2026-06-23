@@ -1,8 +1,11 @@
 import { redirect } from 'next/navigation'
 import { AppNav } from '@/components/shared/AppNav'
 import { Card } from '@/components/ui/Card'
+import { Button } from '@/components/ui/Button'
+import Link from 'next/link'
 import { getMyProfile } from './actions'
 import { AccountForm } from './AccountForm'
+import { hasActiveMembership } from '@/app/student/join-class/actions'
 
 const NAV_ITEMS_BY_ROLE: Record<string, { href: string; label: string }[]> = {
   student: [
@@ -31,6 +34,7 @@ export default async function AccountPage() {
   }
 
   const navItems = NAV_ITEMS_BY_ROLE[profile.role] ?? [{ href: '/account', label: 'Account' }]
+  const isStudentSenzaInsegnante = profile.role === 'student' && !(await hasActiveMembership())
 
   return (
     <>
@@ -47,6 +51,19 @@ export default async function AccountPage() {
             {profile.livello_target && ` · Livello target: ${profile.livello_target}`}
           </p>
         </Card>
+
+        {isStudentSenzaInsegnante && (
+          <Card className="mb-6 bg-info-bg">
+            <h2 className="mb-1 text-sm font-semibold text-info-text">Hai un codice insegnante?</h2>
+            <p className="mb-3 text-sm text-info-text">
+              Se un insegnante ti ha dato un codice, inseriscilo per ricevere esercizi
+              personalizzati e monitoraggio dei progressi.
+            </p>
+            <Link href="/student/join-class">
+              <Button variant="secondary">Inserisci codice insegnante</Button>
+            </Link>
+          </Card>
+        )}
 
         <AccountForm nomeIniziale={profile.nome} cognomeIniziale={profile.cognome} />
       </main>
