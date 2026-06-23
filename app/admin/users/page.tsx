@@ -336,7 +336,7 @@ function DeleteTeacherModal({
   const [candidates, setCandidates] = useState<TeacherRow[]>([])
   const [targetTeacherId, setTargetTeacherId] = useState('')
   const [pending, startTransition] = useTransition()
-  const fullName = `${teacher.nome} ${teacher.cognome}`
+  const fullName = `${teacher.nome} ${teacher.cognome}`.trim() || teacher.email
 
   useEffect(() => {
     getTeacherBlockers(teacher.id).then((r) => {
@@ -466,7 +466,7 @@ function ManageStudentModal({
   const [targetTeacherId, setTargetTeacherId] = useState('')
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [pending, startTransition] = useTransition()
-  const fullName = `${student.nome} ${student.cognome}`
+  const fullName = `${student.nome} ${student.cognome}`.trim() || student.email
 
   function run(action: () => Promise<unknown>) {
     startTransition(async () => {
