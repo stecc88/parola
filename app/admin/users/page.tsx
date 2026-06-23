@@ -27,7 +27,7 @@ import {
 } from './actions'
 
 const NAV_ITEMS = [
-  { href: '/admin/users', label: 'Gestione insegnanti' },
+  { href: '/admin/users', label: 'Gestione utenti' },
   { href: '/account', label: 'Account' }
 ]
 
@@ -124,7 +124,7 @@ export default function AdminUsersPage() {
     <>
       <AppNav items={NAV_ITEMS} />
       <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
-        <h1 className="mb-2 text-xl font-semibold text-ink-primary">Gestione insegnanti</h1>
+        <h1 className="mb-2 text-xl font-semibold text-ink-primary">Gestione utenti</h1>
         {!loading && teachers.length > 0 && (
           <p className="mb-6 text-sm text-ink-tertiary">
             {teachers.length} insegnanti totali · {approvati} approvati
