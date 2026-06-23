@@ -3,6 +3,11 @@ export interface Guida {
   titolo: string
   descrizione: string
   consegna: string
+  // true per i tipi che corrispondono esattamente a una delle prove
+  // reali dell'esame CILS B1 "Produzione scritta" (Percorso CILS UNO-B1,
+  // Esempio Prova N.1 e N.2) — il manuale ufficiale ne specifica solo 2:
+  // descrizione di una persona, e lettera informale/email a un amico.
+  fedele: boolean
   // Lunghezza consigliata in parole, come negli esami reali — aiuta lo
   // studente a capire quanto scrivere senza doverlo indovinare.
   paroleMin: number
@@ -31,11 +36,35 @@ export interface Guida {
  */
 export const GUIDES: Guida[] = [
   {
+    slug: 'descrizione',
+    titolo: 'Descrizione di una persona',
+    descrizione: 'Descrivi una persona della tua famiglia o un amico.',
+    consegna:
+      'Descrivi una persona della tua famiglia o un amico. Parla del suo aspetto fisico, del carattere, di cosa fa nella vita e di perché è importante per te.',
+    fedele: true,
+    paroleMin: 100,
+    paroleMax: 120,
+    struttura: [
+      { titolo: 'Chi è questa persona', descrizione: 'Presenta chi descrivi e il suo legame con te (es. mia sorella, il mio migliore amico).' },
+      { titolo: 'Aspetto fisico', descrizione: "Descrivi com'è fisicamente: età approssimativa, altezza, capelli, occhi, stile." },
+      { titolo: 'Carattere e personalità', descrizione: 'Racconta com\'è caratterialmente: simpatico, paziente, divertente, ecc., con un piccolo esempio.' },
+      { titolo: 'Cosa fa / perché è importante', descrizione: 'Di cosa si occupa (lavoro, studio, hobby) e perché questa persona è importante per te.' }
+    ],
+    frasiUtili: [
+      { sezione: 'Per iniziare', frasi: ['Voglio descrivere...', 'La persona che voglio descrivere è...', 'Si chiama [nome] ed è mio/a...'] },
+      { sezione: 'Per il fisico', frasi: ['Ha i capelli...', 'È alto/a...', 'Ha gli occhi...', 'Porta sempre...'] },
+      { sezione: 'Per il carattere', frasi: ['È una persona molto...', 'Quello che mi piace di lui/lei è...', 'A volte è un po\'...', 'Sa sempre come...'] },
+      { sezione: 'Per concludere', frasi: ['Per questo motivo, per me è...', 'Non potrei vivere senza...', 'Lo/La ammiro molto perché...'] }
+    ],
+    vocabolarioChiave: ['simpatico/a', 'paziente', 'generoso/a', 'capelli', 'altezza', 'carattere', 'somigliare a']
+  },
+  {
     slug: 'lettera-informale',
     titolo: 'Lettera informale',
     descrizione: 'Scrivi a un amico raccontando un evento recente.',
     consegna:
       'Scrivi una lettera informale a un amico/a raccontando qualcosa che ti è successo di recente. Usa un registro colloquiale, saluti iniziali e finali tipici di una lettera personale.',
+    fedele: true,
     paroleMin: 80,
     paroleMax: 100,
     struttura: [
@@ -57,6 +86,7 @@ export const GUIDES: Guida[] = [
     descrizione: 'Scrivi una email per richiedere informazioni.',
     consegna:
       'Scrivi una email formale per richiedere informazioni su un corso, un servizio o un prodotto. Usa un registro formale, formule di apertura e chiusura appropriate.',
+    fedele: false,
     paroleMin: 80,
     paroleMax: 100,
     struttura: [
@@ -78,6 +108,7 @@ export const GUIDES: Guida[] = [
     descrizione: "Inventa una breve storia con un'introduzione, sviluppo e conclusione.",
     consegna:
       "Scrivi un racconto breve (introduzione, sviluppo, conclusione) su un argomento a tua scelta. Presta attenzione alla coerenza temporale e all'uso dei tempi verbali del passato.",
+    fedele: false,
     paroleMin: 100,
     paroleMax: 130,
     struttura: [
@@ -98,6 +129,7 @@ export const GUIDES: Guida[] = [
     descrizione: 'Esprimi e argomenta la tua opinione su un tema attuale.',
     consegna:
       'Scrivi un breve articolo di opinione su un tema di attualità a tua scelta. Presenta una tesi chiara, almeno due argomenti a supporto e una conclusione.',
+    fedele: false,
     paroleMin: 120,
     paroleMax: 150,
     struttura: [
