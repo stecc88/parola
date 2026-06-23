@@ -87,7 +87,8 @@ export async function getSubmissionValutazione(
 export async function submitPersonalizedExerciseResponse(
   exerciseId: string,
   testo: string,
-  consegna: string
+  consegna: string,
+  segnali?: { testoIncollato: boolean; secondiScrittura: number | null }
 ): Promise<string> {
   const supabase = createClient()
   const { data: userData, error: authError } = await supabase.auth.getUser()
@@ -99,7 +100,9 @@ export async function submitPersonalizedExerciseResponse(
       student_id: userData.user.id,
       tipo: 'scrittura_libera',
       testo_studente: testo,
-      consegna
+      consegna,
+      testo_incollato: segnali?.testoIncollato ?? false,
+      secondi_scrittura: segnali?.secondiScrittura ?? null
     })
     .select('id')
     .single()

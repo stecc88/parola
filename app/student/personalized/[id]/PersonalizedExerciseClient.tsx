@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useWritingSignals } from '@/lib/hooks/useWritingSignals'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { ParolaMascot } from '@/components/shared/ParolaMascot'
@@ -99,6 +100,7 @@ function ScritturaEsercizio({
   )
   const [submissionId, setSubmissionId] = useState<string | null>(esercizio.submission_id)
   const [testoValutato, setTestoValutato] = useState(testoConsegnato ?? '')
+  const { handlePaste, markInterazione, getSegnali } = useWritingSignals()
   const giaConsegnato = !!esercizio.submission_id
 
   async function handleSubmit() {
@@ -114,7 +116,8 @@ function ScritturaEsercizio({
       const nuovoSubmissionId = await submitPersonalizedExerciseResponse(
         esercizio.id,
         testo,
-        esercizio.consegna
+        esercizio.consegna,
+        getSegnali()
       )
       setSubmissionId(nuovoSubmissionId)
       setTestoValutato(testo)
@@ -148,7 +151,11 @@ function ScritturaEsercizio({
         <Card>
           <textarea
             value={testo}
-            onChange={(e) => setTesto(e.target.value)}
+            onChange={(e) => {
+              markInterazione()
+              setTesto(e.target.value)
+            }}
+            onPaste={handlePaste}
             disabled={stato === 'salvando' || stato === 'valutando'}
             rows={8}
             placeholder="Scrivi qui la tua risposta alla consegna..."

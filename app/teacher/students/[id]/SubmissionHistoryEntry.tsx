@@ -12,6 +12,8 @@ interface Props {
   testo: string
   punteggio: number | null
   rispettaConsegna: boolean | null
+  testoIncollato?: boolean
+  secondiScrittura?: number | null
 }
 
 export function SubmissionHistoryEntry({
@@ -21,7 +23,9 @@ export function SubmissionHistoryEntry({
   dataLabel,
   testo,
   punteggio,
-  rispettaConsegna
+  rispettaConsegna,
+  testoIncollato,
+  secondiScrittura
 }: Props) {
   const [espanso, setEspanso] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
@@ -75,6 +79,23 @@ export function SubmissionHistoryEntry({
       {espanso && (
         <div className="mt-3 rounded-md bg-surface p-3">
           <p className="whitespace-pre-line text-sm text-ink-primary">{testo}</p>
+          {(testoIncollato || secondiScrittura !== null) && (
+            <p
+              className="mt-2 text-xs text-ink-tertiary"
+              title="Informazione neutra sul modo in cui è stato prodotto il testo — non è un'indicazione di plagio o di uso di IA, solo un dato in più da considerare se ritieni utile farlo."
+            >
+              ℹ️{' '}
+              {testoIncollato && 'Contiene testo incollato'}
+              {testoIncollato && secondiScrittura ? ' · ' : ''}
+              {secondiScrittura !== null &&
+                secondiScrittura !== undefined &&
+                `Tempo sulla pagina: ${
+                  secondiScrittura < 60
+                    ? `${secondiScrittura}s`
+                    : `${Math.round(secondiScrittura / 60)} min`
+                }`}
+            </p>
+          )}
         </div>
       )}
 

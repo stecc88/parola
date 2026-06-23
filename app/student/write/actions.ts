@@ -8,7 +8,11 @@ import { createClient } from '@/lib/supabase/server'
  * Separado en dos pasos a propósito: ver comentario en
  * app/api/gemini/evaluate/route.ts.
  */
-export async function createScritturaLiberaSubmission(testo: string, consegna?: string) {
+export async function createScritturaLiberaSubmission(
+  testo: string,
+  consegna?: string,
+  segnali?: { testoIncollato: boolean; secondiScrittura: number | null }
+) {
   const supabase = createClient()
 
   const { data: userData, error: authError } = await supabase.auth.getUser()
@@ -22,7 +26,9 @@ export async function createScritturaLiberaSubmission(testo: string, consegna?: 
       student_id: userData.user.id,
       tipo: 'scrittura_libera',
       testo_studente: testo,
-      consegna: consegna && consegna.trim().length > 0 ? consegna.trim() : null
+      consegna: consegna && consegna.trim().length > 0 ? consegna.trim() : null,
+      testo_incollato: segnali?.testoIncollato ?? false,
+      secondi_scrittura: segnali?.secondiScrittura ?? null
     })
     .select('id')
     .single()

@@ -66,7 +66,9 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
   // Stessa logica: submissions_select_by_active_teacher filtra già per noi.
   const { data: submissions, error } = await supabase
     .from('submissions')
-    .select('id, tipo, created_at, consegna, testo_studente, valutazione_ia')
+    .select(
+      'id, tipo, created_at, consegna, testo_studente, valutazione_ia, testo_incollato, secondi_scrittura'
+    )
     .eq('student_id', params.id)
     .order('created_at', { ascending: false })
 
@@ -391,6 +393,8 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                       testo={s.testo_studente}
                       punteggio={punteggio}
                       rispettaConsegna={rispettoConsegna ? rispettoConsegna.rispetta_consegna : null}
+                      testoIncollato={s.testo_incollato}
+                      secondiScrittura={s.secondi_scrittura}
                     />
                   )
                 })}

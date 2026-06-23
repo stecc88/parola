@@ -11,6 +11,7 @@ import { createScritturaLiberaSubmission } from './actions'
 import type { ValutazioneEsaminatore } from '@/lib/gemini/schema'
 import { getGuidaBySlug } from '@/lib/guides'
 import { ValutazioneCard } from '@/components/shared/ValutazioneCard'
+import { useWritingSignals } from '@/lib/hooks/useWritingSignals'
 
 const NAV_ITEMS = [
   { href: '/student/write', label: 'Scrittura libera' },
@@ -34,6 +35,7 @@ function WritePageInner() {
   const [valutazione, setValutazione] = useState<ValutazioneEsaminatore | null>(null)
   const [submissionId, setSubmissionId] = useState<string | null>(null)
   const [testoValutato, setTestoValutato] = useState('')
+  const { handlePaste, markInterazione, getSegnali } = useWritingSignals()
 
   const consegnaEffettiva = guida ? guida.consegna : consegnaLibera
 
@@ -53,7 +55,11 @@ function WritePageInner() {
     setStato('salvando')
 
     try {
-      const submissionId = await createScritturaLiberaSubmission(testo, consegnaEffettiva)
+      const submissionId = await createScritturaLiberaSubmission(
+        testo,
+        consegnaEffettiva,
+        getSegnali()
+      )
       setSubmissionId(submissionId)
       setTestoValutato(testo)
 
@@ -126,7 +132,11 @@ function WritePageInner() {
 
           <textarea
             value={testo}
-            onChange={(e) => setTesto(e.target.value)}
+            onChange={(e) => {
+              markInterazione()
+              setTesto(e.target.value)
+            }}
+            onPaste={handlePaste}
             disabled={stato === 'salvando' || stato === 'valutando'}
             rows={10}
             placeholder="Scrivi qui il tuo testo..."
