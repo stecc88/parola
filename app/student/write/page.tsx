@@ -97,7 +97,7 @@ function WritePageInner() {
               </h1>
               <p className="text-sm text-ink-secondary">
                 {guida
-                  ? guida.consegna
+                  ? 'Segui la struttura suggerita per non bloccarti.'
                   : 'Scrivi un testo in italiano e ricevi una valutazione dettagliata.'}
               </p>
             </div>
@@ -106,6 +106,77 @@ function WritePageInner() {
         </div>
 
         <Card>
+          {guida && (
+            <div className="mb-5 space-y-4">
+              <div className="rounded-md bg-info-bg p-3 text-sm text-info-text">
+                <p className="font-medium">Consegna</p>
+                <p className="mt-1">{guida.consegna}</p>
+                <p className="mt-2 text-xs">
+                  Lunghezza consigliata: {guida.paroleMin}-{guida.paroleMax} parole
+                  {' · '}parole scritte finora: {testo.trim().split(/\s+/).filter(Boolean).length}
+                </p>
+              </div>
+
+              <details className="rounded-md border border-border">
+                <summary className="cursor-pointer p-3 text-sm font-medium text-ink-primary">
+                  📋 Struttura suggerita — da dove iniziare
+                </summary>
+                <div className="space-y-3 border-t border-border p-3">
+                  {guida.struttura.map((s, i) => (
+                    <div key={i} className="flex gap-2">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-400 text-xs font-medium text-white">
+                        {i + 1}
+                      </span>
+                      <div>
+                        <p className="text-sm font-medium text-ink-primary">{s.titolo}</p>
+                        <p className="text-xs text-ink-secondary">{s.descrizione}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </details>
+
+              <details className="rounded-md border border-border" open>
+                <summary className="cursor-pointer p-3 text-sm font-medium text-ink-primary">
+                  💬 Frasi utili — bloccato? Inizia da qui
+                </summary>
+                <div className="space-y-3 border-t border-border p-3">
+                  {guida.frasiUtili.map((g, i) => (
+                    <div key={i}>
+                      <p className="mb-1 text-xs font-medium text-ink-tertiary">{g.sezione}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {g.frasi.map((f, j) => (
+                          <span
+                            key={j}
+                            className="rounded-full bg-surface-secondary px-2.5 py-1 text-xs text-ink-secondary"
+                          >
+                            {f}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </details>
+
+              <details className="rounded-md border border-border">
+                <summary className="cursor-pointer p-3 text-sm font-medium text-ink-primary">
+                  📚 Vocabolario utile
+                </summary>
+                <div className="flex flex-wrap gap-1.5 border-t border-border p-3">
+                  {guida.vocabolarioChiave.map((v) => (
+                    <span
+                      key={v}
+                      className="rounded-full bg-guided-bg px-2.5 py-1 text-xs text-guided-text"
+                    >
+                      {v}
+                    </span>
+                  ))}
+                </div>
+              </details>
+            </div>
+          )}
+
           {!guida && (
             <div className="mb-4">
               <label
