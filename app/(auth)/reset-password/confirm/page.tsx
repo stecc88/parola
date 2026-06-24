@@ -19,33 +19,22 @@ export default function ConfirmResetPasswordPage() {
   const [verificandoLink, setVerificandoLink] = useState(true)
 
   useEffect(() => {
-    // Il client usa il flusso PKCE (default di @supabase/ssr): il link
-    // dell'email arriva con ?code=... nell'URL, non con un access_token
-    // nell'hash. Bisogna scambiare quel code per una sessione PRIMA di
-    // poter chiamare updateUser — altrimenti sembra sempre "link scaduto"
-    // anche con un link valido appena cliccato.
-    async function scambiaCode() {
-      const params = new URLSearchParams(window.location.search)
-      const code = params.get('code')
-
-      if (!code) {
+    // Con flowType 'implicit' (ver lib/supabase/client.ts), el cliente
+    // detecta automáticamente la sesión a partir del hash de la URL
+    // (#access_token=...&type=recovery) al inicializarse — no hace falta
+    // intercambiar ningún código manualmente. Solo esperamos a que esa
+    // detección termine y confirmamos que haya quedado una sesión activa.
+    async function verificaSessione() {
+      const { data } = await supabase.auth.getSession()
+      if (!data.session) {
         setError(
-          "Link non valido o incompleto. Richiedi un nuovo link da 'Password smarrita?'."
-        )
-        setVerificandoLink(false)
-        return
-      }
-
-      const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
-      if (exchangeError) {
-        setError(
-          "Il link potrebbe essere scaduto o già usato. Richiedi un nuovo link da 'Password smarrita?'."
+          "Link non valido, scaduto o già usato. Richiedi un nuovo link da 'Password smarrita?'."
         )
       }
       setVerificandoLink(false)
     }
 
-    scambiaCode()
+    verificaSessione()
   }, [supabase])
 
   async function handleSubmit(e: React.FormEvent) {
