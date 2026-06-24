@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
@@ -16,6 +16,37 @@ export default function ConfirmResetPasswordPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [verificandoLink, setVerificandoLink] = useState(true)
+
+  useEffect(() => {
+    // Il client usa il flusso PKCE (default di @supabase/ssr): il link
+    // dell'email arriva con ?code=... nell'URL, non con un access_token
+    // nell'hash. Bisogna scambiare quel code per una sessione PRIMA di
+    // poter chiamare updateUser — altrimenti sembra sempre "link scaduto"
+    // anche con un link valido appena cliccato.
+    async function scambiaCode() {
+      const params = new URLSearchParams(window.location.search)
+      const code = params.get('code')
+
+      if (!code) {
+        setError(
+          "Link non valido o incompleto. Richiedi un nuovo link da 'Password smarrita?'."
+        )
+        setVerificandoLink(false)
+        return
+      }
+
+      const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+      if (exchangeError) {
+        setError(
+          "Il link potrebbe essere scaduto o già usato. Richiedi un nuovo link da 'Password smarrita?'."
+        )
+      }
+      setVerificandoLink(false)
+    }
+
+    scambiaCode()
+  }, [supabase])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -31,9 +62,6 @@ export default function ConfirmResetPasswordPage() {
     }
 
     setLoading(true)
-    // Supabase, dopo aver cliccato il link nell'email, ha già creato una
-    // sessione di tipo "recovery" lato browser (gestita automaticamente
-    // dal client SDK leggendo l'URL) — qui basta aggiornare la password.
     const { error: updateError } = await supabase.auth.updateUser({ password })
     setLoading(false)
 
@@ -61,10 +89,17 @@ export default function ConfirmResetPasswordPage() {
           <h1 className="text-xl font-semibold text-ink-primary">Imposta una nuova password</h1>
         </div>
 
-        {success ? (
+        {verificandoLink ? (
+          <p className="text-center text-sm text-ink-tertiary">Verifica del link in corso...</p>
+        ) : success ? (
           <p className="text-center text-sm text-success-text">
             Password aggiornata! Ti stiamo portando al login...
           </p>
+        ) : error && !password ? (
+          // Il code non era valido: non ha senso mostrare il form, solo l'errore.
+          <div className="text-center">
+            <p className="rounded-md bg-danger-bg px-3 py-2 text-sm text-danger-text">{error}</p>
+          </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div>
