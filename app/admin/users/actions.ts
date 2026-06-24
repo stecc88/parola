@@ -177,6 +177,14 @@ export async function deleteTeacher(teacherId: string, confirmName: string, expe
 
   const { error } = await admin.from('profiles').delete().eq('id', teacherId).eq('role', 'teacher')
   if (error) throw new Error('Errore eliminando l\'insegnante.')
+
+  // BUG corretto qui: senza questa chiamata, si eliminava solo la riga
+  // in profiles ma l'account di autenticazione vero e proprio (in
+  // auth.users) restava intatto — l'insegnante poteva continuare a
+  // accedere normalmente nonostante "sparisse" dalla lista admin.
+  const { error: deleteUserError } = await admin.auth.admin.deleteUser(teacherId)
+  if (deleteUserError) throw new Error('Errore eliminando l\'account di autenticazione.')
+
   revalidatePath('/admin/users')
 }
 
