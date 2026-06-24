@@ -6,6 +6,7 @@ import { requireApprovedTeacher } from '@/lib/teacher/guard'
 import { CreateClassForm } from './CreateClassForm'
 import { AssignStudentSelect } from './AssignStudentSelect'
 import { ClassActions } from './ClassActions'
+import { InviteCodeActions } from './InviteCodeActions'
 import {
   getTeacherInviteCode,
   getUnassignedStudents,
@@ -49,6 +50,7 @@ export default async function TeacherClassesPage() {
             momento della registrazione per unirsi a te. Dopo, potrai
             assegnarli a una classe specifica qui sotto.
           </p>
+          {inviteCode && <InviteCodeActions code={inviteCode} />}
         </Card>
 
         {notifiche.length > 0 && (

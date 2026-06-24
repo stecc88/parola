@@ -28,7 +28,13 @@ export default function JoinClassPage() {
   }
 
   return (
-    <main id="main-content" className="flex min-h-screen items-center justify-center bg-surface-secondary p-6 animate-fade-in">
+    <main id="main-content" className="relative flex min-h-screen items-center justify-center bg-surface-secondary p-6 animate-fade-in">
+      <button
+        onClick={() => router.back()}
+        className="absolute left-4 top-4 z-10 text-sm text-ink-secondary hover:text-ink-primary"
+      >
+        ← Torna indietro
+      </button>
       <Card className="w-full max-w-sm bg-surface">
         <div className="mb-6 flex flex-col items-center gap-3">
           <ParolaMascot mood="incoraggiante" />

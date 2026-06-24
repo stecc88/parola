@@ -43,7 +43,7 @@ export async function approveTeacher(teacherId: string) {
 
   const { error } = await admin
     .from('profiles')
-    .update({ teacher_status: 'approved' })
+    .update({ teacher_status: 'approved', approved_at: new Date().toISOString() })
     .eq('id', teacherId)
     .eq('role', 'teacher')
 
@@ -187,6 +187,8 @@ export interface TeacherRow {
   email: string
   teacher_status: 'pending' | 'approved' | 'rejected' | 'disabled'
   created_at: string
+  approved_at: string | null
+  subscription_end_at: string | null
 }
 
 export async function getTeachers(): Promise<TeacherRow[]> {
@@ -196,7 +198,7 @@ export async function getTeachers(): Promise<TeacherRow[]> {
   const [{ data, error }, emailMap] = await Promise.all([
     admin
       .from('profiles')
-      .select('id, nome, cognome, teacher_status, created_at')
+      .select('id, nome, cognome, teacher_status, created_at, approved_at, subscription_end_at')
       .eq('role', 'teacher')
       .order('created_at', { ascending: false }),
     getEmailMap()
@@ -204,6 +206,19 @@ export async function getTeachers(): Promise<TeacherRow[]> {
 
   if (error) throw new Error('Errore caricando gli insegnanti.')
   return (data ?? []).map((t) => ({ ...t, email: emailMap.get(t.id) ?? '' })) as TeacherRow[]
+}
+
+export async function setSubscriptionEndDate(userId: string, date: string | null) {
+  await requireAdminUserId()
+  const admin = createAdminClient()
+
+  const { error } = await admin
+    .from('profiles')
+    .update({ subscription_end_at: date })
+    .eq('id', userId)
+
+  if (error) throw new Error('Errore impostando la data di scadenza.')
+  revalidatePath('/admin/users')
 }
 
 export async function getApprovedTeachersExcept(excludeId: string): Promise<TeacherRow[]> {
@@ -219,7 +234,7 @@ export async function getApprovedTeachersExcept(excludeId: string): Promise<Teac
     .order('nome', { ascending: true })
 
   if (error) throw new Error('Errore caricando gli insegnanti disponibili.')
-  return (data ?? []).map((t) => ({ ...t, email: '' })) as TeacherRow[]
+  return (data ?? []).map((t) => ({ ...t, email: '', approved_at: null, subscription_end_at: null })) as TeacherRow[]
 }
 
 export async function approveStudent(studentId: string) {
@@ -228,7 +243,7 @@ export async function approveStudent(studentId: string) {
 
   const { error } = await admin
     .from('profiles')
-    .update({ student_status: 'approved' })
+    .update({ student_status: 'approved', approved_at: new Date().toISOString() })
     .eq('id', studentId)
     .eq('role', 'student')
 
@@ -257,6 +272,8 @@ export interface StudentAdminRow {
   email: string
   student_status: 'pending' | 'approved' | 'rejected' | 'disabled'
   created_at: string
+  approved_at: string | null
+  subscription_end_at: string | null
   teacherId: string | null
   teacherNome: string | null
   teacherCognome: string | null
@@ -274,7 +291,7 @@ export async function getAllStudentsAdmin(): Promise<StudentAdminRow[]> {
   const [{ data: students, error }, { data: memberships }, emailMap] = await Promise.all([
     admin
       .from('profiles')
-      .select('id, nome, cognome, student_status, created_at')
+      .select('id, nome, cognome, student_status, created_at, approved_at, subscription_end_at')
       .eq('role', 'student')
       .order('created_at', { ascending: false }),
     admin
@@ -305,6 +322,8 @@ export async function getAllStudentsAdmin(): Promise<StudentAdminRow[]> {
       email: emailMap.get(s.id) ?? '',
       student_status: s.student_status,
       created_at: s.created_at,
+      approved_at: s.approved_at,
+      subscription_end_at: s.subscription_end_at,
       teacherId: teacher?.id ?? null,
       teacherNome: teacher?.nome ?? null,
       teacherCognome: teacher?.cognome ?? null
@@ -324,7 +343,7 @@ export async function getApprovedTeachers(): Promise<TeacherRow[]> {
     .order('nome', { ascending: true })
 
   if (error) throw new Error('Errore caricando gli insegnanti disponibili.')
-  return (data ?? []).map((t) => ({ ...t, email: '' })) as TeacherRow[]
+  return (data ?? []).map((t) => ({ ...t, email: '', approved_at: null, subscription_end_at: null })) as TeacherRow[]
 }
 
 export async function disableStudentAccount(studentId: string) {
@@ -389,7 +408,10 @@ export async function reassignStudentTeacher(studentId: string, newTeacherId: st
       .single()
 
     if (profile?.student_status === 'pending' || profile?.student_status === 'rejected') {
-      await admin.from('profiles').update({ student_status: 'approved' }).eq('id', studentId)
+      await admin
+        .from('profiles')
+        .update({ student_status: 'approved', approved_at: new Date().toISOString() })
+        .eq('id', studentId)
     }
   }
 

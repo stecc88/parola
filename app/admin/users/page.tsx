@@ -22,6 +22,7 @@ import {
   reenableStudentAccount,
   reassignStudentTeacher,
   deleteStudentCompletely,
+  setSubscriptionEndDate,
   type TeacherRow,
   type StudentAdminRow
 } from './actions'
@@ -199,10 +200,17 @@ export default function AdminUsersPage() {
                       {s.nome} {s.cognome}
                     </p>
                     <p className="truncate text-xs text-ink-tertiary">{s.email}</p>
-                    <p className="truncate text-xs text-ink-tertiary">
+                    <p
+                      className={`truncate text-xs ${
+                        s.teacherNome ? 'text-ink-tertiary' : 'font-medium text-warning-text'
+                      }`}
+                    >
                       {s.teacherNome
                         ? `Insegnante: ${s.teacherNome} ${s.teacherCognome}`
-                        : 'Indipendente'}
+                        : '⚠ Indipendente (nessun insegnante)'}
+                    </p>
+                    <p className="truncate text-xs text-ink-tertiary">
+                      Abilitato: {formatDate(s.approved_at)}
                     </p>
                   </div>
                   <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs ${STUDENT_STATUS_CLASS[s.student_status]}`}>
@@ -236,6 +244,18 @@ export default function AdminUsersPage() {
                   >
                     {STATUS_LABEL[t.teacher_status]}
                   </span>
+                  <p className="mt-1 text-xs text-ink-tertiary">
+                    Abilitato: {formatDate(t.approved_at)} · Scadenza:{' '}
+                    {t.subscription_end_at ? formatDate(t.subscription_end_at) : 'senza scadenza'}
+                  </p>
+                  <div className="mt-2">
+                    <SubscriptionEditor
+                      userId={t.id}
+                      currentDate={t.subscription_end_at}
+                      onSaved={reload}
+                      onError={setError}
+                    />
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap gap-2">
@@ -511,9 +531,23 @@ function ManageStudentModal({
             ? `Insegnante attuale: ${student.teacherNome} ${student.teacherCognome}`
             : 'Indipendente (nessun insegnante)'}
         </p>
+        <p className="mb-4 text-xs text-ink-tertiary">
+          Abilitato: {formatDate(student.approved_at)} · Scadenza:{' '}
+          {student.subscription_end_at ? formatDate(student.subscription_end_at) : 'senza scadenza'}
+        </p>
 
         <div className="space-y-4">
           <div>
+            <p className="mb-2 text-sm font-medium text-ink-primary">Scadenza abbonamento</p>
+            <SubscriptionEditor
+              userId={student.id}
+              currentDate={student.subscription_end_at}
+              onSaved={onChanged}
+              onError={onError}
+            />
+          </div>
+
+          <div className="border-t border-border pt-4">
             <p className="mb-2 text-sm font-medium text-ink-primary">Riassegna a un insegnante</p>
             <div className="flex items-center gap-2">
               <select
@@ -601,6 +635,62 @@ function ManageStudentModal({
           </Button>
         </div>
       </Card>
+    </div>
+  )
+}
+
+function formatDate(iso: string | null): string {
+  if (!iso) return '—'
+  return new Date(iso).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
+function SubscriptionEditor({
+  userId,
+  currentDate,
+  onSaved,
+  onError
+}: {
+  userId: string
+  currentDate: string | null
+  onSaved: () => void
+  onError: (msg: string) => void
+}) {
+  const [senzaScadenza, setSenzaScadenza] = useState(!currentDate)
+  const [data, setData] = useState(currentDate ? currentDate.slice(0, 10) : '')
+  const [pending, startTransition] = useTransition()
+
+  function handleSave() {
+    startTransition(async () => {
+      try {
+        await setSubscriptionEndDate(userId, senzaScadenza ? null : data ? new Date(data).toISOString() : null)
+        onSaved()
+      } catch (e) {
+        onError(e instanceof Error ? e.message : 'Errore impostando la scadenza.')
+      }
+    })
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <label className="flex items-center gap-1.5 text-xs text-ink-secondary">
+        <input
+          type="checkbox"
+          checked={senzaScadenza}
+          onChange={(e) => setSenzaScadenza(e.target.checked)}
+        />
+        Senza scadenza
+      </label>
+      {!senzaScadenza && (
+        <input
+          type="date"
+          value={data}
+          onChange={(e) => setData(e.target.value)}
+          className="rounded-md border border-border bg-surface px-2 py-1 text-xs outline-none focus:border-brand-400"
+        />
+      )}
+      <Button variant="secondary" disabled={pending} onClick={handleSave} className="px-2 py-1 text-xs">
+        {pending ? '...' : 'Salva scadenza'}
+      </Button>
     </div>
   )
 }
