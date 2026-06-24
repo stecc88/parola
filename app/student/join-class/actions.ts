@@ -39,10 +39,10 @@ export async function joinClassWithCode(inviteCode: string) {
 
   // Un codice insegnante valido fa da garante: lo studente passa subito
   // ad approved anche se si era registrato senza codice ed era pending.
-  await supabase
-    .from('profiles')
-    .update({ student_status: 'approved' })
-    .eq('id', userData.user.id)
+  // Cliente admin (no quello di sessione): vedi migrazione 0016 — la
+  // policy ampia che permetteva agli studenti di aggiornare il proprio
+  // profilo senza restrizione di colonna è stata rimossa per sicurezza.
+  await admin.from('profiles').update({ student_status: 'approved' }).eq('id', userData.user.id)
 }
 
 /**

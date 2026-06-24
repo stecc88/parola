@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import type { TipoEsercizioPersonalizzato } from '@/lib/gemini/schema'
 import { notifyTeacherOfDelivery } from '@/lib/email/teacherNotification'
 import { requireApprovedStudentActionUserId } from '@/lib/student/guard'
@@ -113,7 +114,13 @@ export async function submitPersonalizedExerciseResponse(
     throw new Error('Errore salvando la risposta.')
   }
 
-  const { error: updateError } = await supabase
+  // Cliente admin para este UPDATE: hallazgo de auditoría — la policy de
+  // UPDATE para estudiantes en personalized_exercises fue eliminada (ver
+  // migración 0016), porque sin restricción de columna a nivel RLS un
+  // estudiante podía escribir cualquier valor (incluido punteggio_chiuso
+  // en submitClosedExerciseAnswers, más abajo) llamando directamente a la
+  // API REST de Supabase con su propia sesión.
+  const { error: updateError } = await createAdminClient()
     .from('personalized_exercises')
     .update({ submission_id: submission.id, seen_by_teacher: false })
     .eq('id', exerciseId)
@@ -162,7 +169,10 @@ export async function submitClosedExerciseAnswers(
 
   const punteggio = items.length > 0 ? Math.round((corretti / items.length) * 100) : 0
 
-  const { error: updateError } = await supabase
+  // Cliente admin: ver comentario equivalente en submitPersonalizedExerciseResponse.
+  // Aquí es aún más crítico — sin esto, un estudiante podía escribir su
+  // propio punteggio_chiuso=100 sin responder nada correctamente.
+  const { error: updateError } = await createAdminClient()
     .from('personalized_exercises')
     .update({
       risposte_studente: risposte,

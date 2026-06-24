@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { evaluateScritturaLibera } from '@/lib/gemini/prompts/examinador'
 import { GeminiError, isQuotaExhausted } from '@/lib/gemini/client'
 import { checkSubmissionRateLimit } from '@/lib/student/rate-limit'
@@ -14,15 +15,23 @@ import { checkSubmissionRateLimit } from '@/lib/student/rate-limit'
  *      testo_studente y valutazione_ia = NULL.
  *   2. Este endpoint recibe el submissionId, lee el texto (con la sesión
  *      del propio usuario — RLS garantiza que solo puede leer la suya),
- *      llama a Gemini, y hace UPDATE de valutazione_ia.
+ *      llama a Gemini, y hace UPDATE de valutazione_ia con el cliente
+ *      admin (service role).
  *
  * Por qué en dos pasos: si Gemini falla o tarda, la submission ya existe
  * con su texto guardado — nunca se pierde el envío del estudiante por un
  * problema de la API externa. El cliente puede reintentar solo el paso 2.
  *
- * Se usa el cliente con sesión del usuario (no admin client): así RLS
- * sigue aplicando de forma normal, este endpoint no tiene más privilegio
- * que el propio usuario autenticado.
+ * IMPORTANTE (hallazgo de auditoría de seguridad): el UPDATE final usa el
+ * cliente admin, NO el del usuario. Antes usaba el cliente del propio
+ * usuario apoyándose en la RLS policy submissions_update_own_student —
+ * pero esa misma policy permitía que cualquier estudiante, llamando
+ * directamente a la API REST de Supabase con su propia sesión (sin pasar
+ * por este endpoint ni por Gemini), escribiera valutazione_ia con
+ * cualquier puntaje que quisiera. La policy de UPDATE para estudiantes
+ * fue eliminada (ver migración 0016); la lectura inicial sigue usando el
+ * cliente del usuario, así que la verificación de "es realmente su
+ * submission" sigue intacta vía RLS de SELECT.
  */
 export async function POST(request: NextRequest) {
   const cookieStore = cookies()
@@ -98,7 +107,7 @@ export async function POST(request: NextRequest) {
       consegna
     )
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await createAdminClient()
       .from('submissions')
       .update({
         valutazione_ia: valutazione,
