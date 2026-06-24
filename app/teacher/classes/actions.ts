@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { requireApprovedTeacherActionUserId } from '@/lib/teacher/guard'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { computeStudentStats, type SubmissionRow } from '@/lib/analytics/studentStats'
 
@@ -50,6 +51,7 @@ export async function assignStudentToClass(membershipId: string, classId: string
   const supabase = createClient()
   const { data: userData, error: authError } = await supabase.auth.getUser()
   if (authError || !userData.user) throw new Error('Non autenticato.')
+  await requireApprovedTeacherActionUserId()
 
   const { data: targetClass } = await supabase
     .from('classes')
@@ -71,6 +73,7 @@ export async function assignStudentToClass(membershipId: string, classId: string
 }
 
 export async function getTeacherInviteCode(): Promise<string | null> {
+  await requireApprovedTeacherActionUserId()
   const supabase = createClient()
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return null
@@ -92,6 +95,7 @@ export interface UnassignedStudent {
 }
 
 export async function getUnassignedStudents(): Promise<UnassignedStudent[]> {
+  await requireApprovedTeacherActionUserId()
   const supabase = createClient()
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return []
@@ -123,6 +127,7 @@ export async function renameClass(classId: string, nuovoNome: string) {
   const supabase = createClient()
   const { data: userData, error: authError } = await supabase.auth.getUser()
   if (authError || !userData.user) throw new Error('Non autenticato.')
+  await requireApprovedTeacherActionUserId()
 
   if (!nuovoNome.trim()) {
     throw new Error('Il nome della classe è obbligatorio.')
@@ -148,6 +153,7 @@ export async function deleteClass(classId: string) {
   const supabase = createClient()
   const { data: userData, error: authError } = await supabase.auth.getUser()
   if (authError || !userData.user) throw new Error('Non autenticato.')
+  await requireApprovedTeacherActionUserId()
 
   // Verificar que la classe sea del profesor antes de tocar nada.
   const { data: classe } = await supabase
@@ -190,6 +196,7 @@ export interface NotificaConsegna {
  * studente (vedi markPersonalizedExercisesSeen).
  */
 export async function getUnseenDeliveries(): Promise<NotificaConsegna[]> {
+  await requireApprovedTeacherActionUserId()
   const supabase = createClient()
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return []
@@ -248,6 +255,7 @@ export interface StudentOverviewRow {
  * ottimizzare prematuramente per migliaia di studenti.
  */
 export async function getStudentsOverview(): Promise<StudentOverviewRow[]> {
+  await requireApprovedTeacherActionUserId()
   const supabase = createClient()
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return []

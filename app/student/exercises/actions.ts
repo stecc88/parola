@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getLivelloTarget } from '@/lib/student/livello'
 import { checkSubmissionRateLimit } from '@/lib/student/rate-limit'
+import { requireApprovedStudentActionUserId } from '@/lib/student/guard'
 import {
   generateEsercizioStruttura1,
   evaluateEsercizioStruttura1,
@@ -26,11 +27,9 @@ import {
 } from '@/lib/gemini/prompts/struttura'
 
 async function requireStudentAndCheckLimit(): Promise<string> {
-  const supabase = createClient()
-  const { data: userData, error } = await supabase.auth.getUser()
-  if (error || !userData.user) throw new Error('Non autenticato.')
-  await checkSubmissionRateLimit(userData.user.id)
-  return userData.user.id
+  const userId = await requireApprovedStudentActionUserId()
+  await checkSubmissionRateLimit(userId)
+  return userId
 }
 
 export async function startEsercizio1(): Promise<FraseDaCompletare> {

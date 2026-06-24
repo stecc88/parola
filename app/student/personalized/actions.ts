@@ -3,6 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import type { TipoEsercizioPersonalizzato } from '@/lib/gemini/schema'
 import { notifyTeacherOfDelivery } from '@/lib/email/teacherNotification'
+import { requireApprovedStudentActionUserId } from '@/lib/student/guard'
 
 export interface EsercizioItem {
   domanda: string
@@ -93,6 +94,7 @@ export async function submitPersonalizedExerciseResponse(
   const supabase = createClient()
   const { data: userData, error: authError } = await supabase.auth.getUser()
   if (authError || !userData.user) throw new Error('Non autenticato.')
+  await requireApprovedStudentActionUserId()
 
   const { data: submission, error: insertError } = await supabase
     .from('submissions')
@@ -139,6 +141,7 @@ export async function submitClosedExerciseAnswers(
   const supabase = createClient()
   const { data: userData, error: authError } = await supabase.auth.getUser()
   if (authError || !userData.user) throw new Error('Non autenticato.')
+  await requireApprovedStudentActionUserId()
 
   const { data: esercizio, error: fetchError } = await supabase
     .from('personalized_exercises')

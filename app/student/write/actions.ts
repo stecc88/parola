@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { requireApprovedStudentActionUserId } from '@/lib/student/guard'
 
 /**
  * Crea la submission con el texto del estudiante (valutazione_ia=NULL).
@@ -14,16 +15,12 @@ export async function createScritturaLiberaSubmission(
   segnali?: { testoIncollato: boolean; secondiScrittura: number | null }
 ) {
   const supabase = createClient()
-
-  const { data: userData, error: authError } = await supabase.auth.getUser()
-  if (authError || !userData.user) {
-    throw new Error('Non autenticato.')
-  }
+  const userId = await requireApprovedStudentActionUserId()
 
   const { data, error } = await supabase
     .from('submissions')
     .insert({
-      student_id: userData.user.id,
+      student_id: userId,
       tipo: 'scrittura_libera',
       testo_studente: testo,
       consegna: consegna && consegna.trim().length > 0 ? consegna.trim() : null,

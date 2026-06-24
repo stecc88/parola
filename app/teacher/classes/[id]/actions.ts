@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { requireApprovedTeacherActionUserId } from '@/lib/teacher/guard'
 
 /**
  * Mueve un estudiante de la clase actual a otra clase del MISMO profesor.

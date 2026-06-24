@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { requireApprovedTeacherActionUserId } from '@/lib/teacher/guard'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { generateEsercizioPersonalizzato } from '@/lib/gemini/prompts/generatore'
 import { GeminiError, isQuotaExhausted } from '@/lib/gemini/client'
@@ -49,6 +50,7 @@ export async function generatePersonalizedExercise(
   const supabase = createClient()
   const { data: userData, error: authError } = await supabase.auth.getUser()
   if (authError || !userData.user) throw new Error('Non autenticato.')
+  await requireApprovedTeacherActionUserId()
 
   await checkGenerationRateLimit(userData.user.id)
 
@@ -124,6 +126,7 @@ export async function generatePersonalizedExercise(
 export async function getPersonalizedExercisesForStudent(
   studentId: string
 ): Promise<PersonalizedExerciseRow[]> {
+  await requireApprovedTeacherActionUserId()
   const supabase = createClient()
 
   const { data, error } = await supabase
@@ -171,6 +174,7 @@ export async function markPersonalizedExercisesSeen(studentId: string) {
  * alcun controllo di autorizzazione, perché il service role bypassa RLS.
  */
 export async function getLastSignInForStudent(studentId: string): Promise<string | null> {
+  await requireApprovedTeacherActionUserId()
   try {
     const admin = createAdminClient()
     const { data, error } = await admin.auth.admin.getUserById(studentId)
@@ -192,6 +196,7 @@ export async function getLastSignInForStudent(studentId: string): Promise<string
  * storica originale).
  */
 export async function deleteSubmission(submissionId: string, studentId: string) {
+  await requireApprovedTeacherActionUserId()
   const supabase = createClient()
   const { error } = await supabase.from('submissions').delete().eq('id', submissionId)
 
