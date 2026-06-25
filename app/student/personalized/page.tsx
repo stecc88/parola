@@ -3,7 +3,7 @@ import { AppNav } from '@/components/shared/AppNav'
 import { Card } from '@/components/ui/Card'
 import { ParolaMascot } from '@/components/shared/ParolaMascot'
 import { createClient } from '@/lib/supabase/server'
-import { getMyPersonalizedExercises } from './actions'
+import { getMyPersonalizedExercises, markPersonalizedExercisesSeenByStudent } from './actions'
 import { hasActiveMembership } from '@/app/student/join-class/actions'
 
 const NAV_ITEMS = [
@@ -19,6 +19,10 @@ export default async function PersonalizedExercisesPage() {
   const esercizi = await getMyPersonalizedExercises()
   const haInsegnante = await hasActiveMembership()
   const supabase = createClient()
+
+  // Side-effect deliberato: visitare questa pagina marca come "viste" le
+  // notifiche in attesa — stesso pattern già usato per il docente.
+  await markPersonalizedExercisesSeenByStudent()
 
   const submissionIds = esercizi
     .map((e) => e.submission_id)

@@ -112,7 +112,8 @@ export async function generatePersonalizedExercise(
     spiegazione: esercizio.spiegazione,
     esempio: esercizio.esempio,
     consegna: esercizio.consegna,
-    items: esercizio.items.length > 0 ? esercizio.items : null
+    items: esercizio.items.length > 0 ? esercizio.items : null,
+    seen_by_student: false
   })
 
   if (insertError) {

@@ -218,3 +218,48 @@ async function avvisaDocente(exerciseId: string, studentId: string) {
     studentId
   })
 }
+
+/**
+ * Cuántos ejercicios personalizados nuevos (generados por el profesor)
+ * el alumno todavía no vio — para la campanita de notificaciones.
+ * Devuelve null si el usuario no es estudiante (así el componente de
+ * campana sabe que no debe mostrarse en absoluto, no solo mostrar 0).
+ */
+export async function getUnseenPersonalizedCount(): Promise<number | null> {
+  const supabase = createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return null
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', userData.user.id)
+    .single()
+
+  if (profile?.role !== 'student') return null
+
+  const { count } = await supabase
+    .from('personalized_exercises')
+    .select('id', { count: 'exact', head: true })
+    .eq('student_id', userData.user.id)
+    .eq('seen_by_student', false)
+
+  return count ?? 0
+}
+
+/**
+ * Marca como vistos todos los ejercicios personalizados pendientes del
+ * alumno — se llama al entrar a /student/personalized, mismo patrón que
+ * markPersonalizedExercisesSeen del lado del profesor.
+ */
+export async function markPersonalizedExercisesSeenByStudent() {
+  const supabase = createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return
+
+  await supabase
+    .from('personalized_exercises')
+    .update({ seen_by_student: true })
+    .eq('student_id', userData.user.id)
+    .eq('seen_by_student', false)
+}

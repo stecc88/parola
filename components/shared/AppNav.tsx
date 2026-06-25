@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { ParolaMascot } from './ParolaMascot'
 import { LogoutButton } from './LogoutButton'
 import { ThemeToggle } from './ThemeToggle'
+import { NotificationBell } from './NotificationBell'
 
 interface AppNavProps {
   items: { href: string; label: string }[]
@@ -46,6 +47,7 @@ export function AppNav({ items }: AppNavProps) {
         })}
       </ul>
 
+      <NotificationBell />
       <ThemeToggle />
       <LogoutButton />
     </nav>
