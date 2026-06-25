@@ -216,3 +216,111 @@ export const GUIDES: Guida[] = [
 export function getGuidaBySlug(slug: string | null): Guida | undefined {
   return GUIDES.find((g) => g.slug === slug)
 }
+
+type LivelloCefr = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'
+
+interface AdattamentoLivello {
+  // Moltiplicatore applicato a paroleMin/paroleMax della guida (definiti
+  // per B1) — così la proporzione tra i diversi tipi di testo si
+  // mantiene, invece di usare lo stesso range fisso per tutti i livelli.
+  fattoreLunghezza: number
+  // Nota grammaticale/di registro specifica per il livello, aggiunta in
+  // coda alla consegna — è il punto centrale: un A1 non deve essere
+  // valutato (né istruito) con le stesse aspettative di un C1.
+  notaGrammaticale: string
+}
+
+const ADATTAMENTO_PER_CATEGORIA: Record<string, Record<LivelloCefr, AdattamentoLivello>> = {
+  descrittivo: {
+    A1: { fattoreLunghezza: 0.25, notaGrammaticale: "Usa frasi semplicissime al presente (è, ha, si chiama)." },
+    A2: { fattoreLunghezza: 0.45, notaGrammaticale: 'Usa il presente indicativo, con qualche aggettivo per frase.' },
+    B1: { fattoreLunghezza: 1, notaGrammaticale: 'Usa il presente indicativo con buona varietà di aggettivi e connettivi.' },
+    B2: { fattoreLunghezza: 1.3, notaGrammaticale: 'Aggiungi dettagli più ricchi e qualche frase relativa (che, il quale).' },
+    C1: { fattoreLunghezza: 1.6, notaGrammaticale: 'Usa un registro più elaborato, con sfumature di significato negli aggettivi.' },
+    C2: { fattoreLunghezza: 2, notaGrammaticale: 'Usa un linguaggio ricco e preciso, con scelte stilistiche personali.' }
+  },
+  narrativo: {
+    A1: { fattoreLunghezza: 0.3, notaGrammaticale: 'Racconta con frasi semplicissime, principalmente al presente.' },
+    A2: { fattoreLunghezza: 0.5, notaGrammaticale: 'Puoi iniziare a usare il passato prossimo per le azioni concluse.' },
+    B1: { fattoreLunghezza: 1, notaGrammaticale: "Usa passato prossimo e imperfetto, prestando attenzione alla coerenza temporale." },
+    B2: { fattoreLunghezza: 1.3, notaGrammaticale: 'Usa passato prossimo, imperfetto e trapassato prossimo dove serve.' },
+    C1: { fattoreLunghezza: 1.6, notaGrammaticale: 'Varia i tempi verbali con precisione, incluso il trapassato e connettivi narrativi più ricchi.' },
+    C2: { fattoreLunghezza: 2, notaGrammaticale: 'Usa una gamma completa di tempi verbali e tecniche narrative (es. flashback).' }
+  },
+  espositivo: {
+    A1: { fattoreLunghezza: 0.3, notaGrammaticale: 'Usa frasi brevi e semplici al presente.' },
+    A2: { fattoreLunghezza: 0.5, notaGrammaticale: 'Usa il presente indicativo, con connettivi semplici (e, ma, poi).' },
+    B1: { fattoreLunghezza: 1, notaGrammaticale: "Organizza le informazioni con connettivi (prima di tutto, inoltre, infine)." },
+    B2: { fattoreLunghezza: 1.3, notaGrammaticale: "Usa connettivi più variati e qualche struttura impersonale (si dice che...)." },
+    C1: { fattoreLunghezza: 1.6, notaGrammaticale: 'Usa un registro più formale e strutture impersonali/passive dove opportuno.' },
+    C2: { fattoreLunghezza: 2, notaGrammaticale: 'Usa un registro accademico, con strutture complesse e lessico specifico.' }
+  },
+  regolativo: {
+    A1: { fattoreLunghezza: 0.4, notaGrammaticale: "Usa frasi cortissime, anche solo con l'infinito (es. 'mescolare', 'aggiungere')." },
+    A2: { fattoreLunghezza: 0.6, notaGrammaticale: 'Usa l\'imperativo informale (tu) per i passaggi.' },
+    B1: { fattoreLunghezza: 1, notaGrammaticale: "Usa l'imperativo o il \"si\" impersonale per i passaggi." },
+    B2: { fattoreLunghezza: 1.2, notaGrammaticale: 'Usa il "si" impersonale in modo consistente, con connettivi di sequenza vari.' },
+    C1: { fattoreLunghezza: 1.4, notaGrammaticale: 'Usa un registro più formale/tecnico, adatto a un manuale o regolamento.' },
+    C2: { fattoreLunghezza: 1.6, notaGrammaticale: 'Usa un linguaggio regolativo formale, preciso e senza ambiguità.' }
+  },
+  argomentativo: {
+    A1: { fattoreLunghezza: 0.25, notaGrammaticale: "Esprimi un'opinione semplicissima (mi piace / non mi piace) con \"perché\"." },
+    A2: { fattoreLunghezza: 0.4, notaGrammaticale: 'Esprimi un\'opinione semplice con un motivo, usando "perché" o "secondo me".' },
+    B1: { fattoreLunghezza: 1, notaGrammaticale: 'Presenta una tesi con almeno due argomenti a supporto.' },
+    B2: { fattoreLunghezza: 1.3, notaGrammaticale: 'Argomenta con esempi concreti e considera anche un punto di vista contrario.' },
+    C1: { fattoreLunghezza: 1.6, notaGrammaticale: 'Usa un\'argomentazione articolata, con concessioni e contro-argomentazioni.' },
+    C2: { fattoreLunghezza: 2, notaGrammaticale: 'Costruisci un\'argomentazione sofisticata, con registro e lessico da saggio.' }
+  }
+}
+
+// Le guide senza una categoria pura (lettera-informale, email-formale)
+// hanno il proprio adattamento dedicato per slug.
+const ADATTAMENTO_PER_SLUG: Record<string, Record<LivelloCefr, AdattamentoLivello>> = {
+  'lettera-informale': {
+    A1: { fattoreLunghezza: 0.3, notaGrammaticale: 'Usa frasi semplicissime al presente, con saluti di base.' },
+    A2: { fattoreLunghezza: 0.55, notaGrammaticale: 'Puoi usare il passato prossimo per raccontare cosa è successo.' },
+    B1: { fattoreLunghezza: 1, notaGrammaticale: 'Usa un registro colloquiale, con passato prossimo e imperfetto.' },
+    B2: { fattoreLunghezza: 1.3, notaGrammaticale: 'Aggiungi dettagli ed espressioni colloquiali più ricche.' },
+    C1: { fattoreLunghezza: 1.5, notaGrammaticale: 'Usa un tono naturale e idiomatico, come un madrelingua giovane.' },
+    C2: { fattoreLunghezza: 1.8, notaGrammaticale: 'Usa un linguaggio colloquiale ricco, con espressioni idiomatiche.' }
+  },
+  'email-formale': {
+    A1: { fattoreLunghezza: 0.4, notaGrammaticale: 'Usa frasi semplicissime e formule fisse di saluto formale.' },
+    A2: { fattoreLunghezza: 0.6, notaGrammaticale: 'Usa il presente e formule di cortesia semplici.' },
+    B1: { fattoreLunghezza: 1, notaGrammaticale: 'Usa un registro formale con il condizionale di cortesia (vorrei, potrebbe).' },
+    B2: { fattoreLunghezza: 1.2, notaGrammaticale: 'Usa un registro formale più articolato, con qualche subordinata.' },
+    C1: { fattoreLunghezza: 1.4, notaGrammaticale: 'Usa un registro formale sofisticato, adatto a un contesto professionale.' },
+    C2: { fattoreLunghezza: 1.6, notaGrammaticale: 'Usa un registro formale impeccabile, con precisione lessicale.' }
+  }
+}
+
+export interface ConsegnaAdattata {
+  consegna: string
+  paroleMin: number
+  paroleMax: number
+}
+
+/**
+ * Adatta la consegna, la lunghezza e l'esigenza grammaticale di una
+ * guida al livello CEFR scelto dallo studente. Le guide sono definite
+ * con un range di parole "base" pensato per B1 (lo stesso usato
+ * dall'esame CILS reale dove applicabile) — gli altri livelli scalano
+ * proporzionalmente, invece di chiedere lo stesso numero di parole e la
+ * stessa complessità grammaticale a un A1 e a un C1.
+ */
+export function getConsegnaAdattata(guida: Guida, livello: LivelloCefr): ConsegnaAdattata {
+  const mappa = guida.categoria
+    ? ADATTAMENTO_PER_CATEGORIA[guida.categoria]
+    : ADATTAMENTO_PER_SLUG[guida.slug]
+  const adattamento = mappa?.[livello]
+
+  if (!adattamento) {
+    return { consegna: guida.consegna, paroleMin: guida.paroleMin, paroleMax: guida.paroleMax }
+  }
+
+  return {
+    consegna: `${guida.consegna} ${adattamento.notaGrammaticale}`,
+    paroleMin: Math.max(15, Math.round(guida.paroleMin * adattamento.fattoreLunghezza)),
+    paroleMax: Math.max(25, Math.round(guida.paroleMax * adattamento.fattoreLunghezza))
+  }
+}

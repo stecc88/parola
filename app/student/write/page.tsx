@@ -9,7 +9,8 @@ import { ParolaMascot } from '@/components/shared/ParolaMascot'
 import { LivelloSelector } from '@/components/shared/LivelloSelector'
 import { createScritturaLiberaSubmission } from './actions'
 import type { ValutazioneEsaminatore } from '@/lib/gemini/schema'
-import { getGuidaBySlug } from '@/lib/guides'
+import { getGuidaBySlug, getConsegnaAdattata } from '@/lib/guides'
+import type { LivelloCefr } from '@/lib/supabase/database.types'
 import { ValutazioneCard } from '@/components/shared/ValutazioneCard'
 import { useWritingSignals } from '@/lib/hooks/useWritingSignals'
 
@@ -27,6 +28,8 @@ type Stato = 'idle' | 'salvando' | 'valutando' | 'pronto' | 'errore'
 function WritePageInner() {
   const searchParams = useSearchParams()
   const guida = getGuidaBySlug(searchParams.get('guida'))
+  const [livello, setLivello] = useState<LivelloCefr>('B1')
+  const guidaAdattata = guida ? getConsegnaAdattata(guida, livello) : null
 
   const [testo, setTesto] = useState('')
   const [consegnaLibera, setConsegnaLibera] = useState('')
@@ -37,7 +40,7 @@ function WritePageInner() {
   const [testoValutato, setTestoValutato] = useState('')
   const { handlePaste, markInterazione, getSegnali } = useWritingSignals()
 
-  const consegnaEffettiva = guida ? guida.consegna : consegnaLibera
+  const consegnaEffettiva = guidaAdattata ? guidaAdattata.consegna : consegnaLibera
 
   async function handleSubmit() {
     if (!guida && consegnaLibera.trim().length < 10) {
@@ -102,7 +105,7 @@ function WritePageInner() {
               </p>
             </div>
           </div>
-          <LivelloSelector />
+          <LivelloSelector onLivelloChange={setLivello} />
         </div>
 
         <Card>
@@ -110,9 +113,10 @@ function WritePageInner() {
             <div className="mb-5 space-y-4">
               <div className="rounded-md bg-info-bg p-3 text-sm text-info-text">
                 <p className="font-medium">Consegna</p>
-                <p className="mt-1">{guida.consegna}</p>
+                <p className="mt-1">{guidaAdattata?.consegna}</p>
                 <p className="mt-2 text-xs">
-                  Lunghezza consigliata: {guida.paroleMin}-{guida.paroleMax} parole
+                  Livello {livello} · Lunghezza consigliata: {guidaAdattata?.paroleMin}-
+                  {guidaAdattata?.paroleMax} parole
                   {' · '}parole scritte finora: {testo.trim().split(/\s+/).filter(Boolean).length}
                 </p>
               </div>
