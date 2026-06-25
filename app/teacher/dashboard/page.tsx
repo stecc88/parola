@@ -253,6 +253,24 @@ export default async function TeacherDashboardPage() {
 
               <Card>
                 <h2 className="mb-2 text-sm font-semibold text-ink-primary">
+                  Tempo medio alla prima correzione
+                </h2>
+                <p className="text-3xl font-semibold text-ink-primary">
+                  {d.tempoMedioPrimaCorrezioneGiorni !== null
+                    ? `${d.tempoMedioPrimaCorrezioneGiorni}g`
+                    : '—'}
+                </p>
+                <p className="text-xs text-ink-tertiary">
+                  dall&apos;iscrizione alla prima scrittura corretta
+                  {d.studentiMaiIniziato.length > 0 &&
+                    ` · ${d.studentiMaiIniziato.length} non hanno ancora iniziato`}
+                </p>
+              </Card>
+            </div>
+
+            <div className="mb-6 grid gap-3 sm:grid-cols-2">
+              <Card>
+                <h2 className="mb-2 text-sm font-semibold text-ink-primary">
                   Errori più comuni della classe
                 </h2>
                 {(() => {
@@ -287,6 +305,23 @@ export default async function TeacherDashboardPage() {
                   )
                 })()}
               </Card>
+
+              {d.studentiMaiIniziato.length > 0 && (
+                <Card>
+                  <h2 className="mb-2 text-sm font-semibold text-ink-primary">
+                    Iscritti ma non ancora partiti
+                  </h2>
+                  <div className="space-y-1.5">
+                    {d.studentiMaiIniziato.map((s) => (
+                      <Link key={s.studentId} href={`/teacher/students/${s.studentId}`}>
+                        <p className="truncate text-sm text-ink-secondary hover:text-ink-primary">
+                          {s.nome} {s.cognome}
+                        </p>
+                      </Link>
+                    ))}
+                  </div>
+                </Card>
+              )}
             </div>
 
             <Card className="mb-6">

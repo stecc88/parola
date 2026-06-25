@@ -24,6 +24,8 @@ export interface ClassDashboard {
   studentiConObiettivo: number
   distribuzioneObiettivi: LivelloConteggio[]
   quasiAllObiettivo: StudentOverviewRow[]
+  tempoMedioPrimaCorrezioneGiorni: number | null
+  studentiMaiIniziato: StudentOverviewRow[]
 }
 
 /**
@@ -114,6 +116,23 @@ export function buildClassDashboard(rows: StudentOverviewRow[]): ClassDashboard 
     return idxTarget - idxAttuale === 1 && r.mediaGenerale >= 75
   })
 
+  // Tempo medio dall'iscrizione alla prima correzione — calcolato solo
+  // su chi ha già almeno una submission valutata. Aiuta a capire se gli
+  // studenti tardano a partire o iniziano subito.
+  const conPrimaCorrezione = rows.filter((r) => r.giorniPrimaCorrezione !== null)
+  const tempoMedioPrimaCorrezioneGiorni =
+    conPrimaCorrezione.length > 0
+      ? Math.round(
+          conPrimaCorrezione.reduce((acc, r) => acc + (r.giorniPrimaCorrezione ?? 0), 0) /
+            conPrimaCorrezione.length
+        )
+      : null
+
+  // Studenti che si sono iscritti ma non hanno MAI scritto nulla — un
+  // sottoinsieme più specifico di "senza correzioni": questi non hanno
+  // nemmeno provato, non è solo che la correzione non è arrivata.
+  const studentiMaiIniziato = rows.filter((r) => r.totaleAttivita === 0)
+
   return {
     studentiTotali,
     mediaClasse,
@@ -129,6 +148,8 @@ export function buildClassDashboard(rows: StudentOverviewRow[]): ClassDashboard 
     erroriTotaliPerCategoria,
     studentiConObiettivo: conObiettivo.length,
     distribuzioneObiettivi,
-    quasiAllObiettivo
+    quasiAllObiettivo,
+    tempoMedioPrimaCorrezioneGiorni,
+    studentiMaiIniziato
   }
 }

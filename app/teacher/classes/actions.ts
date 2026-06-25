@@ -247,6 +247,7 @@ export interface StudentOverviewRow {
   totaleAttivita: number
   ultimaAttivitaAt: string | null
   giorniSenzaAttivita: number | null
+  giorniPrimaCorrezione: number | null
   richiedeAttenzione: boolean
   motiviAttenzione: string[]
 }
@@ -292,7 +293,7 @@ export async function getStudentsOverview(): Promise<StudentOverviewRow[]> {
       const [{ data: submissions }, lastSignInResult] = await Promise.all([
         supabase
           .from('submissions')
-          .select('id, tipo, created_at, consegna, valutazione_ia')
+          .select('id, tipo, created_at, consegna, valutazione_ia, valutazione_completed_at')
           .eq('student_id', m.student_id)
           .order('created_at', { ascending: false })
           .limit(50),
@@ -302,6 +303,23 @@ export async function getStudentsOverview(): Promise<StudentOverviewRow[]> {
       const stats = computeStudentStats((submissions as SubmissionRow[]) ?? [])
       const ultimoAccesso = lastSignInResult?.data?.user?.last_sign_in_at ?? null
       const ultimaAttivitaAt = submissions?.[0]?.created_at ?? null
+
+      // Prima correzione: la più antica tra tutte le submission valutate
+      // (l'array è ordinato per created_at desc, non per data di
+      // valutazione, quindi va cercata esplicitamente).
+      const dateCorrezioni = (submissions ?? [])
+        .map((s) => (s as { valutazione_completed_at?: string | null }).valutazione_completed_at)
+        .filter((d): d is string => !!d)
+      const primaCorrezioneAt =
+        dateCorrezioni.length > 0
+          ? dateCorrezioni.reduce((min, d) => (d < min ? d : min))
+          : null
+      const giorniPrimaCorrezione = primaCorrezioneAt
+        ? Math.floor(
+            (new Date(primaCorrezioneAt).getTime() - new Date(m.joined_at).getTime()) /
+              86_400_000
+          )
+        : null
 
       const giorniSenzaAccesso = ultimoAccesso
         ? Math.floor((oraMs - new Date(ultimoAccesso).getTime()) / 86_400_000)
@@ -339,6 +357,7 @@ export async function getStudentsOverview(): Promise<StudentOverviewRow[]> {
         totaleAttivita: stats.totaleAttivita,
         ultimaAttivitaAt,
         giorniSenzaAttivita,
+        giorniPrimaCorrezione,
         richiedeAttenzione: motivi.length > 0,
         motiviAttenzione: motivi
       } satisfies StudentOverviewRow
