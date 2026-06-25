@@ -7,6 +7,7 @@ import { MoveStudentSelect } from './MoveStudentSelect'
 import { ClassActions } from '../ClassActions'
 
 const NAV_ITEMS = [
+  { href: '/teacher/dashboard', label: 'Dashboard' },
   { href: '/teacher/classes', label: 'Le mie classi' },
   { href: '/account', label: 'Account' }
 ]

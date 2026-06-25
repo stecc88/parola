@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { computeStudentStats, type SubmissionRow } from './studentStats'
+import { computeStudentStats, classifyTrend, type SubmissionRow } from './studentStats'
 
 function makeSubmission(overrides: Partial<SubmissionRow> = {}): SubmissionRow {
   return {
@@ -145,5 +145,31 @@ describe('computeStudentStats', () => {
     const stats = computeStudentStats(submissions)
     expect(stats.livelloAttuale).toBe('B1')
     expect(stats.livelloPrecedente).toBe('A2')
+  })
+})
+
+describe('classifyTrend', () => {
+  function punto(punteggio: number, data = '2026-01-01T00:00:00Z'): import('./studentStats').PuntoEvoluzione {
+    return { data, punteggio, tipo: 'scrittura_libera' }
+  }
+
+  it('returns null with fewer than 2 data points', () => {
+    expect(classifyTrend([])).toBeNull()
+    expect(classifyTrend([punto(70)])).toBeNull()
+  })
+
+  it('detects improvement when the second half scores notably higher', () => {
+    const evoluzione = [punto(50), punto(55), punto(80), punto(85)]
+    expect(classifyTrend(evoluzione)).toBe('miglioramento')
+  })
+
+  it('detects decline when the second half scores notably lower', () => {
+    const evoluzione = [punto(85), punto(80), punto(55), punto(50)]
+    expect(classifyTrend(evoluzione)).toBe('calo')
+  })
+
+  it('treats small fluctuations as stable', () => {
+    const evoluzione = [punto(70), punto(72), punto(71), punto(69)]
+    expect(classifyTrend(evoluzione)).toBe('stabile')
   })
 })

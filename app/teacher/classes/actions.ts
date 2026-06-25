@@ -4,7 +4,12 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { requireApprovedTeacherActionUserId } from '@/lib/teacher/guard'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { computeStudentStats, type SubmissionRow } from '@/lib/analytics/studentStats'
+import {
+  computeStudentStats,
+  classifyTrend,
+  type SubmissionRow,
+  type CategoriaErrore
+} from '@/lib/analytics/studentStats'
 
 export async function createClass(nome: string) {
   const supabase = createClient()
@@ -232,6 +237,11 @@ export interface StudentOverviewRow {
   nome: string
   cognome: string
   classeNome: string | null
+  livelloTarget: string | null
+  livelloAttuale: string | null
+  trend: 'miglioramento' | 'stabile' | 'calo' | null
+  consegnaPercentuale: number | null
+  erroriPerCategoria: Record<CategoriaErrore, number>
   ultimoAccesso: string | null
   mediaGenerale: number | null
   totaleAttivita: number
@@ -262,7 +272,7 @@ export async function getStudentsOverview(): Promise<StudentOverviewRow[]> {
 
   const { data: memberships, error } = await supabase
     .from('class_memberships')
-    .select('student_id, joined_at, profiles!student_id(nome, cognome), classes(nome)')
+    .select('student_id, joined_at, profiles!student_id(nome, cognome, livello_target), classes(nome)')
     .eq('teacher_id', userData.user.id)
     .is('left_at', null)
 
@@ -319,6 +329,11 @@ export async function getStudentsOverview(): Promise<StudentOverviewRow[]> {
         nome: profile?.nome ?? '',
         cognome: profile?.cognome ?? '',
         classeNome: classe?.nome ?? null,
+        livelloTarget: profile?.livello_target ?? null,
+        livelloAttuale: stats.livelloAttuale,
+        trend: classifyTrend(stats.evoluzione),
+        consegnaPercentuale: stats.consegna.percentuale,
+        erroriPerCategoria: stats.erroriPerCategoria,
         ultimoAccesso,
         mediaGenerale: stats.mediaGenerale,
         totaleAttivita: stats.totaleAttivita,
@@ -341,4 +356,25 @@ export async function getStudentsOverview(): Promise<StudentOverviewRow[]> {
     const mediaB = b.mediaGenerale ?? 100
     return mediaA - mediaB
   })
+}
+
+/**
+ * Cuántos ejercicios personalizados generó este docente que el alumno
+ * todavía no resolvió (sin submission_id de scrittura ni completato_at
+ * de tipo cerrado) — útil para saber si vale la pena recordarle a algún
+ * alumno que tiene tarea pendiente.
+ */
+export async function getPendingPersonalizedCount(): Promise<number> {
+  const supabase = createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return 0
+
+  const { count } = await supabase
+    .from('personalized_exercises')
+    .select('id', { count: 'exact', head: true })
+    .eq('teacher_id', userData.user.id)
+    .is('submission_id', null)
+    .is('completato_at', null)
+
+  return count ?? 0
 }

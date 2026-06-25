@@ -179,3 +179,33 @@ export function computeStudentStats(submissions: SubmissionRow[]): StudentStats 
     livelloPrecedente: livelliCronologici[1]?.livello ?? null
   }
 }
+
+/**
+ * Classifica l'andamento di uno studente confrontando la media della
+ * prima metà delle sue attività valutate con quella della seconda metà
+ * (cronologica). Richiede almeno 2 punti valutati — con meno, non c'è
+ * abbastanza dato per dire se sta migliorando o peggiorando.
+ *
+ * Soglia di ±5 punti percentuali per evitare di etichettare come
+ * "in calo"/"in miglioramento" piccole fluttuazioni naturali tra
+ * un testo e l'altro.
+ */
+export function classifyTrend(
+  evoluzione: PuntoEvoluzione[]
+): 'miglioramento' | 'stabile' | 'calo' | null {
+  if (evoluzione.length < 2) return null
+
+  const metà = Math.ceil(evoluzione.length / 2)
+  const primaMetà = evoluzione.slice(0, metà)
+  const secondaMetà = evoluzione.slice(metà)
+  if (secondaMetà.length === 0) return null
+
+  const media = (arr: PuntoEvoluzione[]) =>
+    arr.reduce((acc, p) => acc + p.punteggio, 0) / arr.length
+
+  const diff = media(secondaMetà) - media(primaMetà)
+
+  if (diff >= 5) return 'miglioramento'
+  if (diff <= -5) return 'calo'
+  return 'stabile'
+}

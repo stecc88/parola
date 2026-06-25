@@ -23,6 +23,7 @@ import { ListChecks, TrendingUp, GraduationCap, Target } from 'lucide-react'
 import { ExportReportButton } from './ExportReportButton'
 
 const NAV_ITEMS = [
+  { href: '/teacher/dashboard', label: 'Dashboard' },
   { href: '/teacher/classes', label: 'Le mie classi' },
   { href: '/account', label: 'Account' }
 ]
