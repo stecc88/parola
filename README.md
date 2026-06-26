@@ -7,7 +7,7 @@ preparare gli studenti a superare esami internazionali di lingua italiana.
 
 - Next.js 14 (App Router)
 - Supabase (auth + database)
-- Gemini API via REST fetch diretto (mai SDK ufficiale), modello `gemini-3.5-flash`
+- Gemini API via REST fetch diretto (mai SDK ufficiale), modello `gemini-2.5-flash`
 - Tailwind CSS con design tokens semantici (dark mode incluso)
 - Deploy su Vercel
 

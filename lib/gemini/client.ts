@@ -2,7 +2,7 @@
  * Cliente REST directo a la API de Gemini. NUNCA usar @google/generative-ai
  * ni ningún SDK oficial — regla explícita del proyecto.
  *
- * Modelo principal: gemini-3.5-flash
+ * Modelo principal: gemini-2.5-flash
  *   - Structured outputs nativos (responseSchema) → se usan en vez de
  *     parsear JSON "a mano" desde el texto de respuesta.
  *   - Thinking soportado → opcional, se activa solo donde el costo de
@@ -20,7 +20,7 @@
  * NEXT_PUBLIC_) — este módulo no debe importarse desde código de cliente.
  */
 
-const GEMINI_MODEL_PRIMARY = 'gemini-3.5-flash'
+const GEMINI_MODEL_PRIMARY = 'gemini-2.5-flash'
 const GEMINI_MODEL_FALLBACK = 'gemini-2.5-flash-lite'
 const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta'
 
@@ -138,10 +138,10 @@ async function callModel(
       if (!res.ok) {
         const errorBody = await res.json().catch(() => null)
 
-        // 400 = problema de nuestro payload (prompt/schema), no reintentar.
-        if (res.status === 400) {
+        // 400/404 = payload inválido o modelo inexistente, no reintentar.
+        if (res.status === 400 || res.status === 404) {
           throw new GeminiError(
-            `Gemini rechazó la solicitud (400): ${JSON.stringify(errorBody)}`,
+            `Gemini rechazó la solicitud (${res.status}): ${JSON.stringify(errorBody)}`,
             res.status,
             errorBody,
             model
@@ -215,7 +215,7 @@ export async function generateContent(
     // no solo cuota agotada. Un 503 "alta demanda" es exactamente el caso
     // donde probar un modelo distinto (con su propia capacidad/cuota)
     // tiene sentido, no solo cuando la cuota numérica se agotó.
-    const shouldFallback = err instanceof GeminiError && err.status !== 400
+    const shouldFallback = err instanceof GeminiError && err.status !== 400 && err.status !== 404
     if (shouldFallback) {
       console.warn(
         `Error en ${GEMINI_MODEL_PRIMARY} (status ${
