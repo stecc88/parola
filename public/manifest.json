@@ -1,0 +1,16 @@
+{
+  "name": "Parola — Italiano per adolescenti",
+  "short_name": "Parola",
+  "description": "Scrivi, sbaglia, migliora. Correzioni dettagliate ed esercizi su misura per imparare l'italiano.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#2F8FE0",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
