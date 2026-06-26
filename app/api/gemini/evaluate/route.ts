@@ -7,6 +7,17 @@ import { GeminiError, isQuotaExhausted } from '@/lib/gemini/client'
 import { checkSubmissionRateLimit } from '@/lib/student/rate-limit'
 
 /**
+ * Le evaluaciones con "thinking" activado en Gemini, sumadas a los
+ * reintentos automáticos ante 503/sobrecarga (y el cambio de modelo a
+ * gemini-2.5-flash-lite si el principal sigue fallando), pueden superar
+ * el límite de tiempo por defecto de una función serverless. Esto
+ * extiende el máximo permitido — Vercel aplica de todos modos el techo
+ * real de tu plan, así que este valor es seguro de declarar aunque tu
+ * plan no llegue a 60s.
+ */
+export const maxDuration = 60
+
+/**
  * POST /api/gemini/evaluate
  * body: { submissionId: string }
  *

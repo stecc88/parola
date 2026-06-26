@@ -117,11 +117,22 @@ async function callModel(
 
   let lastError: unknown
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    // Timeout por intento: sin esto, un solo llamado lento/colgado podía
+    // consumir todo el tiempo disponible de la función serverless sin
+    // que nuestro propio retry/fallback llegara nunca a activarse — la
+    // request quedaba "cargando" hasta que la plataforma la cortaba sin
+    // avisar bien al cliente. 18s deja margen para que, incluso en el
+    // peor caso con reintentos, todo entre dentro de maxDuration=60 del
+    // endpoint que llama a esto.
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 14_000)
+
     try {
       const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
+        signal: controller.signal
       })
 
       if (!res.ok) {
@@ -154,11 +165,16 @@ async function callModel(
 
       return text
     } catch (err) {
-      lastError = err
+      const esTimeout = err instanceof Error && err.name === 'AbortError'
+      lastError = esTimeout
+        ? new GeminiError('Gemini no respondió a tiempo (timeout).', 504, null, model)
+        : err
+
       const isRetryable =
-        err instanceof GeminiError &&
-        (err.status === undefined || err.status >= 429) &&
-        !isQuotaExhausted(err)
+        esTimeout ||
+        (lastError instanceof GeminiError &&
+          (lastError.status === undefined || lastError.status >= 429) &&
+          !isQuotaExhausted(lastError))
 
       if (!isRetryable || attempt === maxRetries) {
         break
@@ -166,6 +182,8 @@ async function callModel(
 
       // backoff exponencial simple: 300ms, 900ms, ...
       await new Promise((r) => setTimeout(r, 300 * 3 ** attempt))
+    } finally {
+      clearTimeout(timeoutId)
     }
   }
 
@@ -180,7 +198,7 @@ async function callModel(
  */
 export async function generateContent(
   options: GenerateContentOptions,
-  { maxRetries = 2 }: { maxRetries?: number } = {}
+  { maxRetries = 1 }: { maxRetries?: number } = {}
 ): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) {
