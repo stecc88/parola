@@ -206,11 +206,16 @@ export async function generateContent(
   }
 
   const body = buildRequestBody(options)
+  // El modelo de respaldo (lite) no soporta thinking — se construye un
+  // body sin thinkingConfig para evitar timeouts o errores en el fallback.
+  const bodyWithoutThinking = options.thinking
+    ? buildRequestBody({ ...options, thinking: undefined })
+    : body
 
   try {
     return await callModel(GEMINI_MODEL_PRIMARY, body, apiKey, maxRetries)
   } catch (err) {
-    // Cambia al modelo de respaldo ante CUALQUIER error no-400 del
+    // Cambia al modelo de respaldo ante CUALQUIER error no-400/404 del
     // principal (cuota agotada, sobrecarga 503, rate limit transitorio) —
     // no solo cuota agotada. Un 503 "alta demanda" es exactamente el caso
     // donde probar un modelo distinto (con su propia capacidad/cuota)
@@ -224,7 +229,7 @@ export async function generateContent(
       )
       // Un solo reintento adicional en el fallback alcanza: si éste
       // también falla, no tiene sentido seguir insistiendo.
-      return await callModel(GEMINI_MODEL_FALLBACK, body, apiKey, 1)
+      return await callModel(GEMINI_MODEL_FALLBACK, bodyWithoutThinking, apiKey, 1)
     }
     throw err
   }
