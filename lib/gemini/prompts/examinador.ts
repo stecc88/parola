@@ -88,7 +88,7 @@ export async function evaluateScritturaLibera(
   const raw = await generateStructuredContent({
     prompt: buildPrompt(testoStudente, livelloTarget, consegna),
     responseSchema: RESPONSE_SCHEMA,
-    thinking: { thinkingBudget: 4096 },
+    thinking: { thinkingBudget: 1024 },
     temperature: 0.3
   })
 
