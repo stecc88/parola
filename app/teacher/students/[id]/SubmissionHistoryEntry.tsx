@@ -4,6 +4,14 @@ import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/Button'
 import { deleteSubmission, generatePersonalizedExercise } from './actions'
 import type { ErroreSubmission } from '@/lib/gemini/prompts/generatore'
+import type { TipoEsercizioPersonalizzato } from '@/lib/gemini/schema'
+
+const TIPO_GRAMMATICA_OPTIONS: { value: TipoEsercizioPersonalizzato; label: string }[] = [
+  { value: 'completamento', label: 'Completamento (riempi lo spazio)' },
+  { value: 'scelta_multipla', label: 'Scelta multipla' },
+  { value: 'trasformazione', label: 'Trasformazione di frasi' },
+  { value: 'abbinamento', label: 'Abbinamento' },
+]
 
 interface Errore {
   testo_originale: string
@@ -45,6 +53,7 @@ export function SubmissionHistoryEntry({
   const [generateSuccess, setGenerateSuccess] = useState(false)
   const [generateError, setGenerateError] = useState<string | null>(null)
   const [generatePending, startGenerateTransition] = useTransition()
+  const [tipoSelezionato, setTipoSelezionato] = useState<TipoEsercizioPersonalizzato>('completamento')
 
   function handleDelete() {
     setDeleteError(null)
@@ -65,7 +74,7 @@ export function SubmissionHistoryEntry({
       try {
         await generatePersonalizedExercise(
           studentId,
-          undefined,
+          tipoSelezionato,
           errori as ErroreSubmission[]
         )
         setGenerateSuccess(true)
@@ -152,20 +161,41 @@ export function SubmissionHistoryEntry({
                     ✓ Esercizio generato — lo trovi in cima e nello spazio dello studente.
                   </p>
                 ) : (
-                  <Button
-                    onClick={handleGenerateFromSubmission}
-                    disabled={generatePending}
-                    className="text-xs"
-                  >
-                    {generatePending
-                      ? 'Generazione in corso...'
-                      : '✨ Genera esercizio da questo testo'}
-                  </Button>
-                )}
-                {generatePending && (
-                  <p className="mt-1 text-xs text-ink-tertiary">
-                    L&apos;IA sta analizzando gli errori di questo testo specifico…
-                  </p>
+                  <>
+                    <p className="mb-2 text-xs font-semibold text-ink-primary">
+                      Genera un esercizio di grammatica da questi errori
+                    </p>
+                    <div className="mb-3 flex flex-wrap items-center gap-2">
+                      {TIPO_GRAMMATICA_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.value}
+                          onClick={() => setTipoSelezionato(opt.value)}
+                          disabled={generatePending}
+                          className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                            tipoSelezionato === opt.value
+                              ? 'border-brand-400 bg-brand-400 text-white'
+                              : 'border-border bg-surface text-ink-secondary hover:border-brand-400 hover:text-brand-400'
+                          } disabled:opacity-60`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                    <Button
+                      onClick={handleGenerateFromSubmission}
+                      disabled={generatePending}
+                      className="text-xs"
+                    >
+                      {generatePending
+                        ? 'Generazione in corso...'
+                        : '✨ Genera esercizio'}
+                    </Button>
+                    {generatePending && (
+                      <p className="mt-1 text-xs text-ink-tertiary">
+                        L&apos;IA sta costruendo un esercizio sugli errori di questo testo…
+                      </p>
+                    )}
+                  </>
                 )}
                 {generateError && (
                   <p className="mt-1 text-xs text-danger-text">{generateError}</p>
