@@ -380,6 +380,15 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                     | null
                     | undefined
 
+                  const errori = Array.isArray(v?.errori)
+                    ? (v.errori as Array<{
+                        testo_originale: string
+                        correzione: string
+                        categoria: string
+                        spiegazione: string
+                      }>)
+                    : undefined
+
                   return (
                     <SubmissionHistoryEntry
                       key={s.id}
@@ -398,6 +407,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                       rispettaConsegna={rispettoConsegna ? rispettoConsegna.rispetta_consegna : null}
                       testoIncollato={s.testo_incollato}
                       secondiScrittura={s.secondi_scrittura}
+                      errori={errori}
                     />
                   )
                 })}

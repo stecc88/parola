@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { requireApprovedTeacherActionUserId } from '@/lib/teacher/guard'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { generateEsercizioPersonalizzato } from '@/lib/gemini/prompts/generatore'
+import { generateEsercizioPersonalizzato, type ErroreSubmission } from '@/lib/gemini/prompts/generatore'
 import { GeminiError, isQuotaExhausted } from '@/lib/gemini/client'
 import { checkGenerationRateLimit } from '@/lib/teacher/rate-limit'
 import { computeStudentStats, type SubmissionRow } from '@/lib/analytics/studentStats'
@@ -45,7 +45,8 @@ export interface PersonalizedExerciseRow {
  */
 export async function generatePersonalizedExercise(
   studentId: string,
-  tipoEsercizio?: TipoEsercizioPersonalizzato
+  tipoEsercizio?: TipoEsercizioPersonalizzato,
+  erroriSubmission?: ErroreSubmission[]
 ) {
   const supabase = createClient()
   const { data: userData, error: authError } = await supabase.auth.getUser()
@@ -89,6 +90,7 @@ export async function generatePersonalizedExercise(
       livelloTarget: profile.livello_target ?? undefined,
       areeDiMiglioramento: stats.areeMiglioramentoFrequenti.map((a) => a.testo),
       categorieErroriFrequenti: categorieFrequenti,
+      erroriSubmissionSpecifica: erroriSubmission,
       tipoEsercizio
     })
   } catch (err) {
