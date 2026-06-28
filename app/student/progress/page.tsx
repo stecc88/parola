@@ -273,23 +273,23 @@ export default async function ProgressPage() {
                                 {conteggio}
                               </span>
                             </div>
-                            {dettagli.length > 0 && (
-                              <div className="ml-[6.5rem] mt-1.5 space-y-1">
-                                {dettagli.map((d, i) => (
-                                  <div key={i} className="flex items-start gap-1.5">
-                                    <span className="mt-0.5 shrink-0 text-[10px] text-brand-400">▸</span>
-                                    <span className="text-xs text-ink-secondary">
-                                      {d.testo}
-                                      {d.conteggio > 1 && (
-                                        <span className="ml-1 rounded-full bg-brand-100 px-1.5 py-0.5 text-[10px] text-brand-600">
-                                          ×{d.conteggio}
-                                        </span>
-                                      )}
-                                    </span>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
+                            <div className="ml-[6.5rem] mt-1.5 space-y-1">
+                              {dettagli.length > 0 ? dettagli.map((d, i) => (
+                                <div key={i} className="flex items-start gap-1.5">
+                                  <span className="mt-0.5 shrink-0 text-[10px] text-brand-400">▸</span>
+                                  <span className="text-xs text-ink-secondary">
+                                    {d.testo}
+                                    {d.conteggio > 1 && (
+                                      <span className="ml-1 rounded-full bg-brand-100 px-1.5 py-0.5 text-[10px] text-brand-600">
+                                        ×{d.conteggio}
+                                      </span>
+                                    )}
+                                  </span>
+                                </div>
+                              )) : (
+                                <p className="text-xs text-ink-tertiary italic">Scrivi altri testi per ottenere dettagli.</p>
+                              )}
+                            </div>
                           </div>
                         )
                       })}

@@ -171,8 +171,17 @@ export function computeStudentStats(submissions: SubmissionRow[]): StudentStats 
 
   livelliCronologici.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
 
+  // Prima prova ad aggregare per testo identico (×N se Gemini usa la stessa
+  // frase); se tutte le spiegazioni sono uniche (Gemini le riformula ogni
+  // volta), mostra comunque le prime 5 — una spiegazione specifica vale
+  // infinitamente più di un numero generico.
   const erroriDettagliatiPerCategoria = Object.fromEntries(
-    CATEGORIE_ERRORE.map((cat) => [cat, topFrequenze(spiegazioniPerCategoria[cat], 3)])
+    CATEGORIE_ERRORE.map((cat) => {
+      const voci = topFrequenze(spiegazioniPerCategoria[cat], 5)
+      // topFrequenze restituisce già tutte le voci uniche ordinate per freq;
+      // se ci sono meno di 5 uniche, le mostra comunque tutte.
+      return [cat, voci]
+    })
   ) as Record<CategoriaErrore, FrequenzaVoce[]>
 
   return {
