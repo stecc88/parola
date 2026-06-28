@@ -11,6 +11,12 @@ import {
   type CategoriaErrore
 } from '@/lib/analytics/studentStats'
 import { StudentSubmissionEntry } from './StudentSubmissionEntry'
+import { z } from 'zod'
+
+const valutazioneSchema = z.object({
+  punteggio_complessivo: z.number().optional(),
+  risultati: z.array(z.object({ corretto: z.boolean() })).optional()
+})
 
 const NAV_ITEMS = [
   { href: '/student/progress', label: 'I miei progressi' },
@@ -40,14 +46,13 @@ const CATEGORIA_LABEL: Record<CategoriaErrore, string> = {
 }
 
 function extractPunteggio(valutazione: unknown): number | null {
-  if (!valutazione || typeof valutazione !== 'object') return null
-  const v = valutazione as Record<string, unknown>
+  const parsed = valutazioneSchema.safeParse(valutazione)
+  if (!parsed.success) return null
+  const v = parsed.data
   if (typeof v.punteggio_complessivo === 'number') return v.punteggio_complessivo
-  if (Array.isArray(v.risultati)) {
-    const risultati = v.risultati as { corretto: boolean }[]
-    if (risultati.length === 0) return null
-    const corretti = risultati.filter((r) => r.corretto).length
-    return Math.round((corretti / risultati.length) * 100)
+  if (v.risultati && v.risultati.length > 0) {
+    const corretti = v.risultati.filter((r) => r.corretto).length
+    return Math.round((corretti / v.risultati.length) * 100)
   }
   return null
 }
