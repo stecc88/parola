@@ -332,17 +332,11 @@ export interface StudentOverviewRow {
 }
 
 /**
- * Vista d'insieme di TUTTI gli studenti attivi del docente (assegnati a
- * una classe o non), con statistiche aggregate e un flag "richiede
- * attenzione" calcolato su 3 criteri pedagogici semplici:
- *   1. Inattivo da più di 7 giorni (mai entrato, o ultimo accesso vecchio)
- *   2. Media generale sotto il 60% (su attività già valutate)
- *   3. Nessuna attività consegnata negli ultimi 14 giorni, pur essendo
- *      iscritto da più tempo di quello
- *
- * Query N+1 deliberata (un giro per studente per submissions + ultimo
- * accesso): accettabile per il volume tipico di un singolo docente: non
- * ottimizzare prematuramente per migliaia di studenti.
+ * Vista d'insieme di TUTTI gli studenti attivi del docente.
+ * Refactored da N+1 a batch: 3 query totali indipendentemente dal numero
+ * di studenti (memberships+profiles, submissions IN(...), listUsers).
+ * Il precedente pattern (1 query per studente per submissions + 1 auth
+ * call per studente) causava timeout con classi >30 studenti.
  */
 export async function getStudentsOverview(): Promise<StudentOverviewRow[]> {
   await requireApprovedTeacherActionUserId()
@@ -350,6 +344,7 @@ export async function getStudentsOverview(): Promise<StudentOverviewRow[]> {
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return []
 
+  // Query 1: memberships + profiles + classi (una sola JOIN)
   const { data: memberships, error } = await supabase
     .from('class_memberships')
     .select('student_id, joined_at, profiles!student_id(nome, cognome, livello_target), classes(nome)')
@@ -361,98 +356,105 @@ export async function getStudentsOverview(): Promise<StudentOverviewRow[]> {
     return []
   }
 
+  if (!memberships || memberships.length === 0) return []
+
+  const studentIds = memberships.map((m) => m.student_id)
   const admin = createAdminClient()
   const oraMs = Date.now()
 
-  const righe = await Promise.all(
-    (memberships ?? []).map(async (m) => {
-      const profile = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles
-      const classe = Array.isArray(m.classes) ? m.classes[0] : m.classes
-
-      const [{ data: submissions }, lastSignInResult] = await Promise.all([
-        supabase
-          .from('submissions')
-          .select('id, tipo, created_at, consegna, valutazione_ia, valutazione_completed_at')
-          .eq('student_id', m.student_id)
-          .order('created_at', { ascending: false })
-          .limit(50),
-        admin.auth.admin.getUserById(m.student_id).catch(() => null)
-      ])
-
-      const stats = computeStudentStats((submissions as SubmissionRow[]) ?? [])
-      const ultimoAccesso = lastSignInResult?.data?.user?.last_sign_in_at ?? null
-      const ultimaAttivitaAt = submissions?.[0]?.created_at ?? null
-
-      // Prima correzione: la più antica tra tutte le submission valutate
-      // (l'array è ordinato per created_at desc, non per data di
-      // valutazione, quindi va cercata esplicitamente).
-      const dateCorrezioni = (submissions ?? [])
-        .map((s) => (s as { valutazione_completed_at?: string | null }).valutazione_completed_at)
-        .filter((d): d is string => !!d)
-      const primaCorrezioneAt =
-        dateCorrezioni.length > 0
-          ? dateCorrezioni.reduce((min, d) => (d < min ? d : min))
-          : null
-      const giorniPrimaCorrezione = primaCorrezioneAt
-        ? Math.floor(
-            (new Date(primaCorrezioneAt).getTime() - new Date(m.joined_at).getTime()) /
-              86_400_000
-          )
-        : null
-
-      const giorniSenzaAccesso = ultimoAccesso
-        ? Math.floor((oraMs - new Date(ultimoAccesso).getTime()) / 86_400_000)
-        : null
-      const giorniDaIscrizione = Math.floor(
-        (oraMs - new Date(m.joined_at).getTime()) / 86_400_000
-      )
-      const giorniSenzaAttivita = ultimaAttivitaAt
-        ? Math.floor((oraMs - new Date(ultimaAttivitaAt).getTime()) / 86_400_000)
-        : giorniDaIscrizione
-
-      const motivi: string[] = []
-      if (giorniSenzaAccesso === null || giorniSenzaAccesso > 7) {
-        motivi.push('Inattivo da più di 7 giorni')
-      }
-      if (stats.mediaGenerale !== null && stats.mediaGenerale < 60) {
-        motivi.push('Media sotto il 60%')
-      }
-      if (giorniDaIscrizione > 14 && giorniSenzaAttivita !== null && giorniSenzaAttivita > 14) {
-        motivi.push('Nessuna consegna negli ultimi 14 giorni')
-      }
-
-      return {
-        studentId: m.student_id,
-        nome: profile?.nome ?? '',
-        cognome: profile?.cognome ?? '',
-        classeNome: classe?.nome ?? null,
-        livelloTarget: profile?.livello_target ?? null,
-        livelloAttuale: stats.livelloAttuale,
-        trend: classifyTrend(stats.evoluzione),
-        consegnaPercentuale: stats.consegna.percentuale,
-        erroriPerCategoria: stats.erroriPerCategoria,
-        ultimoAccesso,
-        mediaGenerale: stats.mediaGenerale,
-        totaleAttivita: stats.totaleAttivita,
-        ultimaAttivitaAt,
-        giorniSenzaAttivita,
-        giorniPrimaCorrezione,
-        richiedeAttenzione: motivi.length > 0,
-        motiviAttenzione: motivi
-      } satisfies StudentOverviewRow
+  // Query 2 + 3 in parallelo: tutte le submissions (IN) + listUsers per last_sign_in
+  const [{ data: allSubmissions }, { data: authUsers }] = await Promise.all([
+    supabase
+      .from('submissions')
+      .select('id, student_id, tipo, created_at, consegna, valutazione_ia, valutazione_completed_at')
+      .in('student_id', studentIds)
+      .order('created_at', { ascending: false }),
+    admin.auth.admin.listUsers({ perPage: 1000 }).catch((err) => {
+      console.error('Errore recuperando last_sign_in (non bloccante):', err)
+      return { data: { users: [] } }
     })
-  )
+  ])
 
-  // Chi richiede attenzione prima, poi per media crescente (i più in
-  // difficoltà — anche tra chi non ne ha bisogno — restano comunque visibili
-  // in alto).
-  return righe.sort((a, b) => {
-    if (a.richiedeAttenzione !== b.richiedeAttenzione) {
-      return a.richiedeAttenzione ? -1 : 1
+  // Mappa in-memory: student_id → submissions (già ordinate desc per created_at)
+  const submissionsByStudent = new Map<string, SubmissionRow[]>()
+  for (const s of allSubmissions ?? []) {
+    const list = submissionsByStudent.get(s.student_id) ?? []
+    list.push(s as SubmissionRow)
+    submissionsByStudent.set(s.student_id, list)
+  }
+
+  // Mappa in-memory: student_id → last_sign_in_at
+  const lastSignInMap = new Map<string, string | null>()
+  for (const u of authUsers?.users ?? []) {
+    if (studentIds.includes(u.id)) {
+      lastSignInMap.set(u.id, u.last_sign_in_at ?? null)
     }
-    const mediaA = a.mediaGenerale ?? 100
-    const mediaB = b.mediaGenerale ?? 100
-    return mediaA - mediaB
+  }
+
+  // Calcolo statistiche interamente in-memory (zero ulteriori roundtrip)
+  const righe: StudentOverviewRow[] = memberships.map((m) => {
+    const profile = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles
+    const classe = Array.isArray(m.classes) ? m.classes[0] : m.classes
+    const submissions = submissionsByStudent.get(m.student_id) ?? []
+
+    const stats = computeStudentStats(submissions)
+    const ultimoAccesso = lastSignInMap.get(m.student_id) ?? null
+    const ultimaAttivitaAt = submissions[0]?.created_at ?? null
+
+    const dateCorrezioni = submissions
+      .map((s) => (s as { valutazione_completed_at?: string | null }).valutazione_completed_at)
+      .filter((d): d is string => !!d)
+    const primaCorrezioneAt =
+      dateCorrezioni.length > 0 ? dateCorrezioni.reduce((min, d) => (d < min ? d : min)) : null
+    const giorniPrimaCorrezione = primaCorrezioneAt
+      ? Math.floor(
+          (new Date(primaCorrezioneAt).getTime() - new Date(m.joined_at).getTime()) / 86_400_000
+        )
+      : null
+
+    const giorniSenzaAccesso = ultimoAccesso
+      ? Math.floor((oraMs - new Date(ultimoAccesso).getTime()) / 86_400_000)
+      : null
+    const giorniDaIscrizione = Math.floor((oraMs - new Date(m.joined_at).getTime()) / 86_400_000)
+    const giorniSenzaAttivita = ultimaAttivitaAt
+      ? Math.floor((oraMs - new Date(ultimaAttivitaAt).getTime()) / 86_400_000)
+      : giorniDaIscrizione
+
+    const motivi: string[] = []
+    if (giorniSenzaAccesso === null || giorniSenzaAccesso > 7) {
+      motivi.push('Inattivo da più di 7 giorni')
+    }
+    if (stats.mediaGenerale !== null && stats.mediaGenerale < 60) {
+      motivi.push('Media sotto il 60%')
+    }
+    if (giorniDaIscrizione > 14 && giorniSenzaAttivita !== null && giorniSenzaAttivita > 14) {
+      motivi.push('Nessuna consegna negli ultimi 14 giorni')
+    }
+
+    return {
+      studentId: m.student_id,
+      nome: profile?.nome ?? '',
+      cognome: profile?.cognome ?? '',
+      classeNome: classe?.nome ?? null,
+      livelloTarget: profile?.livello_target ?? null,
+      livelloAttuale: stats.livelloAttuale,
+      trend: classifyTrend(stats.evoluzione),
+      consegnaPercentuale: stats.consegna.percentuale,
+      erroriPerCategoria: stats.erroriPerCategoria,
+      ultimoAccesso,
+      mediaGenerale: stats.mediaGenerale,
+      totaleAttivita: stats.totaleAttivita,
+      ultimaAttivitaAt,
+      giorniSenzaAttivita,
+      giorniPrimaCorrezione,
+      richiedeAttenzione: motivi.length > 0,
+      motiviAttenzione: motivi
+    } satisfies StudentOverviewRow
+  })
+
+  return righe.sort((a, b) => {
+    if (a.richiedeAttenzione !== b.richiedeAttenzione) return a.richiedeAttenzione ? -1 : 1
+    return (a.mediaGenerale ?? 100) - (b.mediaGenerale ?? 100)
   })
 }
 

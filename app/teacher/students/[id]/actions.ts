@@ -159,13 +159,17 @@ export async function markPersonalizedExercisesSeen(studentId: string) {
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return
 
-  await supabase
+  const { error } = await supabase
     .from('personalized_exercises')
     .update({ seen_by_teacher: true })
     .eq('student_id', studentId)
     .eq('teacher_id', userData.user.id)
     .eq('seen_by_teacher', false)
     .or('submission_id.not.is.null,completato_at.not.is.null')
+
+  if (error) {
+    console.error('Errore marcando esercizi come visti dal docente:', error)
+  }
 }
 
 export async function markLevelAchievementsSeenByTeacher(studentId: string) {
@@ -237,8 +241,25 @@ export async function getLastSignInForStudent(studentId: string): Promise<string
  * livello di DB. L'esercizio sparisce anche dalla vista dello studente.
  */
 export async function deletePersonalizedExercise(exerciseId: string, studentId: string) {
-  await requireApprovedTeacherActionUserId()
+  const teacherId = await requireApprovedTeacherActionUserId()
   const supabase = createClient()
+
+  // Verifica esplicita di ownership prima del delete — difesa in profondità
+  // rispetto alla sola RLS, per garantire che teacherId == esercizio.teacher_id
+  // anche in caso di bug di caching o sessione compromessa.
+  const { data: exercise } = await supabase
+    .from('personalized_exercises')
+    .select('teacher_id, student_id')
+    .eq('id', exerciseId)
+    .single()
+
+  if (!exercise || exercise.teacher_id !== teacherId) {
+    throw new Error("Esercizio non trovato o non hai i permessi per eliminarlo.")
+  }
+
+  if (exercise.student_id !== studentId) {
+    throw new Error("Incongruenza tra studente ed esercizio.")
+  }
 
   const { error } = await supabase
     .from('personalized_exercises')

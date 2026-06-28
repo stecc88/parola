@@ -199,25 +199,32 @@ export async function submitClosedExerciseAnswers(
  * seen_by_teacher=false; qui solo l'email best-effort aggiuntiva).
  */
 async function avvisaDocente(exerciseId: string, studentId: string) {
-  const supabase = createClient()
+  try {
+    const supabase = createClient()
 
-  const [{ data: esercizio }, { data: profilo }] = await Promise.all([
-    supabase
-      .from('personalized_exercises')
-      .select('teacher_id, titolo')
-      .eq('id', exerciseId)
-      .single(),
-    supabase.from('profiles').select('nome, cognome').eq('id', studentId).single()
-  ])
+    const [{ data: esercizio }, { data: profilo }] = await Promise.all([
+      supabase
+        .from('personalized_exercises')
+        .select('teacher_id, titolo')
+        .eq('id', exerciseId)
+        .single(),
+      supabase.from('profiles').select('nome, cognome').eq('id', studentId).single()
+    ])
 
-  if (!esercizio || !profilo) return
+    if (!esercizio || !profilo) {
+      console.warn('avvisaDocente: dati mancanti', { exerciseId, studentId, esercizio, profilo })
+      return
+    }
 
-  await notifyTeacherOfDelivery({
-    teacherId: esercizio.teacher_id,
-    nomeStudente: `${profilo.nome} ${profilo.cognome}`,
-    titoloEsercizio: esercizio.titolo,
-    studentId
-  })
+    await notifyTeacherOfDelivery({
+      teacherId: esercizio.teacher_id,
+      nomeStudente: `${profilo.nome} ${profilo.cognome}`,
+      titoloEsercizio: esercizio.titolo,
+      studentId
+    })
+  } catch (err) {
+    console.error('Errore notificando il docente (non bloccante):', err, { exerciseId, studentId })
+  }
 }
 
 /**
