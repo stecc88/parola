@@ -196,6 +196,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                   <PersonalizedExerciseEntry
                     key={e.id}
                     esercizio={e}
+                    studentId={params.id}
                     dataLabel={new Date(e.created_at).toLocaleDateString('it-IT', {
                       day: '2-digit',
                       month: '2-digit',

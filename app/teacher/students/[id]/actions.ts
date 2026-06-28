@@ -217,6 +217,27 @@ export async function getLastSignInForStudent(studentId: string): Promise<string
  * migrazione 0009 sul cambio di design rispetto all'immutabilità
  * storica originale).
  */
+/**
+ * Elimina un esercizio personalizzato. Solo il docente che lo ha creato
+ * può eliminarlo — la RLS (teacher_id = auth.uid()) lo garantisce a
+ * livello di DB. L'esercizio sparisce anche dalla vista dello studente.
+ */
+export async function deletePersonalizedExercise(exerciseId: string, studentId: string) {
+  await requireApprovedTeacherActionUserId()
+  const supabase = createClient()
+
+  const { error } = await supabase
+    .from('personalized_exercises')
+    .delete()
+    .eq('id', exerciseId)
+
+  if (error) {
+    throw new Error("Errore eliminando l'esercizio. Riprova.")
+  }
+
+  revalidatePath(`/teacher/students/${studentId}`)
+}
+
 export async function deleteSubmission(submissionId: string, studentId: string) {
   await requireApprovedTeacherActionUserId()
   const supabase = createClient()
