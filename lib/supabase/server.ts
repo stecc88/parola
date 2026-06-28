@@ -18,8 +18,8 @@ export function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       global: {
-        // Ver nota equivalente en lib/supabase/admin.ts: evita que
-        // Next.js cachee las respuestas de las queries vía Data Cache.
+        // Vedi nota equivalente in lib/supabase/admin.ts: evita che
+        // Next.js metta in cache le risposte delle query via Data Cache.
         fetch: (url: RequestInfo | URL, options?: RequestInit) =>
           fetch(url, { ...options, cache: 'no-store' })
       },
@@ -31,15 +31,15 @@ export function createClient() {
           try {
             cookieStore.set(name, value, options)
           } catch {
-            // Llamado desde un Server Component: no se puede mutar cookies.
-            // El middleware se encarga de refrescar la sesión en ese caso.
+            // Chiamato da un Server Component: non si possono mutare cookies.
+            // Il middleware si occupa di aggiornare la sessione in quel caso.
           }
         },
         remove(name: string, options: Record<string, unknown>) {
           try {
             cookieStore.set(name, '', options)
           } catch {
-            // Ver nota arriba.
+            // Vedi nota sopra.
           }
         }
       }

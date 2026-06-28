@@ -117,13 +117,10 @@ async function callModel(
 
   let lastError: unknown
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    // Timeout por intento: sin esto, un solo llamado lento/colgado podía
-    // consumir todo el tiempo disponible de la función serverless sin
-    // que nuestro propio retry/fallback llegara nunca a activarse — la
-    // request quedaba "cargando" hasta que la plataforma la cortaba sin
-    // avisar bien al cliente. 18s deja margen para que, incluso en el
-    // peor caso con reintentos, todo entre dentro de maxDuration=60 del
-    // endpoint que llama a esto.
+    // Timeout per tentativo: senza questo, una singola chiamata lenta poteva
+    // consumare tutto il tempo della funzione serverless prima che il nostro
+    // retry/fallback si attivasse. 14s lascia margine perché, anche nel caso
+    // peggiore con reintentativi, tutto stia dentro maxDuration=60 dell'endpoint.
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 14_000)
 
@@ -202,12 +199,12 @@ export async function generateContent(
 ): Promise<string> {
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) {
-    throw new GeminiError('GEMINI_API_KEY no está configurada en el entorno del servidor.')
+    throw new GeminiError('GEMINI_API_KEY non è configurata nelle variabili d\'ambiente del server.')
   }
 
   const body = buildRequestBody(options)
-  // El modelo de respaldo (lite) no soporta thinking — se construye un
-  // body sin thinkingConfig para evitar timeouts o errores en el fallback.
+  // Il modello di fallback (lite) non supporta thinking — costruiamo un
+  // body senza thinkingConfig per evitare timeout o errori nel fallback.
   const bodyWithoutThinking = options.thinking
     ? buildRequestBody({ ...options, thinking: undefined })
     : body
@@ -215,20 +212,19 @@ export async function generateContent(
   try {
     return await callModel(GEMINI_MODEL_PRIMARY, body, apiKey, maxRetries)
   } catch (err) {
-    // Cambia al modelo de respaldo ante CUALQUIER error no-400/404 del
-    // principal (cuota agotada, sobrecarga 503, rate limit transitorio) —
-    // no solo cuota agotada. Un 503 "alta demanda" es exactamente el caso
-    // donde probar un modelo distinto (con su propia capacidad/cuota)
-    // tiene sentido, no solo cuando la cuota numérica se agotó.
+    // Passa al modello di fallback per QUALSIASI errore non-400/404 del
+    // primario (quota esaurita, sovraccarico 503, rate limit transitorio).
+    // Un 503 "alta domanda" è esattamente il caso in cui provare un modello
+    // diverso ha senso, non solo quando la quota numerica è esaurita.
     const shouldFallback = err instanceof GeminiError && err.status !== 400 && err.status !== 404
     if (shouldFallback) {
       console.warn(
-        `Error en ${GEMINI_MODEL_PRIMARY} (status ${
+        `Errore su ${GEMINI_MODEL_PRIMARY} (status ${
           (err as GeminiError).status
-        }), reintentando con modelo de respaldo ${GEMINI_MODEL_FALLBACK}.`
+        }), riprovo con il modello di fallback ${GEMINI_MODEL_FALLBACK}.`
       )
-      // Un solo reintento adicional en el fallback alcanza: si éste
-      // también falla, no tiene sentido seguir insistiendo.
+      // Un solo tentativo aggiuntivo sul fallback è sufficiente: se anche
+      // questo fallisce, non ha senso continuare.
       return await callModel(GEMINI_MODEL_FALLBACK, bodyWithoutThinking, apiKey, 1)
     }
     throw err
