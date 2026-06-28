@@ -102,18 +102,33 @@ export default async function PersonalizedExercisesPage() {
                 )
               }
 
+              const isNuovo = !e.seen_by_student
+
               return (
                 <Link key={e.id} href={`/student/personalized/${e.id}`}>
-                  <Card className="flex items-center justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:bg-surface-tertiary">
-                    <div>
-                      <p className="text-sm font-medium text-ink-primary">{e.titolo}</p>
-                      <p className="text-xs text-ink-tertiary">
-                        {new Date(e.created_at).toLocaleDateString('it-IT', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric'
-                        })}
-                      </p>
+                  <Card
+                    className={`flex items-center justify-between transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:bg-surface-tertiary ${
+                      isNuovo ? 'border-brand-400 bg-brand-400/5' : ''
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      {isNuovo && (
+                        <span className="shrink-0 rounded-full bg-brand-400 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-white">
+                          Nuovo
+                        </span>
+                      )}
+                      <div>
+                        <p className={`text-sm font-medium ${isNuovo ? 'text-ink-primary' : 'text-ink-primary'}`}>
+                          {e.titolo}
+                        </p>
+                        <p className="text-xs text-ink-tertiary">
+                          {new Date(e.created_at).toLocaleDateString('it-IT', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                          })}
+                        </p>
+                      </div>
                     </div>
                     {statoNode}
                   </Card>
