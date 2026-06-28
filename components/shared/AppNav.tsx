@@ -11,6 +11,7 @@ import { ParolaMascot } from './ParolaMascot'
 import { LogoutButton } from './LogoutButton'
 import { ThemeToggle } from './ThemeToggle'
 import { NotificationBell } from './NotificationBell'
+import { TeacherNotificationBell } from './TeacherNotificationBell'
 
 interface NavItem { href: string; label: string }
 interface AppNavProps { items: NavItem[] }
@@ -79,6 +80,7 @@ export function AppNav({ items }: AppNavProps) {
         {/* Right controls */}
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           <NotificationBell />
+          <TeacherNotificationBell />
           <ThemeToggle />
           <LogoutButton />
         </div>

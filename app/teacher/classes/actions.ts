@@ -185,6 +185,36 @@ export async function deleteClass(classId: string) {
   revalidatePath('/teacher/classes')
 }
 
+export async function getTeacherUnseenCount(): Promise<number | null> {
+  const supabase = createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return null
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, teacher_status')
+    .eq('id', userData.user.id)
+    .single()
+
+  if (profile?.role !== 'teacher' || profile.teacher_status !== 'approved') return null
+
+  const [{ count: consegne }, { count: traguardi }] = await Promise.all([
+    supabase
+      .from('personalized_exercises')
+      .select('id', { count: 'exact', head: true })
+      .eq('teacher_id', userData.user.id)
+      .eq('seen_by_teacher', false)
+      .or('submission_id.not.is.null,completato_at.not.is.null'),
+    supabase
+      .from('level_achievements')
+      .select('id', { count: 'exact', head: true })
+      .eq('teacher_id', userData.user.id)
+      .eq('seen_by_teacher', false)
+  ])
+
+  return (consegne ?? 0) + (traguardi ?? 0)
+}
+
 export interface NotificaTraguardo {
   id: string
   student_id: string
