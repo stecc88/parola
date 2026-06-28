@@ -58,7 +58,7 @@ export default async function ProgressPage() {
   const [{ data: submissions }, { data: profile }] = await Promise.all([
     supabase
       .from('submissions')
-      .select('id, tipo, created_at, consegna, valutazione_completed_at, valutazione_ia')
+      .select('id, tipo, created_at, consegna, valutazione_completed_at, valutazione_ia, testo_studente')
       .eq('student_id', userData.user?.id ?? '')
       .order('created_at', { ascending: false })
       .limit(50),
@@ -245,6 +245,7 @@ export default async function ProgressPage() {
                   <StudentSubmissionEntry
                     key={s.id}
                     id={s.id}
+                    tipo={s.tipo}
                     tipoLabel={TIPO_LABEL[s.tipo] ?? s.tipo}
                     dataLabel={new Date(s.created_at).toLocaleDateString('it-IT', {
                       day: '2-digit',
@@ -254,6 +255,9 @@ export default async function ProgressPage() {
                       minute: '2-digit'
                     })}
                     punteggio={extractPunteggio(s.valutazione_ia)}
+                    testo={s.testo_studente ?? null}
+                    valutazione={s.valutazione_ia ?? null}
+                    consegna={s.consegna ?? null}
                   />
                 ))}
               </div>
