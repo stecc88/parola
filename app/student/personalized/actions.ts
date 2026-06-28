@@ -38,6 +38,15 @@ export async function getMyPersonalizedExercises(): Promise<PersonalizedExercise
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return []
 
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role, student_status')
+    .eq('id', userData.user.id)
+    .single()
+
+  if (profile?.role !== 'student') return []
+  if (profile.student_status !== null && profile.student_status !== 'approved') return []
+
   const { data, error } = await supabase
     .from('personalized_exercises')
     .select(SELECT_FIELDS)
@@ -240,11 +249,12 @@ export async function getUnseenPersonalizedCount(): Promise<number | null> {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role')
+    .select('role, student_status')
     .eq('id', userData.user.id)
     .single()
 
   if (profile?.role !== 'student') return null
+  if (profile.student_status !== null && profile.student_status !== 'approved') return null
 
   const { count } = await supabase
     .from('personalized_exercises')
