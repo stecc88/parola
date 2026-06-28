@@ -98,10 +98,10 @@ export async function POST(request: NextRequest) {
     .eq('id', submissionId)
     .single()
 
-  // RLS ya garantiza que solo se puede leer la propia submission; si no
-  // existe o no es suya, fetchError o submission=null.
+  // RLS garantisce che si possa leggere solo la propria submission; se non
+  // esiste o non è dell'utente, fetchError o submission sarà null.
   if (fetchError || !submission) {
-    return NextResponse.json({ error: 'Submission no encontrada.' }, { status: 404 })
+    return NextResponse.json({ error: 'Submission non trovata.' }, { status: 404 })
   }
 
   if (submission.tipo !== 'scrittura_libera') {

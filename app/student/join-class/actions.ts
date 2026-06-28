@@ -34,9 +34,8 @@ export async function joinClassWithCode(inviteCode: string) {
     .eq('student_id', userData.user.id)
     .is('left_at', null)
 
-  // class_id queda NULL: el estudiante está vinculado al profesor pero
-  // todavía no asignado a ninguna classe especifica. El profesor lo ubica
-  // despues desde /teacher/classes.
+  // class_id resta NULL: lo studente è collegato al docente ma non ancora
+  // assegnato a una classe specifica. Il docente lo assegna da /teacher/classes.
   const { error: insertError } = await supabase.from('class_memberships').insert({
     student_id: userData.user.id,
     teacher_id: teacher.id,

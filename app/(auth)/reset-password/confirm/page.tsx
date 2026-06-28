@@ -19,11 +19,9 @@ export default function ConfirmResetPasswordPage() {
   const [verificandoLink, setVerificandoLink] = useState(true)
 
   useEffect(() => {
-    // Con flowType 'implicit' (ver lib/supabase/client.ts), el cliente
-    // detecta automáticamente la sesión a partir del hash de la URL
-    // (#access_token=...&type=recovery) al inicializarse — no hace falta
-    // intercambiar ningún código manualmente. Solo esperamos a que esa
-    // detección termine y confirmamos que haya quedado una sesión activa.
+    // Con flowType 'implicit' (lib/supabase/client.ts), il client rileva
+    // automaticamente la sessione dall'hash dell'URL (#access_token=...&type=recovery)
+    // all'inizializzazione — nessuno scambio manuale di codice necessario.
     async function verificaSessione() {
       const { data } = await supabase.auth.getSession()
       if (!data.session) {

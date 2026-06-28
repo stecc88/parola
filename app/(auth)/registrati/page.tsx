@@ -49,10 +49,9 @@ export default function RegistratiPage() {
       return
     }
 
-    // Se la conferma email è disattivata in Supabase, ya hay sesión activa
-    // y podemos unir al estudiante a la clase de inmediato. Si requiere
-    // confirmación, data.session será null y el join deberá hacerse después
-    // del primer login (no cubierto en este flujo mínimo).
+    // Se la conferma email è disabilitata in Supabase, la sessione è già
+    // attiva e possiamo unire lo studente alla classe subito. Se è richiesta
+    // la conferma, data.session sarà null e il join avverrà al primo login.
     if (ruolo === 'student' && data.session && inviteCode.trim()) {
       const res = await fetch('/api/classes/join', {
         method: 'POST',

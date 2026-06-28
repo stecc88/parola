@@ -1,10 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 
 /**
- * Limita cuántos ejercicios personalizados puede generar un docente en
- * una ventana de tiempo — evita que un click accidental múltiple (o un
- * uso entusiasta) agote en minutos la cuota gratuita de Gemini, que es
- * compartida por toda la plataforma.
+ * Limita quanti esercizi personalizzati può generare un docente in una
+ * finestra temporale — evita che click multipli accidentali o uso intensivo
+ * esauriscano in pochi minuti la quota gratuita di Gemini, condivisa
+ * dall'intera piattaforma.
  */
 export async function checkGenerationRateLimit(
   teacherId: string,

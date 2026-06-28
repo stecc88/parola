@@ -1,13 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
 
 /**
- * Rate limiting simple basado en DB (sin infraestructura externa como
- * Redis/Upstash). Cuenta cuántas submissions creó el estudiante en los
- * últimos `windowMinutes` y rechaza si supera `maxPerWindow`.
- *
- * Suficiente para el volumen esperado de esta app (escuela, no escala
- * masiva). Si el volumen crece, migrar a un rate limiter dedicado
- * (ej. Upstash Ratelimit) sin cambiar la firma de esta función.
+ * Rate limiting basato su DB (senza infrastruttura esterna come Redis/Upstash).
+ * Conta le submissions dello studente negli ultimi `windowMinutes` e rifiuta
+ * se supera `maxPerWindow`. Sufficiente per i volumi di una piattaforma
+ * scolastica; se il traffico cresce, migrare a Upstash Ratelimit senza
+ * cambiare la firma di questa funzione.
  */
 export async function checkSubmissionRateLimit(
   studentId: string,
@@ -23,8 +21,7 @@ export async function checkSubmissionRateLimit(
     .gte('created_at', since)
 
   if (error) {
-    // Si falla el chequeo, no bloqueamos al estudiante por un problema
-    // nuestro — solo lo logueamos.
+    // Se il check fallisce per un errore interno, non blocchiamo lo studente.
     console.error('Errore nel rate limit check:', error)
     return
   }
