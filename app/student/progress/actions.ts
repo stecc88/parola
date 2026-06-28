@@ -13,14 +13,18 @@ export async function deleteOwnSubmission(submissionId: string) {
   const studentId = await requireApprovedStudentActionUserId()
   const supabase = createClient()
 
-  const { error } = await supabase
+  const { error, count } = await supabase
     .from('submissions')
-    .delete()
+    .delete({ count: 'exact' })
     .eq('id', submissionId)
     .eq('student_id', studentId)
 
   if (error) {
     throw new Error("Errore durante l'eliminazione. Riprova.")
+  }
+
+  if (count === 0) {
+    throw new Error('Scritto non trovato o non eliminabile.')
   }
 
   revalidatePath('/student/progress')
