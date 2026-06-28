@@ -30,6 +30,7 @@ export interface StudentStats {
   puntiForzaFrequenti: FrequenzaVoce[]
   areeMiglioramentoFrequenti: FrequenzaVoce[]
   erroriPerCategoria: Record<CategoriaErrore, number>
+  erroriDettagliatiPerCategoria: Record<CategoriaErrore, FrequenzaVoce[]>
   consegna: { rispettate: number; totali: number; percentuale: number | null }
   livelloAttuale: string | null
   livelloPrecedente: string | null
@@ -123,6 +124,13 @@ export function computeStudentStats(submissions: SubmissionRow[]): StudentStats 
     coerenza: 0,
     ortografia: 0
   }
+  const spiegazioniPerCategoria: Record<CategoriaErrore, string[]> = {
+    grammatica: [],
+    lessico: [],
+    sintassi: [],
+    coerenza: [],
+    ortografia: []
+  }
 
   let consegneRispettate = 0
   let consegneTotali = 0
@@ -145,6 +153,9 @@ export function computeStudentStats(submissions: SubmissionRow[]): StudentStats 
     for (const errore of v.errori ?? []) {
       if (errore?.categoria && CATEGORIE_ERRORE.includes(errore.categoria)) {
         erroriPerCategoria[errore.categoria] += 1
+        if (errore.spiegazione) {
+          spiegazioniPerCategoria[errore.categoria].push(errore.spiegazione)
+        }
       }
     }
 
@@ -160,6 +171,10 @@ export function computeStudentStats(submissions: SubmissionRow[]): StudentStats 
 
   livelliCronologici.sort((a, b) => new Date(b.data).getTime() - new Date(a.data).getTime())
 
+  const erroriDettagliatiPerCategoria = Object.fromEntries(
+    CATEGORIE_ERRORE.map((cat) => [cat, topFrequenze(spiegazioniPerCategoria[cat], 3)])
+  ) as Record<CategoriaErrore, FrequenzaVoce[]>
+
   return {
     totaleAttivita,
     valutate,
@@ -169,6 +184,7 @@ export function computeStudentStats(submissions: SubmissionRow[]): StudentStats 
     puntiForzaFrequenti: topFrequenze(tuttiPuntiForza),
     areeMiglioramentoFrequenti: topFrequenze(tutteAreeMiglioramento),
     erroriPerCategoria,
+    erroriDettagliatiPerCategoria,
     consegna: {
       rispettate: consegneRispettate,
       totali: consegneTotali,
