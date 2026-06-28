@@ -71,54 +71,62 @@ export default async function ProgressPage() {
     <>
       <AppNav items={NAV_ITEMS} />
       <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
-        {/* Hero di benvenuto */}
-        <div className="relative mb-6 overflow-hidden rounded-xl bg-gradient-to-br from-brand-600 to-brand-400 p-6 text-white shadow-lg">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-sunshine-400/25 blur-3xl"
-          />
+        {/* Hero */}
+        <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 via-violet-600 to-coral-600 p-6 text-white shadow-glow-brand">
+          <div aria-hidden className="pointer-events-none absolute -right-8 -top-8 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
+          <div aria-hidden className="pointer-events-none absolute -left-8 bottom-0 h-32 w-32 rounded-full bg-sunshine-400/20 blur-2xl" />
+          <div aria-hidden className="pointer-events-none absolute right-1/3 top-0 h-24 w-24 rounded-full bg-violet-400/20 blur-2xl" />
           <div className="relative flex items-center gap-4">
-            <ParolaMascot mood="felice" className="h-16 w-16 animate-float-slow" />
+            <ParolaMascot mood="felice" className="h-16 w-16 animate-float-slow drop-shadow-lg" />
             <div>
-              <h1 className="text-2xl font-semibold">
+              <h1 className="text-2xl font-bold tracking-tight">
                 Ciao{profile?.nome ? `, ${profile.nome}` : ''}! 👋
               </h1>
-              <p className="text-sm text-white/85">Ecco come stai andando con il tuo italiano.</p>
+              <p className="mt-0.5 text-sm text-white/80">Ecco come stai andando con il tuo italiano.</p>
             </div>
           </div>
         </div>
 
         {stats.totaleAttivita === 0 ? (
-          <Card className="border-dashed text-center text-sm text-ink-tertiary">
-            <ParolaMascot mood="incoraggiante" className="mx-auto mb-2" />
-            Nessuna attività ancora. Inizia con la scrittura libera o un esercizio.
+          <Card className="border-dashed py-10 text-center text-sm text-ink-tertiary">
+            <ParolaMascot mood="incoraggiante" className="mx-auto mb-3 animate-float-slow" />
+            <p className="font-medium text-ink-secondary">Nessuna attività ancora.</p>
+            <p className="mt-1 text-xs">Inizia con la scrittura libera o un esercizio.</p>
           </Card>
         ) : (
           <>
             <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <Card className="animate-fade-in-up text-center transition-shadow hover:shadow-md">
-                <ListChecks className="mx-auto mb-1 h-5 w-5 text-info-text" strokeWidth={1.75} />
-                <p className="text-2xl font-semibold text-ink-primary">{stats.totaleAttivita}</p>
-                <p className="text-xs text-ink-tertiary">Attività totali</p>
+              <Card className="animate-fade-in-up text-center !p-4">
+                <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-info-bg">
+                  <ListChecks className="h-4 w-4 text-info-text" strokeWidth={2} />
+                </div>
+                <p className="text-2xl font-bold text-ink-primary">{stats.totaleAttivita}</p>
+                <p className="mt-0.5 text-xs text-ink-tertiary">Attività totali</p>
               </Card>
-              <Card className="animate-fade-in-up delay-1 text-center transition-shadow hover:shadow-md">
-                <CheckCircle2 className="mx-auto mb-1 h-5 w-5 text-success-text" strokeWidth={1.75} />
-                <p className="text-2xl font-semibold text-ink-primary">{stats.valutate}</p>
-                <p className="text-xs text-ink-tertiary">Valutate</p>
+              <Card className="animate-fade-in-up delay-1 text-center !p-4">
+                <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-success-bg">
+                  <CheckCircle2 className="h-4 w-4 text-success-text" strokeWidth={2} />
+                </div>
+                <p className="text-2xl font-bold text-ink-primary">{stats.valutate}</p>
+                <p className="mt-0.5 text-xs text-ink-tertiary">Valutate</p>
               </Card>
-              <Card className="animate-fade-in-up delay-2 text-center transition-shadow hover:shadow-md">
-                <TrendingUp className="mx-auto mb-1 h-5 w-5 text-brand-400" strokeWidth={1.75} />
-                <p className="text-2xl font-semibold text-ink-primary">
+              <Card className="animate-fade-in-up delay-2 text-center !p-4">
+                <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-brand-100">
+                  <TrendingUp className="h-4 w-4 text-brand-600" strokeWidth={2} />
+                </div>
+                <p className="text-2xl font-bold text-ink-primary">
                   {stats.mediaGenerale !== null ? `${stats.mediaGenerale}%` : '—'}
                 </p>
-                <p className="text-xs text-ink-tertiary">Punteggio medio</p>
+                <p className="mt-0.5 text-xs text-ink-tertiary">Punteggio medio</p>
               </Card>
-              <Card className="animate-fade-in-up delay-3 text-center transition-shadow hover:shadow-md">
-                <GraduationCap className="mx-auto mb-1 h-5 w-5 text-warning-text" strokeWidth={1.75} />
-                <p className="text-2xl font-semibold text-ink-primary">
+              <Card className="animate-fade-in-up delay-3 text-center !p-4">
+                <div className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-warning-bg">
+                  <GraduationCap className="h-4 w-4 text-warning-text" strokeWidth={2} />
+                </div>
+                <p className="text-2xl font-bold text-ink-primary">
                   {stats.livelloAttuale ?? '—'}
                 </p>
-                <p className="text-xs text-ink-tertiary">
+                <p className="mt-0.5 text-xs text-ink-tertiary">
                   Livello stimato
                   {stats.livelloPrecedente && stats.livelloPrecedente !== stats.livelloAttuale && (
                     <span className="ml-1">(prima: {stats.livelloPrecedente})</span>
@@ -129,7 +137,7 @@ export default async function ProgressPage() {
 
             <Card className="mb-6">
               <h2 className="mb-3 text-sm font-semibold text-ink-primary">
-                La tua evoluzione nel tempo
+                📈 La tua evoluzione nel tempo
               </h2>
               <EvolutionChart punti={stats.evoluzione} />
             </Card>

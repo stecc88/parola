@@ -41,7 +41,7 @@ export function ParolaMascot({ mood = 'neutro', className }: ParolaMascotProps) 
           stroke="#1A1410"
           strokeWidth="2.5"
         />
-        <path d="M50 70 L46 84 L50 80 L54 84 Z" fill="#2F8FE0" />
+        <path d="M50 70 L46 84 L50 80 L54 84 Z" fill="#818CF8" />
 
         {/* Testa */}
         <circle cx="50" cy="48" r="26" fill="#F5C99B" stroke="#1A1410" strokeWidth="2.5" />
@@ -49,7 +49,7 @@ export function ParolaMascot({ mood = 'neutro', className }: ParolaMascotProps) 
         {/* Cappellino blu all'indietro */}
         <path
           d="M27 38 C27 20 73 20 73 38 L73 30 C73 30 50 24 27 30 Z"
-          fill="#2F8FE0"
+          fill="#818CF8"
           stroke="#1A1410"
           strokeWidth="2.5"
           strokeLinejoin="round"
