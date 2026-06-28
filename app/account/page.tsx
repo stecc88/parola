@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
 import { getMyProfile } from './actions'
 import { AccountForm } from './AccountForm'
+import { LivelloObiettivoForm } from './LivelloObiettivoForm'
 import { hasActiveMembership } from '@/app/student/join-class/actions'
 
 const NAV_ITEMS_BY_ROLE: Record<string, { href: string; label: string }[]> = {
@@ -62,6 +63,13 @@ export default async function AccountPage() {
             <Link href="/student/join-class">
               <Button variant="secondary">Inserisci codice insegnante</Button>
             </Link>
+          </Card>
+        )}
+
+        {profile.role === 'teacher' && (
+          <Card className="mb-6">
+            <h2 className="mb-1 text-sm font-semibold text-ink-primary">Livello obiettivo classe</h2>
+            <LivelloObiettivoForm livelloAttuale={profile.livello_obiettivo_classe} />
           </Card>
         )}
 

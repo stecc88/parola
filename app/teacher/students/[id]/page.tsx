@@ -15,6 +15,7 @@ import {
   getPersonalizedExercisesForStudent,
   getLastSignInForStudent,
   markPersonalizedExercisesSeen,
+  markLevelAchievementsSeenByTeacher,
   type PersonalizedExerciseRow
 } from './actions'
 import { GeneratePersonalizedExerciseButton } from './GeneratePersonalizedExerciseButton'
@@ -88,7 +89,10 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
 
   // Side-effect deliberato: visitare questa pagina marca come "lette" le
   // consegne in attesa — stesso pattern di qualsiasi notifica in-app.
-  await markPersonalizedExercisesSeen(params.id)
+  await Promise.all([
+    markPersonalizedExercisesSeen(params.id),
+    markLevelAchievementsSeenByTeacher(params.id)
+  ])
 
   const [personalizedExercises, ultimoAccesso] = await Promise.all([
     getPersonalizedExercisesForStudent(params.id),

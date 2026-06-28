@@ -118,7 +118,9 @@ export async function POST(request: NextRequest) {
       consegna
     )
 
-    const { error: updateError } = await createAdminClient()
+    const admin = createAdminClient()
+
+    const { error: updateError } = await admin
       .from('submissions')
       .update({
         valutazione_ia: valutazione,
@@ -128,6 +130,52 @@ export async function POST(request: NextRequest) {
 
     if (updateError) {
       throw updateError
+    }
+
+    // Controlla se lo studente ha raggiunto il livello obiettivo del docente.
+    // Errori qui non bloccano la risposta — la valutazione è già salvata.
+    try {
+      const LIVELLO_ORDER = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
+      const livelloStudente = valutazione.livello_stimato
+      const livelloIdx = LIVELLO_ORDER.indexOf(livelloStudente)
+
+      if (livelloIdx !== -1) {
+        const { data: membership } = await admin
+          .from('class_memberships')
+          .select('teacher_id')
+          .eq('student_id', userData.user.id)
+          .is('left_at', null)
+          .limit(1)
+          .maybeSingle()
+
+        if (membership?.teacher_id) {
+          const { data: teacherProfile } = await admin
+            .from('profiles')
+            .select('livello_obiettivo_classe')
+            .eq('id', membership.teacher_id)
+            .single()
+
+          const obiettivo = teacherProfile?.livello_obiettivo_classe
+          if (obiettivo) {
+            const obiettivoIdx = LIVELLO_ORDER.indexOf(obiettivo)
+            if (livelloIdx >= obiettivoIdx) {
+              // Inserisce il traguardo; ignora se già esiste per questo livello.
+              await admin.from('level_achievements').upsert(
+                {
+                  student_id: userData.user.id,
+                  teacher_id: membership.teacher_id,
+                  livello: obiettivo,
+                  seen_by_student: false,
+                  seen_by_teacher: false
+                },
+                { onConflict: 'student_id,teacher_id,livello', ignoreDuplicates: true }
+              )
+            }
+          }
+        }
+      }
+    } catch (achievementErr) {
+      console.error('Errore controllando traguardo livello:', achievementErr)
     }
 
     return NextResponse.json({ valutazione })
