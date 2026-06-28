@@ -2,125 +2,98 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Typography ──────────────────────────────────────────────── */
 :root {
   --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-display: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', serif;
 
+  /* ─── Surfaces ──────────────────────────────── */
   --surface: #FFFFFF;
-  --surface-translucent: rgba(255, 255, 255, 0.82);
-  --surface-secondary: #F7F5F3;
-  --surface-tertiary: #EFEBE7;
+  --surface-translucent: rgba(255,255,255,0.78);
+  --surface-secondary: #F5F3FF;
+  --surface-tertiary: #EDE9FF;
 
-  --ink-primary: #1A1410;
-  --ink-secondary: #54473C;
-  --ink-tertiary: #8A7C6D;
+  /* ─── Ink ───────────────────────────────────── */
+  --ink-primary: #0F0E1A;
+  --ink-secondary: #3D3B6B;
+  --ink-tertiary: #7C7AA8;
 
-  --border-default: #E3DCD3;
-  --border-strong: #C9BDAE;
+  /* ─── Borders ───────────────────────────────── */
+  --border-default: #DDD9F5;
+  --border-strong: #B8B2E8;
 
-  --info-bg: #E7F0FA;
-  --info-text: #1E5A96;
+  /* ─── Semantic ──────────────────────────────── */
+  --info-bg: #EEF2FF;
+  --info-text: #4338CA;
 
-  --success-bg: #E6F4E8;
-  --success-text: #1E6B33;
+  --success-bg: #ECFDF5;
+  --success-text: #065F46;
 
-  --warning-bg: #FBF0DD;
-  --warning-text: #8A5A12;
+  --warning-bg: #FFFBEB;
+  --warning-text: #92400E;
 
-  --danger-bg: #FAE7E5;
-  --danger-text: #A3331E;
+  --danger-bg: #FFF1F2;
+  --danger-text: #BE123C;
 
-  --guided-bg: #FFF6DC;
-  --guided-text: #6B4A23;
-  --guided-accent: #FFC93C;
+  --guided-bg: #FEF9EE;
+  --guided-text: #92400E;
+  --guided-accent: #FBBF24;
 }
 
 .dark {
-  --surface: #1A1410;
-  --surface-translucent: rgba(26, 20, 16, 0.82);
-  --surface-secondary: #241D17;
-  --surface-tertiary: #2E251D;
+  --surface: #13111E;
+  --surface-translucent: rgba(19,17,30,0.85);
+  --surface-secondary: #1C1A2E;
+  --surface-tertiary: #252240;
 
-  --ink-primary: #F5F0EA;
-  --ink-secondary: #C9BDAE;
-  --ink-tertiary: #8A7C6D;
+  --ink-primary: #EDE9FE;
+  --ink-secondary: #B0ABDA;
+  --ink-tertiary: #6B6593;
 
-  --border-default: #3A2F25;
-  --border-strong: #54473C;
+  --border-default: #322F52;
+  --border-strong: #4A4675;
 
-  --info-bg: #16263A;
-  --info-text: #8FC1F0;
+  --info-bg: #1E1B3A;
+  --info-text: #A5B4FC;
 
-  --success-bg: #14271A;
-  --success-text: #8FD6A2;
+  --success-bg: #0A1F17;
+  --success-text: #6EE7B7;
 
-  --warning-bg: #2E2412;
-  --warning-text: #E8B765;
+  --warning-bg: #1F1810;
+  --warning-text: #FCD34D;
 
-  --danger-bg: #2E1714;
-  --danger-text: #F0958A;
+  --danger-bg: #1F0F14;
+  --danger-text: #FDA4AF;
 
-  --guided-bg: #2A2117;
-  --guided-text: #E8C896;
-  --guided-accent: #FFC93C;
+  --guided-bg: #1F1810;
+  --guided-text: #FDE68A;
+  --guided-accent: #FBBF24;
 }
 
-/* Fondo "carta increspata" applicato a tutta la piattaforma: alcuni layer
-   di gradienti radiali/lineari molto leggeri che simulano pieghe e
-   ombre morbide di un foglio di carta, senza interferire con la
-   leggibilità del testo sopra (le superfici dei Card restano opache). */
+/* ─── Background: Aurora ──────────────────────────────────────── */
 body {
-  background-color: var(--surface-secondary);
+  background-color: #F5F3FF;
   background-image:
-    radial-gradient(at 15% 20%, rgba(0, 0, 0, 0.035) 0px, transparent 45%),
-    radial-gradient(at 85% 10%, rgba(0, 0, 0, 0.03) 0px, transparent 40%),
-    radial-gradient(at 70% 65%, rgba(0, 0, 0, 0.035) 0px, transparent 45%),
-    radial-gradient(at 20% 80%, rgba(0, 0, 0, 0.03) 0px, transparent 40%),
-    radial-gradient(at 50% 50%, rgba(255, 255, 255, 0.4) 0px, transparent 60%),
-    repeating-linear-gradient(
-      115deg,
-      rgba(0, 0, 0, 0.015) 0px,
-      rgba(0, 0, 0, 0.015) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
-    repeating-linear-gradient(
-      25deg,
-      rgba(0, 0, 0, 0.012) 0px,
-      rgba(0, 0, 0, 0.012) 1px,
-      transparent 1px,
-      transparent 4px
-    );
+    radial-gradient(ellipse 80% 60% at 0% 0%,   rgba(129,140,248,0.18) 0px, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 100% 0%,  rgba(251,146,60,0.10)  0px, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 0% 100%,  rgba(52,211,153,0.09)  0px, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 100% 100%,rgba(251,191,36,0.10)  0px, transparent 55%),
+    radial-gradient(ellipse 90% 80% at 50% 50%,  rgba(167,139,250,0.07) 0px, transparent 70%);
   background-attachment: fixed;
   color: var(--ink-primary);
 }
 
 .dark body {
-  background-color: var(--surface-secondary);
+  background-color: #0D0B1A;
   background-image:
-    radial-gradient(at 15% 20%, rgba(255, 255, 255, 0.03) 0px, transparent 45%),
-    radial-gradient(at 85% 10%, rgba(255, 255, 255, 0.025) 0px, transparent 40%),
-    radial-gradient(at 70% 65%, rgba(255, 255, 255, 0.03) 0px, transparent 45%),
-    radial-gradient(at 20% 80%, rgba(255, 255, 255, 0.025) 0px, transparent 40%),
-    repeating-linear-gradient(
-      115deg,
-      rgba(255, 255, 255, 0.015) 0px,
-      rgba(255, 255, 255, 0.015) 1px,
-      transparent 1px,
-      transparent 3px
-    ),
-    repeating-linear-gradient(
-      25deg,
-      rgba(255, 255, 255, 0.012) 0px,
-      rgba(255, 255, 255, 0.012) 1px,
-      transparent 1px,
-      transparent 4px
-    );
+    radial-gradient(ellipse 80% 60% at 0% 0%,   rgba(99,102,241,0.25)  0px, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 100% 0%,  rgba(244,63,94,0.12)   0px, transparent 55%),
+    radial-gradient(ellipse 70% 60% at 0% 100%,  rgba(16,185,129,0.10)  0px, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 100% 100%,rgba(251,191,36,0.08)  0px, transparent 55%);
+  background-attachment: fixed;
 }
 
-/* Textura di "quaderno a righe", usata solo nella landing page (hero).
-   Linee sottili che evocano un quaderno di scuola, coerente col soggetto
-   (apprendimento della scrittura) senza competere col contenuto. */
+/* ─── Notebook lines (landing hero only) ─────────────────────── */
 .notebook-lines {
   background-image: repeating-linear-gradient(
     to bottom,
@@ -131,103 +104,182 @@ body {
   );
 }
 
+/* ─── Core animations ─────────────────────────────────────────── */
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(14px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 @keyframes floatSlow {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-7px); }
 }
 
-.animate-fade-in-up {
-  animation: fadeInUp 0.6s ease-out both;
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.5s ease-out both;
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.animate-float-slow {
-  animation: floatSlow 5s ease-in-out infinite;
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-16px); }
+  to   { opacity: 1; transform: translateX(0); }
 }
 
-.delay-1 {
-  animation-delay: 0.08s;
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
 }
 
-.delay-2 {
-  animation-delay: 0.16s;
+@keyframes gradientX {
+  0%, 100% { background-position: 0% 50%; }
+  50%       { background-position: 100% 50%; }
 }
 
-.delay-3 {
-  animation-delay: 0.24s;
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(129,140,248,0); }
+  50%       { box-shadow: 0 0 16px 4px rgba(129,140,248,0.30); }
 }
 
-.delay-4 {
-  animation-delay: 0.32s;
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }
 
-.hide-scrollbar {
-  scrollbar-width: none;
+@keyframes bounceDot {
+  0%, 80%, 100% { transform: scale(0); opacity: 0; }
+  40%           { transform: scale(1); opacity: 1; }
 }
 
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
+@keyframes popIn {
+  0%   { opacity: 0; transform: scale(0.5) rotate(-8deg); }
+  70%  { transform: scale(1.08) rotate(2deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
 }
 
+/* ─── Animation classes ───────────────────────────────────────── */
+.animate-fade-in-up   { animation: fadeInUp   0.55s cubic-bezier(0.16,1,0.3,1) both; }
+.animate-fade-in      { animation: fadeIn     0.4s ease-out both; }
+.animate-float-slow   { animation: floatSlow  5s ease-in-out infinite; }
+.animate-scale-in     { animation: scaleIn    0.35s cubic-bezier(0.16,1,0.3,1) both; }
+.animate-slide-up     { animation: slideUp    0.5s cubic-bezier(0.16,1,0.3,1) both; }
+.animate-slide-right  { animation: slideRight 0.4s cubic-bezier(0.16,1,0.3,1) both; }
+.animate-shimmer      { animation: shimmer    2.5s linear infinite; }
+.animate-gradient-x   { animation: gradientX  4s ease infinite; background-size: 200% 200%; }
+.animate-pulse-glow   { animation: pulseGlow  2.5s ease-in-out infinite; }
+.animate-spin-slow    { animation: spinSlow   8s linear infinite; }
+.animate-pop-in       { animation: popIn      0.5s cubic-bezier(0.34,1.56,0.64,1) both; }
+
+/* ─── Stagger delays ──────────────────────────────────────────── */
+.delay-1 { animation-delay: 0.08s; }
+.delay-2 { animation-delay: 0.16s; }
+.delay-3 { animation-delay: 0.24s; }
+.delay-4 { animation-delay: 0.32s; }
+.delay-5 { animation-delay: 0.40s; }
+.delay-6 { animation-delay: 0.48s; }
+
+/* ─── Glass morphism ──────────────────────────────────────────── */
+.glass {
+  background: rgba(255,255,255,0.60);
+  backdrop-filter: blur(16px) saturate(1.4);
+  -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid rgba(255,255,255,0.50);
+}
+
+.dark .glass {
+  background: rgba(28,26,46,0.65);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* ─── Gradient text ───────────────────────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #6366F1 0%, #A78BFA 50%, #FB923C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-brand {
+  background: linear-gradient(120deg, #6366F1 0%, #818CF8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Shimmer card ────────────────────────────────────────────── */
+.shimmer-bg {
+  background: linear-gradient(90deg,
+    var(--surface-secondary) 25%,
+    var(--surface-tertiary) 50%,
+    var(--surface-secondary) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s linear infinite;
+}
+
+/* ─── Glowing border ──────────────────────────────────────────── */
+.border-glow {
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  box-shadow: 0 0 0 1px rgba(129,140,248,0.35), 0 0 16px rgba(129,140,248,0.18);
+}
+
+/* ─── Bounce dots (loading) ───────────────────────────────────── */
+.bounce-dot:nth-child(1) { animation: bounceDot 1.4s infinite ease-in-out; }
+.bounce-dot:nth-child(2) { animation: bounceDot 1.4s infinite ease-in-out 0.2s; }
+.bounce-dot:nth-child(3) { animation: bounceDot 1.4s infinite ease-in-out 0.4s; }
+
+/* ─── Scrollbar ───────────────────────────────────────────────── */
+.hide-scrollbar { scrollbar-width: none; }
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+
+/* ─── Reduced motion ──────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in-up,
   .animate-fade-in,
-  .animate-float-slow {
+  .animate-float-slow,
+  .animate-scale-in,
+  .animate-slide-up,
+  .animate-slide-right,
+  .animate-shimmer,
+  .animate-gradient-x,
+  .animate-pulse-glow,
+  .animate-pop-in,
+  .shimmer-bg {
     animation: none;
   }
 }
 
-/* Accessibilità: indicatore di focus visibile e consistente per la
-   navigazione da tastiera, anche sui link semplici (es. Card avvolte in
-   <Link>) che altrimenti non avrebbero un outline chiaro. */
+/* ─── Focus ring ──────────────────────────────────────────────── */
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
 select:focus-visible {
-  outline: 2px solid #2F8FE0;
+  outline: 2px solid #818CF8;
   outline-offset: 2px;
   border-radius: 4px;
 }
 
+/* ─── Skip link ───────────────────────────────────────────────── */
 .skip-to-content {
   position: absolute;
   left: -9999px;
   top: 0;
   z-index: 50;
-  background: #2F8FE0;
+  background: #6366F1;
   color: white;
   padding: 0.5rem 1rem;
   border-radius: 0 0 0.375rem 0;
 }
 
-.skip-to-content:focus {
-  left: 0;
-}
+.skip-to-content:focus { left: 0; }
