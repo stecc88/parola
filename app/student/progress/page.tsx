@@ -9,6 +9,7 @@ import {
   type SubmissionRow,
   type CategoriaErrore
 } from '@/lib/analytics/studentStats'
+import { StudentSubmissionEntry } from './StudentSubmissionEntry'
 
 const NAV_ITEMS = [
   { href: '/student/progress', label: 'I miei progressi' },
@@ -232,37 +233,21 @@ export default async function ProgressPage() {
             <Card>
               <h2 className="mb-3 text-sm font-semibold text-ink-primary">Storico attività</h2>
               <div className="space-y-2">
-                {(submissions ?? []).map((s) => {
-                  const punteggio = extractPunteggio(s.valutazione_ia)
-                  return (
-                    <div
-                      key={s.id}
-                      className="flex items-center justify-between rounded-md bg-surface-secondary p-3"
-                    >
-                      <div>
-                        <p className="text-sm font-medium text-ink-primary">
-                          {TIPO_LABEL[s.tipo] ?? s.tipo}
-                        </p>
-                        <p className="text-xs text-ink-tertiary">
-                          {new Date(s.created_at).toLocaleDateString('it-IT', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </p>
-                      </div>
-                      {punteggio !== null ? (
-                        <span className="rounded-full bg-info-bg px-3 py-1 text-sm font-medium text-info-text">
-                          {punteggio}%
-                        </span>
-                      ) : (
-                        <span className="text-xs text-ink-tertiary">In attesa di valutazione</span>
-                      )}
-                    </div>
-                  )
-                })}
+                {(submissions ?? []).map((s) => (
+                  <StudentSubmissionEntry
+                    key={s.id}
+                    id={s.id}
+                    tipoLabel={TIPO_LABEL[s.tipo] ?? s.tipo}
+                    dataLabel={new Date(s.created_at).toLocaleDateString('it-IT', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                    punteggio={extractPunteggio(s.valutazione_ia)}
+                  />
+                ))}
               </div>
             </Card>
           </>

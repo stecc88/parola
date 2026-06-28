@@ -19,10 +19,20 @@ import { descrizioneLivelloGenerazione } from '../cefrLevels'
 
 const RESPONSE_SCHEMA = zodToGeminiSchema(esercizioPersonalizzatoSchema)
 
+export interface ErroreSubmission {
+  testo_originale: string
+  correzione: string
+  categoria: string
+  spiegazione: string
+}
+
 export interface ProfiloDebolezzeStudente {
   livelloTarget?: string
   areeDiMiglioramento: string[] // già aggregate/contate altrove, qui solo i testi
   categorieErroriFrequenti: string[] // es. ['grammatica', 'ortografia']
+  // Se presenti, sono gli errori concreti di UN testo specifico dello studente.
+  // Hanno priorità sulle statistiche aggregate per costruire l'esercizio.
+  erroriSubmissionSpecifica?: ErroreSubmission[]
   // Se omesso, l'IA scegli il tipo più adatto alle difficoltà rilevate.
   tipoEsercizio?: TipoEsercizioPersonalizzato
 }
@@ -70,6 +80,19 @@ function buildPrompt(profilo: ProfiloDebolezzeStudente): string {
       ? `Le categorie di errore più frequenti nelle sue correzioni precedenti sono: ${profilo.categorieErroriFrequenti.join(', ')}.`
       : ''
 
+  const erroriSpecificiText =
+    profilo.erroriSubmissionSpecifica && profilo.erroriSubmissionSpecifica.length > 0
+      ? `\nIMPORTANTE: il docente vuole un esercizio basato sugli errori CONCRETI commessi
+dallo studente in un testo specifico appena analizzato. Questi sono gli errori reali
+(con spiegazione) che devono guidare la creazione dell'esercizio — usali come punto
+di partenza diretto per la teoria, gli esempi e le domande:\n${profilo.erroriSubmissionSpecifica
+          .map(
+            (e, i) =>
+              `${i + 1}. "${e.testo_originale}" → "${e.correzione}" [${e.categoria}]: ${e.spiegazione}`
+          )
+          .join('\n')}`
+      : ''
+
   const tipoText = profilo.tipoEsercizio
     ? TIPO_ISTRUZIONI[profilo.tipoEsercizio]
     : `Scegli TU il tipo più adatto alle difficoltà rilevate, tra: "scrittura",
@@ -85,6 +108,7 @@ con livello target ${livello}, basato sulle sue difficoltà ricorrenti.
 Aree di miglioramento rilevate nelle correzioni precedenti dello studente:
 ${areeText}
 ${categorieText}
+${erroriSpecificiText}
 
 ${descrizioneLivelloGenerazione(livello)}
 
