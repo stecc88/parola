@@ -162,6 +162,43 @@ export function ValutazioneCard({
           </div>
         </details>
       )}
+
+      {/* Conclusione: cosa fare adesso */}
+      {(() => {
+        const conteggioPerCategoria: Record<string, number> = {}
+        for (const err of valutazione.errori) {
+          conteggioPerCategoria[err.categoria] = (conteggioPerCategoria[err.categoria] ?? 0) + 1
+        }
+        const categoriaDebole = Object.entries(conteggioPerCategoria).sort((a, b) => b[1] - a[1])[0]?.[0]
+        const labelDebole = categoriaDebole ? CATEGORIA_LABEL[categoriaDebole] ?? categoriaDebole : null
+
+        return (
+          <div className="mt-5 rounded-xl border border-brand-200/60 bg-gradient-to-br from-brand-50 to-violet-50 p-4 dark:border-brand-800/40 dark:from-brand-950/30 dark:to-violet-950/30">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-400">
+              Cosa fare adesso
+            </p>
+            {labelDebole ? (
+              <p className="text-sm text-ink-primary">
+                Il tuo punto debole in questo testo:{' '}
+                <span className="font-semibold text-warning-text">{labelDebole}</span>.{' '}
+                Il tuo professore può crearti un esercizio mirato — controlla{' '}
+                <a href="/student/personalized" className="font-semibold text-brand-600 underline underline-offset-2 hover:text-brand-800 dark:text-brand-400">
+                  &quot;Per te&quot;
+                </a>{' '}
+                per vedere se ne hai già uno pronto.
+              </p>
+            ) : (
+              <p className="text-sm text-ink-primary">
+                Nessun errore rilevato — ottimo lavoro! Controlla{' '}
+                <a href="/student/personalized" className="font-semibold text-brand-600 underline underline-offset-2 hover:text-brand-800 dark:text-brand-400">
+                  &quot;Per te&quot;
+                </a>{' '}
+                per nuovi esercizi dal tuo professore.
+              </p>
+            )}
+          </div>
+        )
+      })()}
     </Card>
   )
 }

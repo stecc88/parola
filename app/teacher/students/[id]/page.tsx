@@ -10,6 +10,7 @@ import {
   type SubmissionRow,
   type CategoriaErrore
 } from '@/lib/analytics/studentStats'
+import { valutazioneEsaminatoreSchema } from '@/lib/gemini/schema'
 import {
   getPersonalizedExercisesForStudent,
   getLastSignInForStudent,
@@ -389,6 +390,9 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                       }>)
                     : undefined
 
+                  const valutazioneParsed = valutazioneEsaminatoreSchema.safeParse(s.valutazione_ia)
+                  const valutazioneCompleta = valutazioneParsed.success ? valutazioneParsed.data : null
+
                   return (
                     <SubmissionHistoryEntry
                       key={s.id}
@@ -408,6 +412,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                       testoIncollato={s.testo_incollato}
                       secondiScrittura={s.secondi_scrittura}
                       errori={errori}
+                      valutazioneCompleta={valutazioneCompleta}
                     />
                   )
                 })}
