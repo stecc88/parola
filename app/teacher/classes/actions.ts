@@ -185,6 +185,55 @@ export async function deleteClass(classId: string) {
   revalidatePath('/teacher/classes')
 }
 
+export interface NotificaTraguardo {
+  id: string
+  student_id: string
+  nome: string
+  cognome: string
+  livello: string
+  created_at: string
+}
+
+export async function getUnseenLevelAchievements(): Promise<NotificaTraguardo[]> {
+  await requireApprovedTeacherActionUserId()
+  const supabase = createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return []
+
+  const { data, error } = await supabase
+    .from('level_achievements')
+    .select('id, student_id, livello, created_at, profiles!student_id(nome, cognome)')
+    .eq('teacher_id', userData.user.id)
+    .eq('seen_by_teacher', false)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Errore caricando i traguardi:', error)
+    return []
+  }
+
+  return (data ?? []).map((row) => {
+    const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles
+    return {
+      id: row.id,
+      student_id: row.student_id,
+      livello: row.livello,
+      nome: profile?.nome ?? '',
+      cognome: profile?.cognome ?? '',
+      created_at: row.created_at
+    }
+  })
+}
+
+export async function markLevelAchievementSeenByTeacher(achievementId: string): Promise<void> {
+  await requireApprovedTeacherActionUserId()
+  const admin = createAdminClient()
+  await admin
+    .from('level_achievements')
+    .update({ seen_by_teacher: true })
+    .eq('id', achievementId)
+}
+
 export interface NotificaConsegna {
   id: string
   titolo: string

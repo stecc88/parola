@@ -8,6 +8,7 @@ export interface MyProfile {
   cognome: string
   role: 'admin' | 'teacher' | 'student'
   livello_target: string | null
+  livello_obiettivo_classe: string | null
 }
 
 export async function getMyProfile(): Promise<MyProfile | null> {
@@ -17,7 +18,7 @@ export async function getMyProfile(): Promise<MyProfile | null> {
 
   const { data } = await supabase
     .from('profiles')
-    .select('id, nome, cognome, role, livello_target')
+    .select('id, nome, cognome, role, livello_target, livello_obiettivo_classe')
     .eq('id', userData.user.id)
     .single()
 
@@ -44,6 +45,27 @@ export async function updateMyName(nome: string, cognome: string) {
     .eq('id', userData.user.id)
 
   if (error) throw new Error('Errore aggiornando il profilo.')
+}
+
+export async function updateLivelloObiettivo(livello: string | null) {
+  const supabase = createClient()
+  const { data: userData, error: authError } = await supabase.auth.getUser()
+  if (authError || !userData.user) throw new Error('Non autenticato.')
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', userData.user.id)
+    .single()
+
+  if (profile?.role !== 'teacher') throw new Error('Solo i docenti possono impostare il livello obiettivo.')
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({ livello_obiettivo_classe: livello })
+    .eq('id', userData.user.id)
+
+  if (error) throw new Error('Errore aggiornando il livello obiettivo.')
 }
 
 export async function changeMyPassword(nuovaPassword: string) {

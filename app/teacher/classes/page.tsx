@@ -11,7 +11,8 @@ import {
   getTeacherInviteCode,
   getUnassignedStudents,
   getUnseenDeliveries,
-  getStudentsOverview
+  getStudentsOverview,
+  getUnseenLevelAchievements
 } from './actions'
 
 const NAV_ITEMS = [
@@ -24,7 +25,7 @@ export default async function TeacherClassesPage() {
   await requireApprovedTeacher()
   const supabase = createClient()
 
-  const [{ data: classi }, inviteCode, unassigned, notifiche, panoramica] = await Promise.all([
+  const [{ data: classi }, inviteCode, unassigned, notifiche, panoramica, traguardi] = await Promise.all([
     supabase
       .from('classes')
       .select('id, nome, created_at')
@@ -32,7 +33,8 @@ export default async function TeacherClassesPage() {
     getTeacherInviteCode(),
     getUnassignedStudents(),
     getUnseenDeliveries(),
-    getStudentsOverview()
+    getStudentsOverview(),
+    getUnseenLevelAchievements()
   ])
 
   const studentiAttenzione = panoramica.filter((s) => s.richiedeAttenzione)
@@ -53,6 +55,36 @@ export default async function TeacherClassesPage() {
           </p>
           {inviteCode && <InviteCodeActions code={inviteCode} />}
         </Card>
+
+        {traguardi.length > 0 && (
+          <Card className="mb-6 border-success-text/30 bg-success-bg">
+            <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-success-text">
+              🏆 Traguardi raggiunti ({traguardi.length})
+            </h2>
+            <div className="space-y-2">
+              {traguardi.map((t) => (
+                <Link key={t.id} href={`/teacher/students/${t.student_id}`}>
+                  <div className="flex items-center justify-between rounded-md bg-surface p-3 hover:bg-surface-tertiary">
+                    <div>
+                      <p className="text-sm font-medium text-ink-primary">
+                        {t.nome} {t.cognome}
+                      </p>
+                      <p className="text-xs text-success-text font-medium">
+                        Ha raggiunto il livello {t.livello} 🎉
+                      </p>
+                    </div>
+                    <span className="text-xs text-ink-tertiary">
+                      {new Date(t.created_at).toLocaleDateString('it-IT', {
+                        day: '2-digit',
+                        month: '2-digit'
+                      })}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </Card>
+        )}
 
         {notifiche.length > 0 && (
           <Card className="mb-6 border-warning-text/30 bg-warning-bg">

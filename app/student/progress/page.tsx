@@ -2,8 +2,9 @@ import { AppNav } from '@/components/shared/AppNav'
 import { Card } from '@/components/ui/Card'
 import { ParolaMascot } from '@/components/shared/ParolaMascot'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { EvolutionChart } from '@/components/teacher/EvolutionChart'
-import { ListChecks, CheckCircle2, TrendingUp, GraduationCap } from 'lucide-react'
+import { ListChecks, CheckCircle2, TrendingUp, GraduationCap, Trophy } from 'lucide-react'
 import {
   computeStudentStats,
   type SubmissionRow,
@@ -55,14 +56,30 @@ export default async function ProgressPage() {
   const supabase = createClient()
   const { data: userData } = await supabase.auth.getUser()
 
-  const [{ data: allSubmissions }, { data: profile }] = await Promise.all([
+  const userId = userData.user?.id ?? ''
+
+  const [{ data: allSubmissions }, { data: profile }, { data: unseenAchievements }] = await Promise.all([
     supabase
       .from('submissions')
       .select('id, tipo, created_at, consegna, valutazione_completed_at, valutazione_ia, testo_studente')
-      .eq('student_id', userData.user?.id ?? '')
+      .eq('student_id', userId)
       .order('created_at', { ascending: false }),
-    supabase.from('profiles').select('nome').eq('id', userData.user?.id ?? '').single()
+    supabase.from('profiles').select('nome').eq('id', userId).single(),
+    supabase
+      .from('level_achievements')
+      .select('id, livello')
+      .eq('student_id', userId)
+      .eq('seen_by_student', false)
   ])
+
+  // Mark achievements as seen — best-effort, non-blocking
+  if (unseenAchievements && unseenAchievements.length > 0) {
+    const admin = createAdminClient()
+    await admin
+      .from('level_achievements')
+      .update({ seen_by_student: true })
+      .in('id', unseenAchievements.map((a) => a.id))
+  }
 
   // Stats calcolate su TUTTE le submission per non perdere la storia
   // pedagogica. La UI mostra solo le ultime 5.
@@ -88,6 +105,26 @@ export default async function ProgressPage() {
             </div>
           </div>
         </div>
+
+        {unseenAchievements && unseenAchievements.length > 0 && (
+          <div className="mb-6 rounded-2xl border border-success-border bg-success-bg p-5 animate-fade-in-up">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-success-text/10">
+                <Trophy className="h-5 w-5 text-success-text" />
+              </div>
+              <div>
+                {unseenAchievements.map((a) => (
+                  <p key={a.id} className="text-sm font-semibold text-success-text">
+                    🎉 Congratulazioni! Hai raggiunto il livello {a.livello} — proprio il traguardo che si aspettava il tuo insegnante!
+                  </p>
+                ))}
+                <p className="mt-0.5 text-xs text-success-text/80">
+                  Il tuo insegnante ha ricevuto la notifica del tuo traguardo.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {stats.totaleAttivita === 0 ? (
           <Card className="border-dashed py-10 text-center text-sm text-ink-tertiary">

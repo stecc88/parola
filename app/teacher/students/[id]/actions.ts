@@ -168,6 +168,20 @@ export async function markPersonalizedExercisesSeen(studentId: string) {
     .or('submission_id.not.is.null,completato_at.not.is.null')
 }
 
+export async function markLevelAchievementsSeenByTeacher(studentId: string) {
+  const supabase = createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return
+
+  const admin = createAdminClient()
+  await admin
+    .from('level_achievements')
+    .update({ seen_by_teacher: true })
+    .eq('student_id', studentId)
+    .eq('teacher_id', userData.user.id)
+    .eq('seen_by_teacher', false)
+}
+
 /**
  * Data dell'ultimo accesso dello studente, letta da auth.users tramite
  * service role (non accessibile via RLS normale). Va chiamata SOLO dopo
