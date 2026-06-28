@@ -29,6 +29,48 @@ function isEsaminatoreValutazione(v: unknown): v is ValutazioneEsaminatore {
   )
 }
 
+type RisultatoItem = {
+  corretto: boolean
+  risposta_studente?: string
+  risposta_corretta?: string
+  feedback?: string
+}
+
+function EsercizioRisultati({ valutazione }: { valutazione: unknown }) {
+  if (isEsaminatoreValutazione(valutazione)) return null
+  if (!valutazione || typeof valutazione !== 'object') return null
+  const v = valutazione as Record<string, unknown>
+  if (!Array.isArray(v.risultati)) return null
+  const risultati = v.risultati as RisultatoItem[]
+  const corretti = risultati.filter(r => r.corretto).length
+  return (
+    <div className="space-y-2">
+      <p className="text-xs font-semibold uppercase tracking-wide text-ink-tertiary">
+        Risultati — {corretti}/{risultati.length} corretti
+      </p>
+      {risultati.map((r, i) => (
+        <div
+          key={i}
+          className={cn(
+            'rounded-lg p-3 text-sm border',
+            r.corretto
+              ? 'bg-success-bg border-success-text/20 text-success-text'
+              : 'bg-danger-bg border-danger-text/20 text-danger-text'
+          )}
+        >
+          {r.risposta_studente && (
+            <p><span className="font-medium">Risposta:</span> {r.risposta_studente}</p>
+          )}
+          {!r.corretto && r.risposta_corretta && (
+            <p className="mt-0.5"><span className="font-medium">Corretta:</span> {r.risposta_corretta}</p>
+          )}
+          {r.feedback && <p className="mt-0.5 text-xs opacity-80">{r.feedback}</p>}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export function StudentSubmissionEntry({
   id, tipo, tipoLabel, dataLabel, punteggio, testo, valutazione, consegna
 }: Props) {
@@ -145,38 +187,7 @@ export function StudentSubmissionEntry({
             </div>
           ) : null}
 
-          {valutazione && !isEsaminatoreValutazione(valutazione) && (() => {
-            const v = valutazione as Record<string, unknown>
-            if (!Array.isArray(v.risultati)) return null
-            const risultati = v.risultati as { corretto: boolean; risposta_studente?: string; risposta_corretta?: string; feedback?: string }[]
-            const corretti = risultati.filter(r => r.corretto).length
-            return (
-              <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wide text-ink-tertiary">
-                  Risultati — {corretti}/{risultati.length} corretti
-                </p>
-                {risultati.map((r, i) => (
-                  <div
-                    key={i}
-                    className={cn(
-                      'rounded-lg p-3 text-sm border',
-                      r.corretto
-                        ? 'bg-success-bg border-success-text/20 text-success-text'
-                        : 'bg-danger-bg border-danger-text/20 text-danger-text'
-                    )}
-                  >
-                    {r.risposta_studente && (
-                      <p><span className="font-medium">Risposta:</span> {r.risposta_studente}</p>
-                    )}
-                    {!r.corretto && r.risposta_corretta && (
-                      <p className="mt-0.5"><span className="font-medium">Corretta:</span> {r.risposta_corretta}</p>
-                    )}
-                    {r.feedback && <p className="mt-0.5 text-xs opacity-80">{r.feedback}</p>}
-                  </div>
-                ))}
-              </div>
-            )
-          })()}
+          <EsercizioRisultati valutazione={valutazione} />
         </div>
       )}
     </div>

@@ -10,6 +10,7 @@ import {
   type SubmissionRow,
   type CategoriaErrore
 } from '@/lib/analytics/studentStats'
+import { valutazioneEsaminatoreSchema } from '@/lib/gemini/schema'
 import {
   getPersonalizedExercisesForStudent,
   getLastSignInForStudent,
@@ -67,7 +68,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
   }
 
   // Stessa logica: submissions_select_by_active_teacher filtra già per noi.
-  const { data: submissions, error } = await supabase
+  const { data: allSubmissions, error } = await supabase
     .from('submissions')
     .select(
       'id, tipo, created_at, consegna, testo_studente, valutazione_ia, testo_incollato, secondi_scrittura'
@@ -79,7 +80,11 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
     console.error('Errore caricando le submissions dello studente:', error)
   }
 
-  const stats = computeStudentStats((submissions as SubmissionRow[]) ?? [])
+  // Stats calcolate su TUTTE le submission per preservare la storia
+  // pedagogica completa. La UI mostra le ultime 5 — stessa finestra
+  // che vede lo studente.
+  const stats = computeStudentStats((allSubmissions as SubmissionRow[]) ?? [])
+  const submissions = (allSubmissions ?? []).slice(0, 5)
 
   // Side-effect deliberato: visitare questa pagina marca come "lette" le
   // consegne in attesa — stesso pattern di qualsiasi notifica in-app.
@@ -389,6 +394,9 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                       }>)
                     : undefined
 
+                  const valutazioneParsed = valutazioneEsaminatoreSchema.safeParse(s.valutazione_ia)
+                  const valutazioneCompleta = valutazioneParsed.success ? valutazioneParsed.data : null
+
                   return (
                     <SubmissionHistoryEntry
                       key={s.id}
@@ -408,6 +416,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                       testoIncollato={s.testo_incollato}
                       secondiScrittura={s.secondi_scrittura}
                       errori={errori}
+                      valutazioneCompleta={valutazioneCompleta}
                     />
                   )
                 })}

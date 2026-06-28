@@ -132,36 +132,92 @@ export function ValutazioneCard({
       </div>
 
       {valutazione.errori.length > 0 && (
-        <details className="mt-4">
+        <details className="mt-4" open>
           <summary className="cursor-pointer text-sm font-semibold text-ink-primary">
-            Vedi la spiegazione completa di ogni errore ({valutazione.errori.length})
+            Correzioni dettagliate ({valutazione.errori.length})
           </summary>
-          <div className="mt-2 space-y-2">
-            {valutazione.errori.map((err, i) => {
-              const volte = conteggiPassati[err.categoria] ?? 0
-              return (
-                <div key={i} className="rounded-md bg-surface-secondary p-3 text-sm">
-                  <div className="flex items-start justify-between gap-2">
-                    <p>
-                      <span className="text-danger-text line-through">
-                        {err.testo_originale}
+          <div className="mt-3 space-y-4">
+            {Object.entries(
+              valutazione.errori.reduce<Record<string, typeof valutazione.errori>>((acc, err) => {
+                ;(acc[err.categoria] ??= []).push(err)
+                return acc
+              }, {})
+            )
+              .sort((a, b) => b[1].length - a[1].length)
+              .map(([categoria, erroriGruppo]) => {
+                const volteCategoria = conteggiPassati[categoria] ?? 0
+                return (
+                  <div key={categoria}>
+                    <div className="mb-2 flex items-center gap-2">
+                      <span className="text-xs font-bold uppercase tracking-wide text-warning-text">
+                        {CATEGORIA_LABEL[categoria] ?? categoria}
                       </span>
-                      {' → '}
-                      <span className="text-success-text">{err.correzione}</span>
-                    </p>
-                    {volte >= 2 && (
-                      <span className="shrink-0 rounded-full bg-warning-bg px-2 py-0.5 text-xs text-warning-text">
-                        Ricorrente: {CATEGORIA_LABEL[err.categoria] ?? err.categoria} ×{volte}
+                      <span className="rounded-full bg-warning-bg px-2 py-0.5 text-[10px] font-semibold text-warning-text">
+                        {erroriGruppo.length} {erroriGruppo.length === 1 ? 'errore' : 'errori'}
                       </span>
-                    )}
+                      {volteCategoria >= 2 && (
+                        <span className="rounded-full bg-danger-bg px-2 py-0.5 text-[10px] font-semibold text-danger-text">
+                          Ricorrente ×{volteCategoria}
+                        </span>
+                      )}
+                    </div>
+                    <div className="space-y-2 pl-1">
+                      {erroriGruppo.map((err, i) => (
+                        <div key={i} className="rounded-xl border border-border bg-surface-secondary p-3 text-sm">
+                          <p className="mb-1">
+                            <span className="font-medium text-danger-text line-through">
+                              {err.testo_originale}
+                            </span>
+                            <span className="mx-2 text-ink-tertiary">→</span>
+                            <span className="font-medium text-success-text">{err.correzione}</span>
+                          </p>
+                          <p className="text-xs leading-relaxed text-ink-secondary">{err.spiegazione}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <p className="mt-1 text-xs text-ink-tertiary">{err.spiegazione}</p>
-                </div>
-              )
-            })}
+                )
+              })}
           </div>
         </details>
       )}
+
+      {/* Conclusione: cosa fare adesso */}
+      {(() => {
+        const conteggioPerCategoria: Record<string, number> = {}
+        for (const err of valutazione.errori) {
+          conteggioPerCategoria[err.categoria] = (conteggioPerCategoria[err.categoria] ?? 0) + 1
+        }
+        const categoriaDebole = Object.entries(conteggioPerCategoria).sort((a, b) => b[1] - a[1])[0]?.[0]
+        const labelDebole = categoriaDebole ? CATEGORIA_LABEL[categoriaDebole] ?? categoriaDebole : null
+
+        return (
+          <div className="mt-5 rounded-xl border border-brand-200/60 bg-gradient-to-br from-brand-50 to-violet-50 p-4 dark:border-brand-800/40 dark:from-brand-950/30 dark:to-violet-950/30">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-400">
+              Cosa fare adesso
+            </p>
+            {labelDebole ? (
+              <p className="text-sm text-ink-primary">
+                Il tuo punto debole in questo testo:{' '}
+                <span className="font-semibold text-warning-text">{labelDebole}</span>.{' '}
+                Il tuo professore può crearti un esercizio mirato — controlla{' '}
+                <a href="/student/personalized" className="font-semibold text-brand-600 underline underline-offset-2 hover:text-brand-800 dark:text-brand-400">
+                  &quot;Per te&quot;
+                </a>{' '}
+                per vedere se ne hai già uno pronto.
+              </p>
+            ) : (
+              <p className="text-sm text-ink-primary">
+                Nessun errore rilevato — ottimo lavoro! Controlla{' '}
+                <a href="/student/personalized" className="font-semibold text-brand-600 underline underline-offset-2 hover:text-brand-800 dark:text-brand-400">
+                  &quot;Per te&quot;
+                </a>{' '}
+                per nuovi esercizi dal tuo professore.
+              </p>
+            )}
+          </div>
+        )
+      })()}
     </Card>
   )
 }

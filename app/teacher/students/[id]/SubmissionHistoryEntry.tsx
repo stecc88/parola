@@ -2,9 +2,10 @@
 
 import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/Button'
+import { AnnotatedText } from '@/components/shared/AnnotatedText'
 import { deleteSubmission, generatePersonalizedExercise } from './actions'
 import type { ErroreSubmission } from '@/lib/gemini/prompts/generatore'
-import type { TipoEsercizioPersonalizzato } from '@/lib/gemini/schema'
+import type { TipoEsercizioPersonalizzato, ValutazioneEsaminatore } from '@/lib/gemini/schema'
 
 const TIPO_GRAMMATICA_OPTIONS: { value: TipoEsercizioPersonalizzato; label: string }[] = [
   { value: 'completamento', label: 'Completamento (riempi lo spazio)' },
@@ -31,6 +32,7 @@ interface Props {
   testoIncollato?: boolean
   secondiScrittura?: number | null
   errori?: Errore[]
+  valutazioneCompleta?: ValutazioneEsaminatore | null
 }
 
 export function SubmissionHistoryEntry({
@@ -43,7 +45,8 @@ export function SubmissionHistoryEntry({
   rispettaConsegna,
   testoIncollato,
   secondiScrittura,
-  errori
+  errori,
+  valutazioneCompleta
 }: Props) {
   const [espanso, setEspanso] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
@@ -118,12 +121,25 @@ export function SubmissionHistoryEntry({
 
       {espanso && (
         <div className="mt-3 space-y-3">
-          <div className="rounded-md bg-surface p-3">
-            <p className="whitespace-pre-line text-sm text-ink-primary">{testo}</p>
+          {/* Testo con annotazioni inline */}
+          <div className="rounded-xl border border-border bg-surface p-4">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-tertiary">
+              Testo dello studente
+            </p>
+            {valutazioneCompleta && valutazioneCompleta.errori.length > 0 ? (
+              <>
+                <AnnotatedText testo={testo} errori={valutazioneCompleta.errori} />
+                <p className="mt-2 text-xs text-ink-tertiary">
+                  Passa il mouse sulle parole sottolineate per vedere la correzione.
+                </p>
+              </>
+            ) : (
+              <p className="whitespace-pre-line text-sm text-ink-primary">{testo}</p>
+            )}
             {(testoIncollato || secondiScrittura !== null) && (
               <p
-                className="mt-2 text-xs text-ink-tertiary"
-                title="Informazione neutra sul modo in cui è stato prodotto il testo — non è un'indicazione di plagio o di uso di IA, solo un dato in più da considerare se ritieni utile farlo."
+                className="mt-3 text-xs text-ink-tertiary"
+                title="Informazione neutra sul modo in cui è stato prodotto il testo."
               >
                 ℹ️{' '}
                 {testoIncollato && 'Contiene testo incollato'}
@@ -139,32 +155,88 @@ export function SubmissionHistoryEntry({
             )}
           </div>
 
-          {errori && errori.length > 0 && (
-            <div className="rounded-md bg-surface p-3">
-              <p className="mb-2 text-xs font-semibold text-ink-secondary">
-                Errori rilevati ({errori.length})
+          {/* Valutazione completa */}
+          {valutazioneCompleta && (
+            <div className="rounded-xl border border-border bg-surface p-4 space-y-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-ink-tertiary">
+                Valutazione IA
               </p>
-              <ul className="space-y-1">
-                {errori.map((e, i) => (
-                  <li key={i} className="text-xs text-ink-secondary">
-                    <span className="text-danger-text line-through">{e.testo_originale}</span>
-                    {' → '}
-                    <span className="text-success-text">{e.correzione}</span>
-                    <span className="ml-1 text-ink-tertiary">({e.categoria})</span>
-                  </li>
-                ))}
-              </ul>
 
-              <div className="mt-3 border-t border-border pt-3">
+              <p className="text-sm text-ink-primary">{valutazioneCompleta.feedback_generale}</p>
+
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <p className="mb-1 text-xs font-semibold text-success-text">Punti di forza</p>
+                  <ul className="space-y-0.5 text-xs text-ink-secondary">
+                    {valutazioneCompleta.punti_forza.map((p, i) => (
+                      <li key={i}>• {p}</li>
+                    ))}
+                  </ul>
+                </div>
+                <div>
+                  <p className="mb-1 text-xs font-semibold text-warning-text">Aree da lavorare</p>
+                  <ul className="space-y-0.5 text-xs text-ink-secondary">
+                    {valutazioneCompleta.aree_di_miglioramento.map((p, i) => (
+                      <li key={i}>• {p}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {valutazioneCompleta.errori.length > 0 && (
+                <div>
+                  <p className="mb-2 text-xs font-semibold text-ink-secondary">
+                    Errori rilevati ({valutazioneCompleta.errori.length})
+                  </p>
+                  <ul className="space-y-1">
+                    {valutazioneCompleta.errori.map((e, i) => (
+                      <li key={i} className="text-xs text-ink-secondary">
+                        <span className="text-danger-text line-through">{e.testo_originale}</span>
+                        {' → '}
+                        <span className="text-success-text">{e.correzione}</span>
+                        <span className="ml-1 text-ink-tertiary">({e.categoria})</span>
+                        {e.spiegazione && (
+                          <span className="ml-1 text-ink-tertiary">— {e.spiegazione}</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
+
+          {errori && errori.length > 0 && (
+            <div className="rounded-xl border border-brand-200/60 bg-gradient-to-br from-brand-50 to-violet-50 p-4 dark:border-brand-800/40 dark:from-brand-950/30 dark:to-violet-950/30">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-400">
+                Genera esercizio personalizzato
+              </p>
+              {(() => {
+                const conteggio: Record<string, number> = {}
+                for (const e of errori) conteggio[e.categoria] = (conteggio[e.categoria] ?? 0) + 1
+                const dominante = Object.entries(conteggio).sort((a, b) => b[1] - a[1])[0]
+                if (!dominante) return null
+                const labelMap: Record<string, string> = {
+                  grammatica: 'Grammatica', lessico: 'Lessico', sintassi: 'Sintassi',
+                  coerenza: 'Coerenza', ortografia: 'Ortografia'
+                }
+                return (
+                  <p className="mb-3 text-xs text-ink-secondary">
+                    Categoria con più errori:{' '}
+                    <span className="font-semibold text-warning-text">
+                      {labelMap[dominante[0]] ?? dominante[0]} ({dominante[1]} {dominante[1] === 1 ? 'errore' : 'errori'})
+                    </span>
+                    {' '}— l&apos;esercizio generato si concentrerà su questo punto debole.
+                  </p>
+                )
+              })()}
+              <div>
                 {generateSuccess ? (
                   <p className="text-xs text-success-text">
                     ✓ Esercizio generato — lo trovi in cima e nello spazio dello studente.
                   </p>
                 ) : (
                   <>
-                    <p className="mb-2 text-xs font-semibold text-ink-primary">
-                      Genera un esercizio di grammatica da questi errori
-                    </p>
                     <div className="mb-3 flex flex-wrap items-center gap-2">
                       {TIPO_GRAMMATICA_OPTIONS.map((opt) => (
                         <button
@@ -203,6 +275,7 @@ export function SubmissionHistoryEntry({
               </div>
             </div>
           )}
+
         </div>
       )}
 
