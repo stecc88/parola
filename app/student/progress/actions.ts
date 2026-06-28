@@ -10,20 +10,17 @@ import { requireApprovedStudentActionUserId } from '@/lib/student/guard'
  * no borra nada y retornamos error.
  */
 export async function deleteOwnSubmission(submissionId: string) {
-  await requireApprovedStudentActionUserId()
+  const studentId = await requireApprovedStudentActionUserId()
   const supabase = createClient()
 
-  const { error, count } = await supabase
+  const { error } = await supabase
     .from('submissions')
-    .delete({ count: 'exact' })
+    .delete()
     .eq('id', submissionId)
+    .eq('student_id', studentId)
 
   if (error) {
-    throw new Error('Errore durante l\'eliminazione. Riprova.')
-  }
-
-  if (count === 0) {
-    throw new Error('Scritto non trovato o non eliminabile.')
+    throw new Error("Errore durante l'eliminazione. Riprova.")
   }
 
   revalidatePath('/student/progress')
