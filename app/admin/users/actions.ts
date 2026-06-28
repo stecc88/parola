@@ -393,35 +393,15 @@ export async function reassignStudentTeacher(studentId: string, newTeacherId: st
   await requireAdminUserId()
   const admin = createAdminClient()
 
-  const { error: endError } = await admin
-    .from('class_memberships')
-    .update({ left_at: new Date().toISOString() })
-    .eq('student_id', studentId)
-    .is('left_at', null)
+  // Usa una RPC transazionale per garantire atomicità: se il passaggio
+  // "chiudi vecchia membership → apri nuova" fallisce a metà, lo studente
+  // non resta orfano senza insegnante né senza accesso.
+  const { error } = await admin.rpc('admin_reassign_student', {
+    p_student_id: studentId,
+    p_new_teacher_id: newTeacherId
+  })
 
-  if (endError) throw new Error('Errore concludendo l\'iscrizione attuale.')
-
-  if (newTeacherId) {
-    const { error: insertError } = await admin.from('class_memberships').insert({
-      student_id: studentId,
-      teacher_id: newTeacherId,
-      class_id: null
-    })
-    if (insertError) throw new Error('Errore assegnando il nuovo insegnante.')
-
-    const { data: profile } = await admin
-      .from('profiles')
-      .select('student_status')
-      .eq('id', studentId)
-      .single()
-
-    if (profile?.student_status === 'pending' || profile?.student_status === 'rejected') {
-      await admin
-        .from('profiles')
-        .update({ student_status: 'approved', approved_at: new Date().toISOString() })
-        .eq('id', studentId)
-    }
-  }
+  if (error) throw new Error(`Errore riassegnando lo studente: ${error.message}`)
 
   revalidatePath('/admin/users')
 }

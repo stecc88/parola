@@ -1,7 +1,12 @@
 'use server'
 
+import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { requireApprovedStudentActionUserId } from '@/lib/student/guard'
+
+const valutazioneErroriSchema = z.object({
+  errori: z.array(z.object({ categoria: z.string() })).optional()
+})
 
 /**
  * Crea la submission con el texto del estudiante (valutazione_ia=NULL).
@@ -91,8 +96,12 @@ export async function getMyPastErrorCategoryCounts(
 
   const conteggi: Record<string, number> = {}
   for (const s of submissions ?? []) {
-    const v = s.valutazione_ia as { errori?: { categoria: string }[] } | null
-    for (const errore of v?.errori ?? []) {
+    const parsed = valutazioneErroriSchema.safeParse(s.valutazione_ia)
+    if (!parsed.success) {
+      console.error('valutazione_ia con struttura inattesa, ignorata:', parsed.error.message)
+      continue
+    }
+    for (const errore of parsed.data.errori ?? []) {
       conteggi[errore.categoria] = (conteggi[errore.categoria] ?? 0) + 1
     }
   }

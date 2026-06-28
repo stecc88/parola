@@ -70,12 +70,27 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'No autenticado.' }, { status: 401 })
   }
 
-  const body = await request.json().catch(() => null)
-  const submissionId = body?.submissionId
-  const consegna = typeof body?.consegna === 'string' ? body.consegna : undefined
-  if (!submissionId || typeof submissionId !== 'string') {
-    return NextResponse.json({ error: 'submissionId es requerido.' }, { status: 400 })
+  let rawBody: unknown
+  try {
+    rawBody = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Formato JSON non valido.' }, { status: 400 })
   }
+
+  if (!rawBody || typeof rawBody !== 'object') {
+    return NextResponse.json({ error: 'Body non valido.' }, { status: 400 })
+  }
+
+  const { submissionId, consegna: rawConsegna } = rawBody as Record<string, unknown>
+
+  const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  if (typeof submissionId !== 'string' || !UUID_RE.test(submissionId)) {
+    return NextResponse.json({ error: 'submissionId deve essere un UUID valido.' }, { status: 400 })
+  }
+
+  const consegna = typeof rawConsegna === 'string' && rawConsegna.trim().length > 0
+    ? rawConsegna.slice(0, 2000)
+    : undefined
 
   const { data: submission, error: fetchError } = await supabase
     .from('submissions')
@@ -159,8 +174,7 @@ export async function POST(request: NextRequest) {
           if (obiettivo) {
             const obiettivoIdx = LIVELLO_ORDER.indexOf(obiettivo)
             if (livelloIdx >= obiettivoIdx) {
-              // Inserisce il traguardo; ignora se già esiste per questo livello.
-              await admin.from('level_achievements').upsert(
+              const { error: upsertError } = await admin.from('level_achievements').upsert(
                 {
                   student_id: userData.user.id,
                   teacher_id: membership.teacher_id,
@@ -170,6 +184,9 @@ export async function POST(request: NextRequest) {
                 },
                 { onConflict: 'student_id,teacher_id,livello', ignoreDuplicates: true }
               )
+              if (upsertError) {
+                console.error('Errore salvando traguardo livello (non bloccante):', upsertError)
+              }
             }
           }
         }

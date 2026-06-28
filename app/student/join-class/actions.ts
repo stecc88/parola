@@ -20,6 +20,14 @@ export async function joinClassWithCode(inviteCode: string) {
     throw new Error('Codice insegnante non valido.')
   }
 
+  if (teacher.teacher_status !== 'approved') {
+    throw new Error(
+      teacher.teacher_status === 'disabled'
+        ? "L'insegnante associato a questo codice è disabilitato. Contatta l'amministratore della piattaforma."
+        : "L'insegnante non è ancora stato approvato. Riprova più tardi o contatta l'amministratore."
+    )
+  }
+
   await supabase
     .from('class_memberships')
     .update({ left_at: new Date().toISOString() })
