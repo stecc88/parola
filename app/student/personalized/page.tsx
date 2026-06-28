@@ -48,24 +48,59 @@ export default async function PersonalizedExercisesPage() {
     <>
       <AppNav items={NAV_ITEMS} />
       <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
-        <h1 className="mb-2 text-xl font-semibold text-ink-primary">Esercizi per te</h1>
-        <p className="mb-6 text-sm text-ink-secondary">
-          Esercizi creati dal tuo insegnante apposta per aiutarti sui punti su cui stai
-          lavorando.
-        </p>
+        {/* Hero */}
+        <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 via-brand-600 to-coral-600 p-6 text-white shadow-glow-brand">
+          <div aria-hidden className="pointer-events-none absolute -right-8 -top-8 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
+          <div aria-hidden className="pointer-events-none absolute -left-6 bottom-0 h-32 w-32 rounded-full bg-sunshine-400/20 blur-2xl" />
+          <div className="relative flex items-center gap-4">
+            <ParolaMascot mood="felice" className="h-14 w-14 animate-float-slow drop-shadow-lg" />
+            <div>
+              <h1 className="text-xl font-bold tracking-tight">Esercizi per te</h1>
+              <p className="mt-0.5 text-sm text-white/80">
+                Creati dal tuo insegnante in base agli errori nei tuoi testi — mirati esattamente su ciò che devi migliorare.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Come funziona */}
+        <Card className="mb-6 bg-surface-secondary">
+          <p className="text-xs font-semibold uppercase tracking-wide text-ink-tertiary mb-3">Come funziona</p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-6">
+            <div className="flex items-start gap-2 text-sm text-ink-secondary">
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-100 text-[10px] font-bold text-brand-600">1</span>
+              <span>Scrivi un testo libero o un esercizio</span>
+            </div>
+            <div className="flex items-start gap-2 text-sm text-ink-secondary">
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-100 text-[10px] font-bold text-brand-600">2</span>
+              <span>Il tuo insegnante vede le correzioni dell&apos;IA e genera un esercizio mirato</span>
+            </div>
+            <div className="flex items-start gap-2 text-sm text-ink-secondary">
+              <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-100 text-[10px] font-bold text-brand-600">3</span>
+              <span>L&apos;esercizio compare qui — svolgilo e il professore vede i tuoi progressi</span>
+            </div>
+          </div>
+        </Card>
 
         {esercizi.length === 0 ? (
-          <Card className="border-dashed text-center text-sm text-ink-tertiary">
-            <ParolaMascot mood="pensieroso" className="mx-auto mb-2" />
+          <Card className="border-dashed py-10 text-center">
+            <ParolaMascot mood="pensieroso" className="mx-auto mb-3 animate-float-slow" />
             {haInsegnante ? (
-              'Il tuo insegnante non ha ancora creato esercizi personalizzati per te.'
+              <>
+                <p className="font-medium text-ink-secondary">Nessun esercizio ancora.</p>
+                <p className="mt-1 text-xs text-ink-tertiary">
+                  Scrivi un testo in <Link href="/student/write" className="text-brand-400 underline">Scrittura libera</Link> e il tuo insegnante potrà crearti un esercizio personalizzato.
+                </p>
+              </>
             ) : (
               <>
-                Gli esercizi personalizzati richiedono un insegnante che li generi su misura
-                per te.{' '}
-                <Link href="/student/join-class" className="text-brand-400 underline">
-                  Hai un codice insegnante? Inseriscilo qui.
-                </Link>
+                <p className="font-medium text-ink-secondary">Nessun insegnante collegato.</p>
+                <p className="mt-1 text-xs text-ink-tertiary">
+                  Gli esercizi personalizzati vengono creati dal tuo insegnante.{' '}
+                  <Link href="/student/join-class" className="text-brand-400 underline">
+                    Hai un codice classe? Inseriscilo qui.
+                  </Link>
+                </p>
               </>
             )}
           </Card>

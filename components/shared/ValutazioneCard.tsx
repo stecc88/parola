@@ -132,33 +132,52 @@ export function ValutazioneCard({
       </div>
 
       {valutazione.errori.length > 0 && (
-        <details className="mt-4">
+        <details className="mt-4" open>
           <summary className="cursor-pointer text-sm font-semibold text-ink-primary">
-            Vedi la spiegazione completa di ogni errore ({valutazione.errori.length})
+            Correzioni dettagliate ({valutazione.errori.length})
           </summary>
-          <div className="mt-2 space-y-2">
-            {valutazione.errori.map((err, i) => {
-              const volte = conteggiPassati[err.categoria] ?? 0
-              return (
-                <div key={i} className="rounded-md bg-surface-secondary p-3 text-sm">
-                  <div className="flex items-start justify-between gap-2">
-                    <p>
-                      <span className="text-danger-text line-through">
-                        {err.testo_originale}
+          <div className="mt-3 space-y-4">
+            {Object.entries(
+              valutazione.errori.reduce<Record<string, typeof valutazione.errori>>((acc, err) => {
+                ;(acc[err.categoria] ??= []).push(err)
+                return acc
+              }, {})
+            )
+              .sort((a, b) => b[1].length - a[1].length)
+              .map(([categoria, erroriGruppo]) => {
+                const volteCategoria = conteggiPassati[categoria] ?? 0
+                return (
+                  <div key={categoria}>
+                    <div className="mb-2 flex items-center gap-2">
+                      <span className="text-xs font-bold uppercase tracking-wide text-warning-text">
+                        {CATEGORIA_LABEL[categoria] ?? categoria}
                       </span>
-                      {' → '}
-                      <span className="text-success-text">{err.correzione}</span>
-                    </p>
-                    {volte >= 2 && (
-                      <span className="shrink-0 rounded-full bg-warning-bg px-2 py-0.5 text-xs text-warning-text">
-                        Ricorrente: {CATEGORIA_LABEL[err.categoria] ?? err.categoria} ×{volte}
+                      <span className="rounded-full bg-warning-bg px-2 py-0.5 text-[10px] font-semibold text-warning-text">
+                        {erroriGruppo.length} {erroriGruppo.length === 1 ? 'errore' : 'errori'}
                       </span>
-                    )}
+                      {volteCategoria >= 2 && (
+                        <span className="rounded-full bg-danger-bg px-2 py-0.5 text-[10px] font-semibold text-danger-text">
+                          Ricorrente ×{volteCategoria}
+                        </span>
+                      )}
+                    </div>
+                    <div className="space-y-2 pl-1">
+                      {erroriGruppo.map((err, i) => (
+                        <div key={i} className="rounded-xl border border-border bg-surface-secondary p-3 text-sm">
+                          <p className="mb-1">
+                            <span className="font-medium text-danger-text line-through">
+                              {err.testo_originale}
+                            </span>
+                            <span className="mx-2 text-ink-tertiary">→</span>
+                            <span className="font-medium text-success-text">{err.correzione}</span>
+                          </p>
+                          <p className="text-xs leading-relaxed text-ink-secondary">{err.spiegazione}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <p className="mt-1 text-xs text-ink-tertiary">{err.spiegazione}</p>
-                </div>
-              )
-            })}
+                )
+              })}
           </div>
         </details>
       )}

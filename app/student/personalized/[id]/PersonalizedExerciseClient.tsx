@@ -183,9 +183,13 @@ function ScritturaEsercizio({
       )}
 
       {giaConsegnato && !valutazione && stato !== 'errore' && (
-        <Card className="mt-6 text-center text-sm text-ink-tertiary">
-          Risposta consegnata, in attesa di valutazione. Riprova a ricaricare la pagina tra
-          qualche istante.
+        <Card className="mt-6 text-center">
+          <ParolaMascot mood="pensieroso" className="mx-auto mb-2 animate-float-slow" />
+          <p className="text-sm font-medium text-ink-secondary">Risposta consegnata — valutazione in corso.</p>
+          <p className="mt-1 text-xs text-ink-tertiary">Ricarica la pagina tra qualche istante per vedere la valutazione.</p>
+          <div className="mt-3 rounded-xl bg-success-bg p-3 text-xs text-success-text">
+            ✓ Il tuo insegnante ha già ricevuto la notifica della tua consegna.
+          </div>
         </Card>
       )}
     </>
@@ -313,10 +317,39 @@ function ChiusoEsercizio({ esercizio }: { esercizio: PersonalizedExerciseDetail 
       </Card>
 
       {punteggio !== null && (
-        <Card className="mt-6 text-center">
-          <p className="text-sm text-ink-secondary">Hai risposto correttamente a</p>
-          <p className="text-3xl font-semibold text-ink-primary">{punteggio}%</p>
-          <p className="text-sm text-ink-secondary">delle domande</p>
+        <Card className="mt-6" glow>
+          <div className="mb-4 flex items-center gap-3">
+            <ParolaMascot mood={punteggio >= 70 ? 'felice' : 'incoraggiante'} className="h-12 w-12 animate-float-slow" />
+            <div>
+              <p className="text-lg font-bold text-ink-primary">
+                {punteggio >= 80 ? 'Ottimo lavoro!' : punteggio >= 60 ? 'Buon lavoro!' : 'Continua così!'}
+              </p>
+              <p className="text-sm text-ink-tertiary">
+                Hai risposto correttamente al{' '}
+                <span className="font-semibold text-brand-600">{punteggio}%</span>{' '}
+                delle domande
+              </p>
+            </div>
+          </div>
+
+          <div className="rounded-xl bg-success-bg p-3 text-sm text-success-text">
+            ✓ Il tuo insegnante ha ricevuto i tuoi risultati e potrà seguire i tuoi progressi.
+          </div>
+
+          <div className="mt-3 flex flex-wrap gap-2">
+            <a
+              href="/student/progress"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:brightness-110"
+            >
+              Vedi i miei progressi
+            </a>
+            <a
+              href="/student/personalized"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-semibold text-ink-secondary transition-all hover:bg-surface-secondary"
+            >
+              Altri esercizi
+            </a>
+          </div>
         </Card>
       )}
     </>

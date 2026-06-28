@@ -208,9 +208,28 @@ export function SubmissionHistoryEntry({
 
           {errori && errori.length > 0 && (
             <div className="rounded-xl border border-brand-200/60 bg-gradient-to-br from-brand-50 to-violet-50 p-4 dark:border-brand-800/40 dark:from-brand-950/30 dark:to-violet-950/30">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-400">
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-brand-600 dark:text-brand-400">
                 Genera esercizio personalizzato
               </p>
+              {(() => {
+                const conteggio: Record<string, number> = {}
+                for (const e of errori) conteggio[e.categoria] = (conteggio[e.categoria] ?? 0) + 1
+                const dominante = Object.entries(conteggio).sort((a, b) => b[1] - a[1])[0]
+                if (!dominante) return null
+                const labelMap: Record<string, string> = {
+                  grammatica: 'Grammatica', lessico: 'Lessico', sintassi: 'Sintassi',
+                  coerenza: 'Coerenza', ortografia: 'Ortografia'
+                }
+                return (
+                  <p className="mb-3 text-xs text-ink-secondary">
+                    Categoria con più errori:{' '}
+                    <span className="font-semibold text-warning-text">
+                      {labelMap[dominante[0]] ?? dominante[0]} ({dominante[1]} {dominante[1] === 1 ? 'errore' : 'errori'})
+                    </span>
+                    {' '}— l&apos;esercizio generato si concentrerà su questo punto debole.
+                  </p>
+                )
+              })()}
               <div>
                 {generateSuccess ? (
                   <p className="text-xs text-success-text">
