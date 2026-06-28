@@ -346,23 +346,48 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                   )
                 }
                 return (
-                  <div className="space-y-2">
-                    {Object.entries(stats.erroriPerCategoria).map(([categoria, conteggio]) => (
-                      <div key={categoria} className="flex items-center gap-3">
-                        <span className="w-24 shrink-0 text-xs text-ink-secondary">
-                          {CATEGORIA_LABEL[categoria as CategoriaErrore]}
-                        </span>
-                        <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface-tertiary">
-                          <div
-                            className="h-full rounded-full bg-brand-400"
-                            style={{ width: `${(conteggio / max) * 100}%` }}
-                          />
-                        </div>
-                        <span className="w-6 shrink-0 text-right text-xs text-ink-tertiary">
-                          {conteggio}
-                        </span>
-                      </div>
-                    ))}
+                  <div className="space-y-4">
+                    {Object.entries(stats.erroriPerCategoria)
+                      .filter(([, conteggio]) => conteggio > 0)
+                      .sort(([, a], [, b]) => b - a)
+                      .map(([categoria, conteggio]) => {
+                        const dettagli = stats.erroriDettagliatiPerCategoria[categoria as CategoriaErrore] ?? []
+                        return (
+                          <div key={categoria}>
+                            <div className="flex items-center gap-3">
+                              <span className="w-24 shrink-0 text-xs font-medium text-ink-secondary">
+                                {CATEGORIA_LABEL[categoria as CategoriaErrore]}
+                              </span>
+                              <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface-tertiary">
+                                <div
+                                  className="h-full rounded-full bg-brand-400 transition-all duration-700"
+                                  style={{ width: `${(conteggio / max) * 100}%` }}
+                                />
+                              </div>
+                              <span className="w-6 shrink-0 text-right text-xs text-ink-tertiary">
+                                {conteggio}
+                              </span>
+                            </div>
+                            {dettagli.length > 0 && (
+                              <div className="ml-[6.5rem] mt-1.5 space-y-1">
+                                {dettagli.map((d, i) => (
+                                  <div key={i} className="flex items-start gap-1.5">
+                                    <span className="mt-0.5 shrink-0 text-[10px] text-brand-400">▸</span>
+                                    <span className="text-xs text-ink-secondary">
+                                      {d.testo}
+                                      {d.conteggio > 1 && (
+                                        <span className="ml-1 rounded-full bg-brand-100 px-1.5 py-0.5 text-[10px] text-brand-600">
+                                          ×{d.conteggio}
+                                        </span>
+                                      )}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
                   </div>
                 )
               })()}

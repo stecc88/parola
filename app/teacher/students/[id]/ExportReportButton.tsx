@@ -82,16 +82,34 @@ export function ExportReportButton({ nomeCompleto, livelloTarget, stats, ultimoA
       y += 4
     }
 
-    riga('Errori per categoria', { size: 13, bold: true, gap: 3 })
+    riga('Punti deboli e temi da rinforzare', { size: 13, bold: true, gap: 3 })
     const categorie = Object.entries(stats.erroriPerCategoria)
+      .filter(([, n]) => n > 0)
+      .sort(([, a], [, b]) => b - a)
     const totaleErrori = categorie.reduce((acc, [, n]) => acc + n, 0)
     if (totaleErrori === 0) {
-      riga('Nessun errore registrato nelle attività valutate finora.', { gap: 8 })
+      riga('Nessun errore registrato nelle attività valutate finora — ottimo!', { gap: 8 })
     } else {
       for (const [categoria, conteggio] of categorie) {
-        if (conteggio > 0) riga(`• ${categoria}: ${conteggio}`)
+        riga(`${categoria.charAt(0).toUpperCase() + categoria.slice(1)}: ${conteggio} errori`, { bold: true, gap: 2 })
+        const dettagli = stats.erroriDettagliatiPerCategoria[categoria as keyof typeof stats.erroriDettagliatiPerCategoria] ?? []
+        if (dettagli.length > 0) {
+          for (const d of dettagli) {
+            riga(`  › ${d.testo}${d.conteggio > 1 ? ` (×${d.conteggio})` : ''}`, { gap: 2 })
+          }
+        }
+        y += 3
       }
-      y += 4
+
+      // Raccomandazione sintetica sul punto più debole
+      const peggiore = categorie[0]
+      if (peggiore) {
+        y += 2
+        riga(
+          `Priorità consigliata: l'area con più errori è "${peggiore[0]}" (${peggiore[1]} errori). Si consiglia di proporre esercizi mirati su questo tema prima di procedere con argomenti nuovi.`,
+          { size: 10, gap: 8 }
+        )
+      }
     }
 
     riga(
