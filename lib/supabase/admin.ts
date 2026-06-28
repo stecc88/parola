@@ -1,19 +1,18 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 
 /**
- * Cliente con Service Role Key — bypassea RLS por completo.
+ * Client con Service Role Key — bypassa RLS completamente.
  *
- * REGLA CRÍTICA: nunca importar este módulo desde código que pueda
- * terminar en un bundle de cliente (componentes 'use client', hooks,
- * etc.). Solo usar dentro de:
+ * REGOLA CRITICA: non importare mai questo modulo da codice che può
+ * finire in un bundle client (componenti 'use client', hooks, ecc.).
+ * Usare solo dentro:
  *   - Route Handlers (app/api/.../route.ts)
  *   - Server Actions ('use server')
- *   - Server Components que NO pasan el resultado crudo al cliente
+ *   - Server Components che NON passano il risultato grezzo al client
  *
- * No exportar una instancia singleton a nivel de módulo importable
- * desde cualquier lado: se expone solo a través de getAdminClient(),
- * y se verifica explícitamente que SUPABASE_SERVICE_ROLE_KEY exista
- * solo en runtime de servidor (no tiene prefijo NEXT_PUBLIC_).
+ * Non esportare un singleton a livello di modulo importabile da qualsiasi
+ * parte: esposto solo tramite createAdminClient(), che verifica che
+ * SUPABASE_SERVICE_ROLE_KEY esista solo in runtime server.
  */
 
 let cachedClient: SupabaseClient | null = null
@@ -21,8 +20,8 @@ let cachedClient: SupabaseClient | null = null
 export function createAdminClient(): SupabaseClient {
   if (typeof window !== 'undefined') {
     throw new Error(
-      'createAdminClient() fue invocado en el browser. ' +
-        'Este cliente usa la service role key y NUNCA debe ejecutarse client-side.'
+      'createAdminClient() invocato nel browser. ' +
+        'Questo client usa la service role key e NON deve mai girare client-side.'
     )
   }
 
@@ -33,7 +32,7 @@ export function createAdminClient(): SupabaseClient {
 
   if (!url || !serviceRoleKey) {
     throw new Error(
-      'Faltan NEXT_PUBLIC_SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY en el entorno del servidor.'
+      'Mancano NEXT_PUBLIC_SUPABASE_URL o SUPABASE_SERVICE_ROLE_KEY nelle variabili d\'ambiente del server.'
     )
   }
 
@@ -43,11 +42,10 @@ export function createAdminClient(): SupabaseClient {
       persistSession: false
     },
     global: {
-      // CRÍTICO: Next.js cachea automáticamente las llamadas fetch()
-      // hechas en el servidor (Data Cache). El cliente de Supabase usa
-      // fetch internamente para cada query — sin esto, una consulta
-      // (ej. "¿es admin?") puede quedar cacheada y devolver datos viejos
-      // en requests posteriores aunque la fila haya cambiado en la DB.
+      // CRITICO: Next.js mette automaticamente in cache le chiamate fetch()
+      // fatte server-side (Data Cache). Il client Supabase usa fetch
+      // internamente per ogni query — senza cache: 'no-store', una query
+      // (es. "è admin?") può restituire dati obsoleti anche se la DB è cambiata.
       fetch: (url: RequestInfo | URL, options?: RequestInit) =>
         fetch(url, { ...options, cache: 'no-store' })
     }
@@ -57,13 +55,12 @@ export function createAdminClient(): SupabaseClient {
 }
 
 /**
- * Verifica que el usuario de la sesión actual (obtenida vía cliente server
- * normal, con cookies) tenga role === 'admin' antes de permitir cualquier
- * operación admin. Debe llamarse al inicio de TODO endpoint que use
- * createAdminClient() para mutaciones sensibles.
+ * Verifica che l'utente della sessione corrente abbia role === 'admin'
+ * prima di permettere qualsiasi operazione admin. Va chiamata all'inizio
+ * di ogni endpoint che usa createAdminClient() per mutazioni sensibili.
  *
- * Lanza si no es admin; quien llama decide cómo traducir eso a una
- * respuesta HTTP (401/403).
+ * Lancia un'eccezione se non è admin; chi chiama decide come tradurla
+ * in una risposta HTTP (401/403).
  */
 export async function assertIsAdmin(userId: string | undefined): Promise<void> {
   if (!userId) {
@@ -78,10 +75,10 @@ export async function assertIsAdmin(userId: string | undefined): Promise<void> {
     .single()
 
   if (error || !data || data.role !== 'admin') {
-    // Log detallado server-side: el mensaje que ve el cliente es siempre
-    // genérico ('FORBIDDEN_NOT_ADMIN'), pero acá queda la causa real
-    // (ej. service role key inválida, fila no encontrada, rol distinto).
-    console.error('assertIsAdmin falló:', {
+    // Log dettagliato server-side: il messaggio visto dal client è sempre
+    // generico ('FORBIDDEN_NOT_ADMIN'), ma qui rimane la causa reale
+    // (es. service role key invalida, riga non trovata, ruolo diverso).
+    console.error('assertIsAdmin fallita:', {
       userId,
       error: error?.message,
       errorDetails: error,
