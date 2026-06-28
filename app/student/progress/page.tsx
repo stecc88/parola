@@ -58,16 +58,16 @@ export default async function ProgressPage() {
   const [{ data: allSubmissions }, { data: profile }] = await Promise.all([
     supabase
       .from('submissions')
-      .select('id, tipo, created_at, consegna, valutazione_completed_at, valutazione_ia, testo_studente, archived')
+      .select('id, tipo, created_at, consegna, valutazione_completed_at, valutazione_ia, testo_studente')
       .eq('student_id', userData.user?.id ?? '')
       .order('created_at', { ascending: false }),
     supabase.from('profiles').select('nome').eq('id', userData.user?.id ?? '').single()
   ])
 
-  // Stats calcolate su TUTTE le submission (incluse le archiviate) per non
-  // perdere la storia pedagogica. La UI mostra solo le ultime 5 non archiviate.
+  // Stats calcolate su TUTTE le submission per non perdere la storia
+  // pedagogica. La UI mostra solo le ultime 5.
   const stats = computeStudentStats((allSubmissions as SubmissionRow[]) ?? [])
-  const submissions = (allSubmissions ?? []).filter((s) => !s.archived).slice(0, 5)
+  const submissions = (allSubmissions ?? []).slice(0, 5)
 
   return (
     <>
