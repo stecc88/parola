@@ -66,8 +66,7 @@ export default async function ClassDetailPage({ params }: { params: { id: string
         ) : (
           <div className="space-y-2">
             {memberships.map((m) => {
-              // El join de Supabase puede devolver objeto o array según el
-              // tipo de relación detectado; normalizamos a un solo objeto.
+              // Il join Supabase può restituire oggetto o array; normalizziamo.
               const profile = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles
               return (
                 <Card key={m.id} className="flex items-center justify-between">

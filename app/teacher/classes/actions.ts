@@ -19,9 +19,8 @@ export async function createClass(nome: string) {
     throw new Error('Non autenticato.')
   }
 
-  // Defensa en profundidad: la página ya bloquea el acceso a profesores
-  // no aprobados, pero esta Server Action es invocable independientemente
-  // de la página, así que se vuelve a verificar acá.
+  // Difesa in profondità: la pagina blocca già i docenti non approvati,
+  // ma questa Server Action è invocabile indipendentemente dalla pagina.
   const { data: profile } = await supabase
     .from('profiles')
     .select('role, teacher_status')
@@ -36,7 +35,7 @@ export async function createClass(nome: string) {
     throw new Error('Il nome della classe è obbligatorio.')
   }
 
-  // invite_code se autogenera por trigger (set_invite_code), no se pasa acá.
+  // invite_code viene generato automaticamente dal trigger set_invite_code.
   const { error } = await supabase.from('classes').insert({
     teacher_id: userData.user.id,
     nome: nome.trim()
@@ -160,7 +159,7 @@ export async function deleteClass(classId: string) {
   if (authError || !userData.user) throw new Error('Non autenticato.')
   await requireApprovedTeacherActionUserId()
 
-  // Verificar que la classe sea del profesor antes de tocar nada.
+  // Verifica che la classe appartenga al docente prima di modificarla.
   const { data: classe } = await supabase
     .from('classes')
     .select('id')
@@ -170,9 +169,8 @@ export async function deleteClass(classId: string) {
 
   if (!classe) throw new Error('Classe non trovata.')
 
-  // Liberar a los studenti antes de borrar (la FK class_memberships.class_id
-  // tiene ON DELETE RESTRICT a propósito, para que un delete accidental no
-  // se lleve studenti puestos sin querer — por eso lo hacemos explícito acá).
+  // Scollega gli studenti prima di cancellare: la FK class_memberships.class_id
+  // è ON DELETE RESTRICT di proposito, per evitare cancellazioni accidentali.
   await supabase
     .from('class_memberships')
     .update({ class_id: null })
@@ -344,7 +342,7 @@ export async function getStudentsOverview(): Promise<StudentOverviewRow[]> {
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return []
 
-  // Query 1: memberships + profiles + classi (una sola JOIN)
+  // Query 1: memberships + profiles + classi (unica JOIN)
   const { data: memberships, error } = await supabase
     .from('class_memberships')
     .select('student_id, joined_at, profiles!student_id(nome, cognome, livello_target), classes(nome)')

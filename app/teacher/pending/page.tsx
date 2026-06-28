@@ -26,7 +26,7 @@ export default async function TeacherPendingPage() {
     .eq('id', userData.user.id)
     .single()
 
-  // Si ya está aprobado (o no es teacher), no tiene nada que hacer acá.
+  // Se già approvato (o non è un docente), non ha nulla da fare qui.
   if (profile?.role !== 'teacher' || profile.teacher_status === 'approved') {
     redirect('/')
   }

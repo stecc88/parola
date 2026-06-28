@@ -124,12 +124,11 @@ export async function submitPersonalizedExerciseResponse(
     throw new Error('Errore salvando la risposta.')
   }
 
-  // Cliente admin para este UPDATE: hallazgo de auditoría — la policy de
-  // UPDATE para estudiantes en personalized_exercises fue eliminada (ver
-  // migración 0016), porque sin restricción de columna a nivel RLS un
-  // estudiante podía escribir cualquier valor (incluido punteggio_chiuso
-  // en submitClosedExerciseAnswers, más abajo) llamando directamente a la
-  // API REST de Supabase con su propia sesión.
+  // Client admin per questo UPDATE: la policy UPDATE per gli studenti su
+  // personalized_exercises è stata rimossa (migrazione 0016) perché senza
+  // restrizione di colonna a livello RLS uno studente poteva scrivere
+  // qualsiasi valore (incluso punteggio_chiuso) chiamando direttamente
+  // l'API REST di Supabase con la propria sessione.
   const { error: updateError } = await createAdminClient()
     .from('personalized_exercises')
     .update({ submission_id: submission.id, seen_by_teacher: false })
@@ -179,9 +178,9 @@ export async function submitClosedExerciseAnswers(
 
   const punteggio = items.length > 0 ? Math.round((corretti / items.length) * 100) : 0
 
-  // Cliente admin: ver comentario equivalente en submitPersonalizedExerciseResponse.
-  // Aquí es aún más crítico — sin esto, un estudiante podía escribir su
-  // propio punteggio_chiuso=100 sin responder nada correctamente.
+  // Client admin: vedi commento equivalente in submitPersonalizedExerciseResponse.
+  // Qui è ancora più critico — senza questo uno studente poteva scrivere
+  // punteggio_chiuso=100 senza rispondere correttamente a nulla.
   const { error: updateError } = await createAdminClient()
     .from('personalized_exercises')
     .update({

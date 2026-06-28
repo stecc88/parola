@@ -108,9 +108,8 @@ export async function getTeacherBlockers(teacherId: string) {
     .select('id, nome')
     .eq('teacher_id', teacherId)
 
-  // El vínculo que realmente bloquea el delete (restrict FK) es
-  // class_memberships.teacher_id — un alumno sin clase asignada (class_id
-  // null) también bloquea, aunque no aparezca en "classes".
+  // Il vincolo che blocca il delete (FK restrict) è su class_memberships.teacher_id
+  // — uno studente senza classe assegnata (class_id null) blocca ugualmente.
   const { count: studentiCount } = await admin
     .from('class_memberships')
     .select('id', { count: 'exact', head: true })

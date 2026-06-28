@@ -197,13 +197,10 @@ export async function markLevelAchievementsSeenByTeacher(studentId: string) {
 export async function getLastSignInForStudent(studentId: string): Promise<string | null> {
   const teacherId = await requireApprovedTeacherActionUserId()
 
-  // Verificación explícita de propiedad: sin esto, cualquier profesor
-  // aprobado podía pasar el id de un alumno que no es suyo (o de
-  // cualquier otro usuario) y leer su último acceso, porque el cliente
-  // admin usado abajo ignora RLS por completo. La página normal nunca
-  // llega a llamar esto con un studentId ajeno, pero al ser una Server
-  // Action exportada, se puede invocar directamente sin pasar por la
-  // página — hallazgo de auditoría de seguridad.
+  // Verifica esplicita di ownership: senza questo qualsiasi docente approvato
+  // potrebbe passare l'id di uno studente non suo e leggerne l'ultimo accesso,
+  // perché il client admin ignora RLS. La Server Action è invocabile
+  // direttamente, indipendentemente dalla pagina.
   const supabase = createClient()
   const { data: membership } = await supabase
     .from('class_memberships')

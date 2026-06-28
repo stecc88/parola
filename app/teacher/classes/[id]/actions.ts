@@ -24,9 +24,8 @@ export async function moveStudentToClass(membershipId: string, targetClassId: st
     throw new Error('Il tuo account insegnante non è ancora approvato.')
   }
 
-  // Verificar que la clase destino también sea del profesor (defensa extra,
-  // RLS en el insert ya lo exigiría vía classes_insert/select policies del
-  // lado de lectura, pero confirmamos explícitamente acá).
+  // Verifica che la classe destinazione appartenga al docente (difesa extra
+  // rispetto alla sola RLS sul lato lettura).
   const { data: targetClass } = await supabase
     .from('classes')
     .select('id')
