@@ -68,10 +68,10 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
   }
 
   // Stessa logica: submissions_select_by_active_teacher filtra già per noi.
-  const { data: submissions, error } = await supabase
+  const { data: allSubmissions, error } = await supabase
     .from('submissions')
     .select(
-      'id, tipo, created_at, consegna, testo_studente, valutazione_ia, testo_incollato, secondi_scrittura'
+      'id, tipo, created_at, consegna, testo_studente, valutazione_ia, testo_incollato, secondi_scrittura, archived'
     )
     .eq('student_id', params.id)
     .order('created_at', { ascending: false })
@@ -80,7 +80,11 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
     console.error('Errore caricando le submissions dello studente:', error)
   }
 
-  const stats = computeStudentStats((submissions as SubmissionRow[]) ?? [])
+  // Stats calcolate su TUTTE le submission (archiviate incluse) per
+  // preservare la storia pedagogica completa. La UI mostra le ultime 5
+  // non archiviate — stessa finestra che vede lo studente.
+  const stats = computeStudentStats((allSubmissions as SubmissionRow[]) ?? [])
+  const submissions = (allSubmissions ?? []).filter((s) => !s.archived).slice(0, 5)
 
   // Side-effect deliberato: visitare questa pagina marca come "lette" le
   // consegne in attesa — stesso pattern di qualsiasi notifica in-app.
