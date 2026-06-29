@@ -127,13 +127,17 @@ export default function ExercisesPage() {
             <div>
               <h1 className="text-xl font-semibold text-ink-primary">Analisi delle strutture</h1>
               <p className="mt-0.5 text-sm text-ink-secondary">
-                Scegli il formato e inizia a praticare. Gli esercizi si adattano al livello target.
+                {gruppo === 'generale'
+                  ? 'Gli esercizi generali si adattano al tuo livello target.'
+                  : 'Scegli un esercizio e inizia a praticare.'}
               </p>
             </div>
           </div>
-          <div className="shrink-0">
-            <LivelloSelector />
-          </div>
+          {gruppo === 'generale' && (
+            <div className="shrink-0">
+              <LivelloSelector />
+            </div>
+          )}
         </div>
 
         {/* Group tabs */}
