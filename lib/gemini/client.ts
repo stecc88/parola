@@ -23,8 +23,8 @@
 // Ordered by cost (cheapest first). Each model has independent quota.
 // If primary returns 429/503, we cascade to the next one automatically.
 const GEMINI_MODEL_PRIMARY = 'gemini-2.5-flash-lite'   // cheapest known-good model
-const GEMINI_MODEL_FALLBACK = 'gemini-2.5-flash'        // higher quality fallback
-const GEMINI_MODEL_FALLBACK_2 = 'gemini-1.5-flash'      // last-resort fallback
+const GEMINI_MODEL_FALLBACK = 'gemini-3.1-flash-lite'   // next-gen lite when available
+const GEMINI_MODEL_FALLBACK_2 = 'gemini-2.5-flash'      // higher quality last resort
 const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta'
 
 interface ThinkingConfig {
@@ -138,8 +138,10 @@ async function callModel(
       if (!res.ok) {
         const errorBody = await res.json().catch(() => null)
 
-        // 400/404 = payload inválido o modelo inexistente, no reintentar.
-        if (res.status === 400 || res.status === 404) {
+        // 404 = modelo inexistente, no reintentar con el mismo modelo pero sí
+        // con el siguiente en el cascade. 400 con payload inválido también se
+        // re-lanza (el caller decide si hacer fallback).
+        if (res.status === 404) {
           throw new GeminiError(
             `Gemini rechazó la solicitud (${res.status}): ${JSON.stringify(errorBody)}`,
             res.status,
@@ -213,7 +215,7 @@ export async function generateContent(
     : body
 
   const shouldFallback = (err: unknown): boolean =>
-    err instanceof GeminiError && err.status !== 400 && err.status !== 404
+    err instanceof GeminiError && err.status !== 404
 
   try {
     return await callModel(GEMINI_MODEL_PRIMARY, body, apiKey, maxRetries)
