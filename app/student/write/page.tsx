@@ -123,7 +123,7 @@ function WritePageInner() {
 
               {guida.categoria && (
                 <div className="rounded-md bg-guided-bg p-3 text-sm text-guided-text">
-                  <p className="font-medium">Cos&apos;è il &quot;{guida.categoria}&quot;?</p>
+                  <p className="font-medium">Cos&apos;è il testo {guida.categoria}?</p>
                   <p className="mt-1">{guida.categoriaSpiegazione}</p>
                 </div>
               )}
@@ -133,7 +133,7 @@ function WritePageInner() {
                   📋 Struttura suggerita — da dove iniziare
                 </summary>
                 <div className="space-y-3 border-t border-border p-3">
-                  {guida.struttura.map((s, i) => (
+                  {(guidaAdattata?.struttura ?? guida.struttura).map((s, i) => (
                     <div key={i} className="flex gap-2">
                       <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-400 text-xs font-medium text-white">
                         {i + 1}
@@ -152,7 +152,7 @@ function WritePageInner() {
                   💬 Frasi utili — bloccato? Inizia da qui
                 </summary>
                 <div className="space-y-3 border-t border-border p-3">
-                  {guida.frasiUtili.map((g, i) => (
+                  {(guidaAdattata?.frasiUtili ?? guida.frasiUtili).map((g, i) => (
                     <div key={i}>
                       <p className="mb-1 text-xs font-medium text-ink-tertiary">{g.sezione}</p>
                       <div className="flex flex-wrap gap-1.5">
@@ -175,7 +175,7 @@ function WritePageInner() {
                   📚 Vocabolario utile
                 </summary>
                 <div className="flex flex-wrap gap-1.5 border-t border-border p-3">
-                  {guida.vocabolarioChiave.map((v) => (
+                  {(guidaAdattata?.vocabolarioChiave ?? guida.vocabolarioChiave).map((v) => (
                     <span
                       key={v}
                       className="rounded-full bg-guided-bg px-2.5 py-1 text-xs text-guided-text"
@@ -185,6 +185,22 @@ function WritePageInner() {
                   ))}
                 </div>
               </details>
+
+              {guidaAdattata?.testoModello && (
+                <details className="rounded-md border border-border">
+                  <summary className="cursor-pointer p-3 text-sm font-medium text-ink-primary">
+                    📝 Testo di esempio (livello {livello})
+                  </summary>
+                  <div className="border-t border-border p-3">
+                    <p className="mb-2 text-xs text-ink-tertiary">
+                      Questo è un esempio scritto al livello {livello} — leggilo per capire la struttura e il registro, poi scrivi il tuo testo con le tue idee.
+                    </p>
+                    <div className="rounded-md bg-surface-secondary p-3 text-sm text-ink-primary whitespace-pre-line leading-relaxed">
+                      {guidaAdattata.testoModello}
+                    </div>
+                  </div>
+                </details>
+              )}
             </div>
           )}
 
