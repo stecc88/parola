@@ -32,7 +32,7 @@ export interface PersonalizedExerciseDetail {
 }
 
 const SELECT_FIELDS =
-  'id, tipo_esercizio, titolo, teoria, spiegazione, esempio, consegna, items, submission_id, risposte_studente, punteggio_chiuso, completato_at, seen_by_student, created_at'
+  'id, student_id, tipo_esercizio, titolo, teoria, spiegazione, esempio, consegna, items, submission_id, risposte_studente, punteggio_chiuso, completato_at, seen_by_student, created_at'
 
 export async function getMyPersonalizedExercises(): Promise<PersonalizedExerciseDetail[]> {
   const supabase = createClient()
