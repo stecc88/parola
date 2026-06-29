@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getLivelloTarget } from '@/lib/student/livello'
 import { checkSubmissionRateLimit } from '@/lib/student/rate-limit'
 import { requireApprovedStudentActionUserId } from '@/lib/student/guard'
+import { valutazioneRisposteSchema } from '@/lib/gemini/prompts/struttura'
 import {
   generateEsercizioStruttura1,
   evaluateEsercizioStruttura1,
@@ -98,6 +99,9 @@ export async function startEsercizio6(): Promise<SituazioniComunicative> {
 }
 
 async function persistSubmission(tipo: string, testo: string, valutazione: ValutazioneRisposteStruttura) {
+  const parsed = valutazioneRisposteSchema.safeParse(valutazione)
+  if (!parsed.success) throw new Error('Dati di valutazione non validi.')
+
   const supabase = createClient()
   const { data: userData, error } = await supabase.auth.getUser()
   if (error || !userData.user) throw new Error('Non autenticato.')

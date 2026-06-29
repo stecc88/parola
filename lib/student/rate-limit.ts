@@ -27,8 +27,6 @@ export async function checkSubmissionRateLimit(
   }
 
   if ((count ?? 0) >= maxPerWindow) {
-    throw new Error(
-      `Hai raggiunto il limite di ${maxPerWindow} richieste ogni ${windowMinutes} minuti. Riprova più tardi.`
-    )
+    throw new Error('Troppe richieste. Riprova fra qualche minuto.')
   }
 }

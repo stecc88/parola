@@ -53,7 +53,7 @@ Non menzionare mai nomi di certificazioni specifiche.`
   return parsed.data
 }
 
-const valutazioneRisposteSchema = z.object({
+export const valutazioneRisposteSchema = z.object({
   risultati: z.array(
     z.object({
       id: z.string(),

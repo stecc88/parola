@@ -5,6 +5,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import type { TipoEsercizioPersonalizzato } from '@/lib/gemini/schema'
 import { notifyTeacherOfDelivery } from '@/lib/email/teacherNotification'
 import { requireApprovedStudentActionUserId } from '@/lib/student/guard'
+import { checkSubmissionRateLimit } from '@/lib/student/rate-limit'
 
 export interface EsercizioItem {
   domanda: string
@@ -66,6 +67,9 @@ export async function getPersonalizedExerciseById(
 ): Promise<PersonalizedExerciseDetail | null> {
   const supabase = createClient()
 
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return null
+
   const { data, error } = await supabase
     .from('personalized_exercises')
     .select(SELECT_FIELDS)
@@ -73,6 +77,10 @@ export async function getPersonalizedExerciseById(
     .single()
 
   if (error || !data) return null
+
+  // Explicit ownership check — don't rely solely on RLS
+  if ((data as { student_id: string }).student_id !== userData.user.id) return null
+
   return data as PersonalizedExerciseDetail
 }
 
@@ -106,6 +114,7 @@ export async function submitPersonalizedExerciseResponse(
   const { data: userData, error: authError } = await supabase.auth.getUser()
   if (authError || !userData.user) throw new Error('Non autenticato.')
   await requireApprovedStudentActionUserId()
+  await checkSubmissionRateLimit(userData.user.id)
 
   const { data: submission, error: insertError } = await supabase
     .from('submissions')
@@ -158,6 +167,7 @@ export async function submitClosedExerciseAnswers(
   const { data: userData, error: authError } = await supabase.auth.getUser()
   if (authError || !userData.user) throw new Error('Non autenticato.')
   await requireApprovedStudentActionUserId()
+  await checkSubmissionRateLimit(userData.user.id)
 
   const { data: esercizio, error: fetchError } = await supabase
     .from('personalized_exercises')

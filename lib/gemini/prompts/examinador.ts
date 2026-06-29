@@ -18,7 +18,17 @@ import { descrizioneLivelloValutazione } from '../cefrLevels'
 
 const RESPONSE_SCHEMA = zodToGeminiSchema(valutazioneEsaminatoreSchema)
 
+function sanitizeUserText(text: string, maxChars = 3000): string {
+  return text
+    .slice(0, maxChars)
+    .replace(/"""/g, '"')   // prevent delimiter breakout
+    .replace(/\\/g, '\\\\') // escape backslashes
+}
+
 function buildPrompt(testoStudente: string, livelloTarget?: string, consegna?: string): string {
+  const safeText = sanitizeUserText(testoStudente)
+  const safeConsegna = consegna ? sanitizeUserText(consegna, 500) : undefined
+
   return `Sei un esaminatore esperto di lingua italiana per persone — adolescenti o adulte — che si
 preparano a superare standard internazionali di lingua italiana. Valuta il
 testo seguente, scritto da uno studente${livelloTarget ? ` con livello target ${livelloTarget}` : ''}.
@@ -27,8 +37,8 @@ Calibrazione delle aspettative per questo livello — leggi con attenzione,
 è la parte più importante per dare un punteggio giusto:
 ${descrizioneLivelloValutazione(livelloTarget)}
 ${
-  consegna
-    ? `\nConsegna data allo studente dal docente: "${consegna}"
+  safeConsegna
+    ? `\nConsegna data allo studente dal docente: "${safeConsegna}"
 
 Prima di tutto, identifica ogni punto/richiesta esplicita o implicita contenuta
 nella consegna (es. "racconta un'esperienza", "esprimi un'opinione", "usa il
@@ -45,7 +55,7 @@ ricevere un punteggio alto.
 }
 Testo dello studente:
 """
-${testoStudente}
+${safeText}
 """
 
 Fornisci una valutazione completa, costruttiva, con un tono incoraggiante adatto sia ad adolescenti che ad adulti.
