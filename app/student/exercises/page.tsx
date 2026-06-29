@@ -20,6 +20,10 @@ import { Esercizio12 } from './Esercizio12'
 import { Esercizio13 } from './Esercizio13'
 import { Esercizio14 } from './Esercizio14'
 import { Esercizio15 } from './Esercizio15'
+import { Esercizio16 } from './Esercizio16'
+import { Esercizio17 } from './Esercizio17'
+import { Esercizio18 } from './Esercizio18'
+import { Esercizio19 } from './Esercizio19'
 
 const NAV_ITEMS = [
   { href: '/student/progress', label: 'I miei progressi' },
@@ -30,7 +34,7 @@ const NAV_ITEMS = [
   { href: '/account', label: 'Account' }
 ]
 
-type GruppoId = 'generale' | 'b1' | 'b2'
+type GruppoId = 'generale' | 'b1' | 'b2' | 'c1'
 
 const GRUPPI: {
   id: GruppoId
@@ -76,6 +80,18 @@ const GRUPPI: {
       { id: 14, label: 'Cloze lessicale avanzato', desc: 'Brano con vocabolario e registri variati B2 — scelta multipla lessicale.' },
       { id: 15, label: 'Situazioni comunicative', desc: 'Testi autentici (email, SMS, annunci): identifica il contesto comunicativo.' }
     ]
+  },
+  {
+    id: 'c1',
+    label: 'Preparazione C1',
+    badge: 'C1',
+    descrizione: 'Esercizi fedeli al formato degli standard internazionali C1 — strutture sintattiche complesse, trasformazione, gerundio, congiuntivo trapassato, nominalizzazione.',
+    esercizi: [
+      { id: 16, label: 'Cloze verbi avanzato', desc: 'Brano con gerundio, congiuntivo passato/trapassato, participio assoluto e passiva con venire/andare.' },
+      { id: 17, label: 'Completamento testuale', desc: 'Brano argomentativo: connettivi avanzati, pronomi relativi complessi, costruzioni gerundiali, nominalizzazioni.' },
+      { id: 18, label: 'Scelta multipla C1', desc: 'Brano saggistico con 15 lacune: 4 opzioni per registro, collocazioni, sfumature semantiche e morfologia avanzata.' },
+      { id: 19, label: 'Trasformazione sintattica', desc: 'Riscrivi le frasi con le parole date: passivo/attivo, discorso indiretto, implicite, nominalizzazione.' }
+    ]
   }
 ]
 
@@ -83,7 +99,8 @@ const COMPONENTS: Record<number, React.ComponentType> = {
   1: Esercizio1, 2: Esercizio2, 3: Esercizio3, 4: Esercizio4,
   5: Esercizio5, 6: Esercizio6, 7: Esercizio7, 8: Esercizio8,
   9: Esercizio9, 10: Esercizio10, 11: Esercizio11, 12: Esercizio12,
-  13: Esercizio13, 14: Esercizio14, 15: Esercizio15
+  13: Esercizio13, 14: Esercizio14, 15: Esercizio15,
+  16: Esercizio16, 17: Esercizio17, 18: Esercizio18, 19: Esercizio19
 }
 
 export default function ExercisesPage() {
@@ -135,7 +152,7 @@ export default function ExercisesPage() {
               {g.badge && (
                 <span className={cn(
                   'rounded px-1.5 py-0.5 text-xs font-bold',
-                  g.badge === 'B1' ? 'bg-brand-100 text-brand-600' : 'bg-purple-100 text-purple-700'
+                  g.badge === 'B1' ? 'bg-brand-100 text-brand-600' : g.badge === 'B2' ? 'bg-purple-100 text-purple-700' : 'bg-amber-100 text-amber-700'
                 )}>
                   {g.badge}
                 </span>

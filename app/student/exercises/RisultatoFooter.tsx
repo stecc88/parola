@@ -75,6 +75,26 @@ const CONSIGLI: Record<number, { insufficiente: string; sufficiente: string; ott
     insufficiente: 'Per ogni testo: analizza sistematicamente (1) CHI ha scritto/parlato, (2) A CHI è rivolto, (3) TRAMITE quale mezzo (SMS, email, cartello…), (4) SCOPO del messaggio. Solo una delle 4 opzioni corrisponde a tutti e 4 gli elementi.',
     sufficiente: 'Stai migliorando la comprensione del contesto comunicativo. Per le domande sbagliate, rileggi il testo cercando parole-chiave che indicano il mittente o il canale.',
     ottimo: 'Ottima competenza pragmatica B2! Sei in grado di decodificare testi autentici complessi in contesti comunicativi variati.'
+  },
+  16: {
+    insufficiente: 'Al C1 le sfide verbali principali sono: (1) gerundio passato = "avendo + participio" (avendo capito); (2) congiuntivo trapassato = "avessi/avesse + participio"; (3) passiva con "venire" = azione puntuale, con "essere" = stato risultante. Studia queste tre costruzioni prima di riprovare.',
+    sufficiente: 'Stai acquisendo i verbi C1. Focalizzati sul contrasto gerundio presente vs passato: "facendo" = simultaneo all\'azione principale; "avendo fatto" = anteriore, già completato prima.',
+    ottimo: 'Eccellente padronanza verbale C1! Le costruzioni participiali assolute (arrivato il treno, partirono tutti) sono il passo successivo: usale nei tuoi testi scritti per dare un registro più elevato.'
+  },
+  17: {
+    insufficiente: 'I connettivi C1 si imparano per funzione discorsiva: CONCESSIONE (pur + gerundio, nonostante + infinito, benché + congiuntivo), ESCLUSIONE (a meno che non, tranne che), LIMITAZIONE (per quanto + congiuntivo). Studia ciascuna categoria separatamente.',
+    sufficiente: 'Buon lavoro. Per i connettivi sbagliati: chiediti quale relazione logica esprimono (causa? concessione? limitazione?) e cerca nel testo la frase precedente che stabilisce quella relazione.',
+    ottimo: 'Ottima gestione della coesione testuale C1! Ora prova a produrre testi argomentativi usando almeno 3 connettivi avanzati diversi — è la competenza che distingue il C1 dal B2.'
+  },
+  18: {
+    insufficiente: 'Al C1 le opzioni sbagliate differiscono per registro (formale/informale), collocazione (la parola "giusta" con quel verbo/nome) o sfumatura semantica sottile. Prima elimina le opzioni di registro chiaramente sbagliato, poi scegli tra le 2 rimaste quella che "colloca" meglio nel contesto.',
+    sufficiente: 'Stai affinando la sensibilità lessicale C1. Per le parole sbagliate: cerca in un dizionario monolingue italiano le differenze d\'uso tra l\'opzione scelta e quella corretta.',
+    ottimo: 'Ottimo lessico C1! Leggi quotidiani italiani di qualità (Corriere, Repubblica, Il Post): i testi giornalistici usano esattamente le collocazioni e i registri testati in questo esercizio.'
+  },
+  19: {
+    insufficiente: 'Le trasformazioni C1 seguono regole precise: PASSIVO→ATTIVO: trova il complemento d\'agente (da + nome) e rendilo soggetto; DISCORSO INDIRETTO: abbassa i tempi di un grado (presente→imperfetto, futuro→condizionale, passato prossimo→trapassato); IMPLICITE: sostituisci "che + congiuntivo" con "di + infinito" quando il soggetto è lo stesso.',
+    sufficiente: 'Stai acquisendo la trasformazione sintattica. Focalizzati sulla consecutio temporum nel discorso indiretto — è la fonte principale di errori al C1.',
+    ottimo: 'Eccellente padronanza delle trasformazioni C1! La nominalizzazione (trasformare frasi in sintagmi nominali) è la struttura più caratteristica del registro formale italiano scritto — usala consapevolmente nei tuoi testi.'
   }
 }
 
