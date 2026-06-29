@@ -80,7 +80,7 @@ export function PersonalizedExerciseEntry({ esercizio, studentId, dataLabel, sta
             <button
               onClick={() => setConfirmingDelete(true)}
               className="rounded-lg p-1.5 text-ink-tertiary transition-colors hover:bg-danger-bg hover:text-danger-text"
-              title="Elimina questo esercizio"
+              aria-label="Elimina questo esercizio"
             >
               <Trash2 className="h-3.5 w-3.5" />
             </button>
