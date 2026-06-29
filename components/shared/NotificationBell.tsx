@@ -23,7 +23,7 @@ export function NotificationBell() {
   const pathname = usePathname()
 
   useEffect(() => {
-    getUnseenPersonalizedCount().then(setCount)
+    getUnseenPersonalizedCount().then(setCount).catch(() => {})
   }, [pathname])
 
   if (count === null) return null

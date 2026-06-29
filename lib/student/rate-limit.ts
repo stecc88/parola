@@ -1,32 +1,31 @@
 import { createClient } from '@/lib/supabase/server'
 
 /**
- * Rate limiting basato su DB (senza infrastruttura esterna come Redis/Upstash).
- * Conta le submissions dello studente negli ultimi `windowMinutes` e rifiuta
- * se supera `maxPerWindow`. Sufficiente per i volumi di una piattaforma
- * scolastica; se il traffico cresce, migrare a Upstash Ratelimit senza
- * cambiare la firma di questa funzione.
+ * Rate limiting atomico via RPC Postgres (migrazione 0026).
+ * Un singolo upsert incrementa il contatore e controlla il limite in
+ * un'unica istruzione — nessuna finestra di TOCTOU tra check e insert.
+ * Se il DB è irraggiungibile o l'RPC fallisce per motivi interni,
+ * non blocchiamo lo studente (best-effort).
  */
 export async function checkSubmissionRateLimit(
   studentId: string,
   { maxPerWindow = 10, windowMinutes = 5 }: { maxPerWindow?: number; windowMinutes?: number } = {}
 ): Promise<void> {
   const supabase = createClient()
-  const since = new Date(Date.now() - windowMinutes * 60 * 1000).toISOString()
 
-  const { count, error } = await supabase
-    .from('submissions')
-    .select('id', { count: 'exact', head: true })
-    .eq('student_id', studentId)
-    .gte('created_at', since)
+  const { error } = await supabase.rpc('check_submission_rate_limit_atomic', {
+    p_student_id: studentId,
+    p_window_minutes: windowMinutes,
+    p_max: maxPerWindow
+  })
 
-  if (error) {
-    // Se il check fallisce per un errore interno, non blocchiamo lo studente.
-    console.error('Errore nel rate limit check:', error)
-    return
-  }
+  if (!error) return
 
-  if ((count ?? 0) >= maxPerWindow) {
+  // L'RPC solleva 'rate_limit_exceeded' quando il limite è superato
+  if (error.message?.includes('rate_limit_exceeded')) {
     throw new Error('Troppe richieste. Riprova fra qualche minuto.')
   }
+
+  // Qualsiasi altro errore (DB down, permessi) — non blocchiamo lo studente
+  console.error('Errore nel rate limit check:', error)
 }

@@ -24,6 +24,7 @@ import { Esercizio16 } from './Esercizio16'
 import { Esercizio17 } from './Esercizio17'
 import { Esercizio18 } from './Esercizio18'
 import { Esercizio19 } from './Esercizio19'
+import { ExerciseErrorBoundary } from '@/components/shared/ExerciseErrorBoundary'
 
 const NAV_ITEMS = [
   { href: '/student/progress', label: 'I miei progressi' },
@@ -213,7 +214,9 @@ export default function ExercisesPage() {
               </span>
               <div className="h-px flex-1 bg-border" />
             </div>
-            <ExComponent key={String(tipo)} />
+            <ExerciseErrorBoundary key={String(tipo)}>
+              <ExComponent />
+            </ExerciseErrorBoundary>
           </div>
         )}
 

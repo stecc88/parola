@@ -30,7 +30,10 @@ export async function notifyTeacherOfDelivery({
       return
     }
 
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://parola-puce.vercel.app'
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+    if (!siteUrl) {
+      console.error('teacherNotification: NEXT_PUBLIC_SITE_URL non configurata — il link nel email sarà vuoto.')
+    }
 
     await sendEmail({
       to: email,
@@ -39,7 +42,7 @@ export async function notifyTeacherOfDelivery({
         <p>Ciao,</p>
         <p><strong>${nomeStudente}</strong> ha appena consegnato la risposta a
         "<strong>${titoloEsercizio}</strong>".</p>
-        <p><a href="${siteUrl}/teacher/students/${studentId}">Vai alla pagina dello studente</a></p>
+        ${siteUrl ? `<p><a href="${siteUrl}/teacher/students/${studentId}">Vai alla pagina dello studente</a></p>` : ''}
         <p style="color:#8A7C6D;font-size:12px;margin-top:24px;">
           Questa è una notifica automatica di Parola. Puoi vedere tutte le consegne in attesa
           anche direttamente in piattaforma, sotto "Nuove consegne".
