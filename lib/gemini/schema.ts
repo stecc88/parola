@@ -133,6 +133,10 @@ export function zodToGeminiSchema(schema: z.ZodTypeAny): Record<string, unknown>
     return { type: 'string', enum: schema.options }
   }
 
+  if (schema instanceof z.ZodOptional) {
+    return zodToGeminiSchema(schema.unwrap())
+  }
+
   if (schema instanceof z.ZodNullable) {
     return { ...zodToGeminiSchema(schema.unwrap()), nullable: true }
   }
