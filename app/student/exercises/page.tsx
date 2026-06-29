@@ -11,6 +11,8 @@ import { Esercizio3 } from './Esercizio3'
 import { Esercizio4 } from './Esercizio4'
 import { Esercizio5 } from './Esercizio5'
 import { Esercizio6 } from './Esercizio6'
+import { Esercizio7 } from './Esercizio7'
+import { Esercizio8 } from './Esercizio8'
 
 const NAV_ITEMS = [
   { href: '/student/progress', label: 'I miei progressi' },
@@ -27,7 +29,9 @@ const TIPI = [
   { id: 3, label: 'Scegli la preposizione' },
   { id: 4, label: 'Trasforma la frase' },
   { id: 5, label: 'Completamento lessicale' },
-  { id: 6, label: 'Situazioni comunicative' }
+  { id: 6, label: 'Situazioni comunicative' },
+  { id: 7, label: 'Cloze su testo (B1)' },
+  { id: 8, label: 'Scelta multipla morfosintattica (B1)' }
 ] as const
 
 export default function ExercisesPage() {
@@ -45,7 +49,7 @@ export default function ExercisesPage() {
                 Esercizi di analisi delle strutture
               </h1>
               <p className="text-sm text-ink-secondary">
-                6 tipi di esercizio.
+                8 tipi di esercizio, incluso il formato B1.
               </p>
             </div>
           </div>
@@ -75,6 +79,8 @@ export default function ExercisesPage() {
         {tipo === 4 && <Esercizio4 key="4" />}
         {tipo === 5 && <Esercizio5 key="5" />}
         {tipo === 6 && <Esercizio6 key="6" />}
+        {tipo === 7 && <Esercizio7 key="7" />}
+        {tipo === 8 && <Esercizio8 key="8" />}
       </main>
     </>
   )

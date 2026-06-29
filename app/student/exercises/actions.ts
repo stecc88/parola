@@ -17,13 +17,20 @@ import {
   evaluateEsercizioStruttura5,
   generateEsercizioStruttura6,
   evaluateEsercizioStruttura6,
+  generateEsercizioStruttura7,
+  evaluateEsercizioStruttura7,
+  generateEsercizioStruttura8,
+  evaluateEsercizioStruttura8,
   type FraseDaCompletare,
   type FrasiDaRiordinare,
   type DomandePreposizione,
   type FrasiDaTrasformare,
   type CompletamentoLessicale,
   type SituazioniComunicative,
-  type ValutazioneRisposteStruttura
+  type ValutazioneRisposteStruttura,
+  type ClozeTestoB1,
+  type SceltaMorfosint,
+  type ValutazioneCloze
 } from '@/lib/gemini/prompts/struttura'
 
 async function requireStudentAndCheckLimit(): Promise<string> {
@@ -146,5 +153,55 @@ export async function submitEsercizio6(
     risposte.map((r) => `${r.id}: ${r.opzione_scelta}`).join(' | '),
     valutazione
   )
+  return valutazione
+}
+
+export async function startEsercizio7(): Promise<ClozeTestoB1> {
+  await requireStudentAndCheckLimit()
+  return generateEsercizioStruttura7(await getLivelloTarget())
+}
+
+export async function submitEsercizio7(
+  esercizio: ClozeTestoB1,
+  risposte: { numero: number; opzione_scelta: string }[]
+): Promise<ValutazioneCloze> {
+  await requireApprovedStudentActionUserId()
+  const valutazione = evaluateEsercizioStruttura7(esercizio.lacune, risposte)
+  const supabase = createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (userData.user) {
+    await supabase.from('submissions').insert({
+      student_id: userData.user.id,
+      tipo: 'esercizio_struttura_7',
+      testo_studente: risposte.map((r) => `[${r.numero}]: ${r.opzione_scelta}`).join(' | '),
+      valutazione_ia: valutazione,
+      valutazione_completed_at: new Date().toISOString()
+    })
+  }
+  return valutazione
+}
+
+export async function startEsercizio8(): Promise<SceltaMorfosint> {
+  await requireStudentAndCheckLimit()
+  return generateEsercizioStruttura8(await getLivelloTarget())
+}
+
+export async function submitEsercizio8(
+  esercizio: SceltaMorfosint,
+  risposte: { id: string; opzione_scelta: string }[]
+): Promise<ValutazioneCloze> {
+  await requireApprovedStudentActionUserId()
+  const valutazione = evaluateEsercizioStruttura8(esercizio.domande, risposte)
+  const supabase = createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (userData.user) {
+    await supabase.from('submissions').insert({
+      student_id: userData.user.id,
+      tipo: 'esercizio_struttura_8',
+      testo_studente: risposte.map((r) => `${r.id}: ${r.opzione_scelta}`).join(' | '),
+      valutazione_ia: valutazione,
+      valutazione_completed_at: new Date().toISOString()
+    })
+  }
   return valutazione
 }

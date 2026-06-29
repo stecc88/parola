@@ -451,3 +451,183 @@ opzione.`
   if (!parsed.success) throw new Error(`Risposta di Gemini non valida: ${parsed.error.message}`)
   return parsed.data
 }
+
+// ---------------------------------------------------------------------------
+// TIPO 7 — Cloze su testo ⭐ formato fedele CILS UNO-B1 "Analisi delle
+// strutture": un brano autentico breve (~150 parole) con 10 lacune numerate,
+// 4 opzioni morfosintattiche per ogni lacuna (articoli, pronomi, tempi
+// verbali, preposizioni articolate, ecc.) secondo il sílabo B1.
+// ---------------------------------------------------------------------------
+
+const STRUTTURE_B1 = `Strutture morfosintattiche del livello B1 da testare:
+- articoli determinativi e indeterminativi
+- posizione e accordo dell'aggettivo qualificativo
+- grado comparativo e superlativo dell'aggettivo
+- pronomi personali (forme toniche/atone), riflessivi
+- pronomi relativi (che, cui, il quale)
+- aggettivi e pronomi possessivi, dimostrativi, interrogativi
+- indefiniti: ogni, ciascuno, nessuno, qualche
+- preposizioni articolate (del, della, al, alla, dal, ecc.)
+- indicativo presente, passato prossimo, imperfetto, condizionale presente
+- imperativo
+- proposizioni subordinate: oggettive implicite, temporali, causali, relative esplicite`
+
+export const clozeTestoSchema = z.object({
+  titolo: z.string(),
+  testo_con_lacune: z.string(),
+  lacune: z.array(
+    z.object({
+      numero: z.number().int().min(1),
+      opzioni: z.array(z.string()).length(4),
+      risposta_corretta: z.string(),
+      struttura_testata: z.string()
+    })
+  ).min(8).max(10)
+})
+
+export type ClozeTestoB1 = z.infer<typeof clozeTestoSchema>
+
+export async function generateEsercizioStruttura7(livello: string): Promise<ClozeTestoB1> {
+  const prompt = `Genera un esercizio di cloze su testo in italiano per uno
+studente di livello ${livello} che si prepara a superare standard
+internazionali di lingua italiana.
+
+Formato esatto:
+1. Un brano autentico e coerente di circa 150-180 parole su un argomento
+   quotidiano (viaggio, lavoro, amicizia, città, cibo, ecc.)
+2. 10 lacune numerate nel testo marcate come [1], [2], ..., [10]
+3. Per ogni lacuna: 4 opzioni morfosintattiche (una sola corretta, le altre
+   devono essere errori tipici e plausibili — mai opzioni ovviamente sbagliate)
+4. Per ogni lacuna indica quale struttura del sílabo B1 viene testata
+
+${STRUTTURE_B1}
+
+${descrizioneLivelloGenerazione(livello)}
+
+Il testo deve essere naturale e scorrevole anche con le lacune riempite
+correttamente. Non menzionare mai nomi di certificazioni specifiche.`
+
+  const raw = await generateStructuredContent({
+    prompt,
+    responseSchema: zodToGeminiSchema(clozeTestoSchema),
+    temperature: 0.6
+  })
+  const parsed = clozeTestoSchema.safeParse(raw)
+  if (!parsed.success) throw new Error(`Risposta di Gemini non valida: ${parsed.error.message}`)
+  return parsed.data
+}
+
+const valutazioneClozeSchema = z.object({
+  risultati: z.array(
+    z.object({
+      numero: z.number(),
+      corretto: z.boolean(),
+      risposta_corretta: z.string(),
+      risposta_studente: z.string(),
+      struttura_testata: z.string(),
+      feedback: z.string()
+    })
+  ),
+  punteggio: z.number().int().min(0).max(10)
+})
+
+export type ValutazioneCloze = z.infer<typeof valutazioneClozeSchema>
+
+export function evaluateEsercizioStruttura7(
+  lacune: ClozeTestoB1['lacune'],
+  risposte: { numero: number; opzione_scelta: string }[]
+): ValutazioneCloze {
+  const risultati = lacune.map((l) => {
+    const r = risposte.find((x) => x.numero === l.numero)
+    const corretto =
+      (r?.opzione_scelta ?? '').trim().toLowerCase() ===
+      l.risposta_corretta.trim().toLowerCase()
+    return {
+      numero: l.numero,
+      corretto,
+      risposta_corretta: l.risposta_corretta,
+      risposta_studente: r?.opzione_scelta ?? '',
+      struttura_testata: l.struttura_testata,
+      feedback: corretto
+        ? `Corretto — ${l.struttura_testata}`
+        : `La risposta corretta è "${l.risposta_corretta}" (${l.struttura_testata})`
+    }
+  })
+  const punteggio = risultati.filter((r) => r.corretto).length
+  return { risultati, punteggio }
+}
+
+// ---------------------------------------------------------------------------
+// TIPO 8 — Scelta multipla morfosintattica ⭐ formato CILS B1: frasi
+// isolate, ciascuna testa una struttura specifica del sílabo B1 con 4
+// opzioni (articoli, forme verbali, pronomi, concordanza, ecc.).
+// Le opzioni sbagliate devono essere errori tipici dei learner B1 italiani.
+// ---------------------------------------------------------------------------
+
+export const sceltaMorfosintSchema = z.object({
+  domande: z.array(
+    z.object({
+      id: z.string(),
+      frase_con_buco: z.string(),
+      opzioni: z.array(z.string()).length(4),
+      risposta_corretta: z.string(),
+      struttura_testata: z.string()
+    })
+  ).min(8).max(10)
+})
+
+export type SceltaMorfosint = z.infer<typeof sceltaMorfosintSchema>
+
+export async function generateEsercizioStruttura8(livello: string): Promise<SceltaMorfosint> {
+  const prompt = `Genera 10 domande a scelta multipla morfosintattiche in
+italiano per uno studente di livello ${livello} che si prepara a superare
+standard internazionali di lingua italiana.
+
+Formato esatto per ogni domanda:
+- Una frase con un buco contrassegnato da ___
+- 4 opzioni (lettere A/B/C/D come testo dell'opzione, non come etichetta)
+- Una sola risposta corretta
+- Le opzioni sbagliate devono essere errori tipici dei learner (non ovviamente
+  sbagliate)
+- Ogni domanda deve testare UNA struttura diversa del sílabo B1
+
+${STRUTTURE_B1}
+
+Copri strutture diverse nelle 10 domande: non ripetere mai la stessa struttura.
+${descrizioneLivelloGenerazione(livello)}
+
+Non menzionare mai nomi di certificazioni specifiche.`
+
+  const raw = await generateStructuredContent({
+    prompt,
+    responseSchema: zodToGeminiSchema(sceltaMorfosintSchema),
+    temperature: 0.65
+  })
+  const parsed = sceltaMorfosintSchema.safeParse(raw)
+  if (!parsed.success) throw new Error(`Risposta di Gemini non valida: ${parsed.error.message}`)
+  return parsed.data
+}
+
+export function evaluateEsercizioStruttura8(
+  domande: SceltaMorfosint['domande'],
+  risposte: { id: string; opzione_scelta: string }[]
+): ValutazioneCloze {
+  const risultati = domande.map((d, i) => {
+    const r = risposte.find((x) => x.id === d.id)
+    const corretto =
+      (r?.opzione_scelta ?? '').trim().toLowerCase() ===
+      d.risposta_corretta.trim().toLowerCase()
+    return {
+      numero: i + 1,
+      corretto,
+      risposta_corretta: d.risposta_corretta,
+      risposta_studente: r?.opzione_scelta ?? '',
+      struttura_testata: d.struttura_testata,
+      feedback: corretto
+        ? `Corretto — ${d.struttura_testata}`
+        : `La risposta corretta è "${d.risposta_corretta}" (${d.struttura_testata})`
+    }
+  })
+  const punteggio = risultati.filter((r) => r.corretto).length
+  return { risultati, punteggio }
+}
