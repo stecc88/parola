@@ -83,7 +83,9 @@ ${frasi
   .join('\n')}
 
 Per ogni frase indica se è corretta, qual è la risposta corretta, e un
-breve feedback didattico.`
+feedback didattico di 2-3 frasi: spiega la struttura grammaticale o
+lessicale applicata; se la risposta è sbagliata, descrivi l'errore e
+fornisci la regola con un esempio o trucco mnemonico per ricordarlo.`
 
   const raw = await generateStructuredContent({
     prompt,
@@ -153,7 +155,9 @@ ${frasi
   .join('\n')}
 
 Per ogni frase indica se è corretta, qual è (una) frase corretta possibile,
-e un breve feedback didattico.`
+e un feedback didattico di 2-3 frasi: spiega l'ordine sintattico corretto
+e la regola che lo governa (posizione clitici, aggettivi, avverbi); se
+sbagliata, indica quale elemento era fuori posto e perché.`
 
   const raw = await generateStructuredContent({
     prompt,
@@ -218,8 +222,10 @@ ${domande
   })
   .join('\n')}
 
-Per ogni domanda indica se è corretta, qual è l'opzione corretta, e un breve
-feedback didattico che spiega perché.`
+Per ogni domanda indica se è corretta, qual è l'opzione corretta, e un
+feedback didattico di 2-3 frasi: spiega la collocazione preposizionale
+corretta (es. "dipendere DA", "pensare A") e il motivo linguistico; se
+sbagliata, contrasta con l'opzione scelta dallo studente.`
 
   const raw = await generateStructuredContent({
     prompt,
@@ -283,7 +289,9 @@ ${frasi
   .join('\n')}
 
 Per ogni frase indica se è corretta, qual è una trasformazione corretta
-possibile, e un breve feedback didattico.`
+possibile, e un feedback didattico di 2-3 frasi: spiega la struttura
+grammaticale applicata (tempo verbale, modo, concordanza); se sbagliata,
+descrivi l'errore specifico e la regola per correggerlo.`
 
   const raw = await generateStructuredContent({
     prompt,
@@ -361,9 +369,10 @@ ${domande
   })
   .join('\n')}
 
-Per ogni domanda indica se è corretta, qual è l'opzione corretta, e un breve
-feedback didattico che spiega la differenza di significato/uso tra
-l'opzione corretta e quella scelta (se diversa).`
+Per ogni domanda indica se è corretta, qual è l'opzione corretta, e un
+feedback didattico di 2-3 frasi: spiega il significato esatto della
+parola corretta nel contesto; se sbagliata, spiega perché l'opzione
+scelta non funziona (registro, collocazione, sfumatura semantica).`
 
   const raw = await generateStructuredContent({
     prompt,
@@ -438,9 +447,11 @@ ${domande
   })
   .join('\n')}
 
-Per ogni domanda indica se è corretta, qual è l'opzione corretta, e un breve
-feedback didattico che spiega cosa rendeva plausibile/implausibile ogni
-opzione.`
+Per ogni domanda indica se è corretta, qual è l'opzione corretta, e un
+feedback didattico di 2-3 frasi: spiega gli elementi pragmatici che
+identificano la situazione giusta (chi parla, a chi, tramite quale mezzo,
+in quale contesto); se sbagliata, spiega quale dettaglio smontava l'opzione
+scelta dallo studente.`
 
   const raw = await generateStructuredContent({
     prompt,
@@ -483,7 +494,8 @@ export const clozeTestoSchema = z.object({
       numero: z.number().int().min(1),
       opzioni: z.array(z.string()).length(4),
       risposta_corretta: z.string(),
-      struttura_testata: z.string()
+      struttura_testata: z.string(),
+      spiegazione: z.string()
     })
   ).min(8).max(10)
 })
@@ -501,7 +513,10 @@ Formato esatto:
 2. 10 lacune numerate nel testo marcate come [1], [2], ..., [10]
 3. Per ogni lacuna: 4 opzioni morfosintattiche (una sola corretta, le altre
    devono essere errori tipici e plausibili — mai opzioni ovviamente sbagliate)
-4. Per ogni lacuna indica quale struttura del sílabo B1 viene testata
+4. Per ogni lacuna indica:
+   - quale struttura del sílabo B1 viene testata (campo struttura_testata)
+   - una spiegazione grammaticale di 1-2 frasi: enuncia la regola applicata
+     e spiega perché le altre opzioni sono errate (campo spiegazione)
 
 ${STRUTTURE_B1}
 
@@ -552,8 +567,8 @@ export function evaluateEsercizioStruttura7(
       risposta_studente: r?.opzione_scelta ?? '',
       struttura_testata: l.struttura_testata,
       feedback: corretto
-        ? `Corretto — ${l.struttura_testata}`
-        : `La risposta corretta è "${l.risposta_corretta}" (${l.struttura_testata})`
+        ? `✓ ${l.spiegazione}`
+        : `La risposta corretta è "${l.risposta_corretta}". ${l.spiegazione}`
     }
   })
   const punteggio = risultati.filter((r) => r.corretto).length
@@ -574,7 +589,8 @@ export const sceltaMorfosintSchema = z.object({
       frase_con_buco: z.string(),
       opzioni: z.array(z.string()).length(4),
       risposta_corretta: z.string(),
-      struttura_testata: z.string()
+      struttura_testata: z.string(),
+      spiegazione: z.string()
     })
   ).min(8).max(10)
 })
@@ -593,6 +609,9 @@ Formato esatto per ogni domanda:
 - Le opzioni sbagliate devono essere errori tipici dei learner (non ovviamente
   sbagliate)
 - Ogni domanda deve testare UNA struttura diversa del sílabo B1
+- Per ogni domanda includi una spiegazione grammaticale di 1-2 frasi
+  (campo spiegazione): enuncia la regola, spiega perché la risposta corretta
+  è quella e cosa rende le altre opzioni sbagliate
 
 ${STRUTTURE_B1}
 
@@ -627,8 +646,8 @@ export function evaluateEsercizioStruttura8(
       risposta_studente: r?.opzione_scelta ?? '',
       struttura_testata: d.struttura_testata,
       feedback: corretto
-        ? `Corretto — ${d.struttura_testata}`
-        : `La risposta corretta è "${d.risposta_corretta}" (${d.struttura_testata})`
+        ? `✓ ${d.spiegazione}`
+        : `La risposta corretta è "${d.risposta_corretta}". ${d.spiegazione}`
     }
   })
   const punteggio = risultati.filter((r) => r.corretto).length
@@ -806,8 +825,10 @@ ${lacune
   .join('\n')}
 
 Per ogni lacuna restituisci: numero, se è corretta, la forma corretta,
-la risposta dello studente, il modo/tempo, e un feedback didattico breve
-in italiano che spiega il perché se sbagliata.
+la risposta dello studente, il modo/tempo, e un feedback didattico di
+2-3 frasi in italiano: spiega il modo/tempo corretto e il criterio di
+scelta (azione completata vs in corso, anteriorità, ipotesi...); se
+sbagliata, contrasta con la forma dello studente e spiega la differenza.
 Il campo punteggio è il numero totale di risposte corrette (max ${lacune.length}).`
 
   const raw = await generateStructuredContent({
@@ -834,7 +855,8 @@ export const clozeTestoB2Schema = z.object({
       numero: z.number().int().min(0),
       opzioni: z.array(z.string()).min(2),
       risposta_corretta: z.string(),
-      campo_semantico: z.string()
+      campo_semantico: z.string(),
+      spiegazione: z.string()
     })
   ).min(8)
 })
@@ -852,7 +874,10 @@ Formato (fedele alla Prova N.3 dell'esame B1):
 2. 12 lacune numerate da [0] a [11] nel testo.
 3. Per ogni lacuna: esattamente 4 opzioni lessicali (stesso campo semantico,
    una sola corretta, le altre plausibili ma errate nel contesto).
-4. Per ogni lacuna indica il campo semantico testato.
+4. Per ogni lacuna indica il campo semantico testato e una spiegazione
+   lessicale di 1-2 frasi (campo spiegazione): spiega il significato
+   preciso della parola corretta e perché le altre non si adattano al
+   contesto (differenza semantica, collocazione o registro).
 
 Il vocabolario deve essere livello B1: parole di uso comune e frequente,
 non rare né troppo elementari. Evita tecnicismi e lessico specialistico.
@@ -883,8 +908,8 @@ export function evaluateEsercizioStruttura11(
       risposta_studente: r?.opzione_scelta ?? '',
       struttura_testata: l.campo_semantico,
       feedback: corretto
-        ? `Corretto — ${l.campo_semantico}`
-        : `La risposta corretta è "${l.risposta_corretta}" (${l.campo_semantico})`
+        ? `✓ ${l.spiegazione}`
+        : `La risposta corretta è "${l.risposta_corretta}". ${l.spiegazione}`
     }
   })
   return { risultati, punteggio: risultati.filter((r) => r.corretto).length }
@@ -1004,7 +1029,10 @@ ${lacune
   .join('\n')}
 
 Restituisci per ogni lacuna: numero, corretto, risposta_corretta,
-risposta_studente, tipo, feedback didattico breve in italiano.
+risposta_studente, tipo, feedback didattico di 2-3 frasi in italiano:
+spiega la funzione grammaticale del pronome/aggettivo corretto; se
+sbagliato, spiega la differenza tra la forma scelta e quella corretta
+(es. atono vs tonico, oggetto diretto vs indiretto, combinazione errata).
 Il campo punteggio è il totale corretto (max ${lacune.length}).`
 
   const raw = await generateStructuredContent({
@@ -1067,7 +1095,10 @@ ${lacune
   .join('\n')}
 
 Per ogni lacuna restituisci: numero, corretto, risposta_corretta,
-risposta_studente, modo_tempo, feedback didattico breve in italiano.
+risposta_studente, modo_tempo, feedback didattico di 2-3 frasi in
+italiano: spiega il modo/tempo corretto e la regola che lo richiede
+(consecutio, aspetto verbale, sfumatura modale); se sbagliato, contrasta
+con la forma dello studente e fornisci l'esempio corretto.
 Il campo punteggio è il totale corretto (max ${lacune.length}).`
 
   const raw = await generateStructuredContent({
@@ -1098,7 +1129,10 @@ Formato (fedele alla Prova N.3 dell'esame B2):
 3. Per ogni lacuna: esattamente 4 opzioni lessicali — una corretta, le
    altre plausibili ma sbagliate nel contesto (sinonimi parziali, false
    analogie, parole con radice simile).
-4. Indica il campo semantico testato per ogni lacuna.
+4. Indica il campo semantico testato per ogni lacuna e una spiegazione
+   lessicale di 1-2 frasi (campo spiegazione): spiega il significato
+   esatto della parola corretta nel contesto e la differenza rispetto
+   alle opzioni sbagliate (registro, collocazione, sfumatura semantica).
 
 Vocabolario B2: lessico specifico e registri variati, collocazioni,
 verbi frasali, espressioni idiomatiche di uso comune.
@@ -1262,8 +1296,11 @@ ${lacune
     .join('\n')}
 
 Per ogni lacuna restituisci: numero, corretto, risposta_corretta,
-risposta_studente, modo_tempo, feedback didattico breve in italiano che
-spiega la scelta corretta (costruzione, struttura, valore semantico).
+risposta_studente, modo_tempo, feedback didattico di 2-3 frasi in
+italiano: spiega la costruzione C1 corretta (gerundio passato, congiuntivo
+trapassato, passiva con venire/andare, participio assoluto...) e il valore
+semantico che esprime; se sbagliato, indica l'errore e la regola con un
+esempio alternativo per consolidare.
 Il campo punteggio è il totale corretto (max ${lacune.length}).`
 
   const raw = await generateStructuredContent({
@@ -1369,8 +1406,11 @@ ${lacune
     .join('\n')}
 
 Per ogni lacuna restituisci: numero, corretto, risposta_corretta,
-risposta_studente, struttura, feedback didattico breve in italiano
-che spiega la funzione della struttura corretta.
+risposta_studente, struttura, feedback didattico di 2-3 frasi in
+italiano: spiega la funzione discorsiva/sintattica della struttura
+corretta (connettivo di concessione, pronome relativo complesso,
+nominalizzazione...); se sbagliata, spiega perché l'opzione dello
+studente non funziona in quel contesto.
 Il campo punteggio è il totale corretto (max ${lacune.length}).`
 
   const raw = await generateStructuredContent({
@@ -1406,7 +1446,10 @@ Formato (fedele alla Prova N.3 dell'esame C1):
    - connettivi con sfumatura diversa (tuttavia vs eppure vs invece)
    - morfologia avanzata (nominalizzazioni, derivazioni)
    - preposizioni in frasi idiomatiche e reggenze verbali
-4. Indica il campo semantico/struttura testata per ogni lacuna.
+4. Indica il campo semantico/struttura testata per ogni lacuna e una
+   spiegazione di 1-2 frasi (campo spiegazione): spiega la distinzione
+   C1 in gioco (registro, collocazione, sfumatura) e perché la risposta
+   corretta è l'unica appropriata nel contesto.
 
 ${STRUTTURE_C1}
 
@@ -1534,7 +1577,10 @@ ${frasi
 
 Per ogni frase restituisci: id, corretto, risposta_corretta (quella
 di esempio o migliore), risposta_studente, struttura_da_usare, feedback
-didattico che spiega come applicare la struttura richiesta.
+didattico di 2-3 frasi in italiano: spiega la regola sintattica della
+struttura richiesta (passivo, discorso indiretto, nominalizzazione...);
+se sbagliata, indica dove si è perso il significato o la struttura e
+fornisci un esempio che mostra come applicarla correttamente.
 Il campo punteggio è il totale corretto (max ${frasi.length}).`
 
   const raw = await generateStructuredContent({
