@@ -13,6 +13,9 @@ import { Esercizio5 } from './Esercizio5'
 import { Esercizio6 } from './Esercizio6'
 import { Esercizio7 } from './Esercizio7'
 import { Esercizio8 } from './Esercizio8'
+import { Esercizio9 } from './Esercizio9'
+import { Esercizio10 } from './Esercizio10'
+import { Esercizio11 } from './Esercizio11'
 
 const NAV_ITEMS = [
   { href: '/student/progress', label: 'I miei progressi' },
@@ -31,7 +34,10 @@ const TIPI = [
   { id: 5, label: 'Completamento lessicale' },
   { id: 6, label: 'Situazioni comunicative' },
   { id: 7, label: 'Cloze su testo (B1)' },
-  { id: 8, label: 'Scelta multipla morfosintattica (B1)' }
+  { id: 8, label: 'Scelta multipla morfosintattica (B1)' },
+  { id: 9, label: 'Articoli e preposizioni (B2)' },
+  { id: 10, label: 'Cloze verbi (B2)' },
+  { id: 11, label: 'Cloze lessicale (B2)' }
 ] as const
 
 export default function ExercisesPage() {
@@ -49,7 +55,7 @@ export default function ExercisesPage() {
                 Esercizi di analisi delle strutture
               </h1>
               <p className="text-sm text-ink-secondary">
-                8 tipi di esercizio, incluso il formato B1.
+                11 tipi di esercizio, formati B1 e B2.
               </p>
             </div>
           </div>
@@ -81,6 +87,9 @@ export default function ExercisesPage() {
         {tipo === 6 && <Esercizio6 key="6" />}
         {tipo === 7 && <Esercizio7 key="7" />}
         {tipo === 8 && <Esercizio8 key="8" />}
+        {tipo === 9 && <Esercizio9 key="9" />}
+        {tipo === 10 && <Esercizio10 key="10" />}
+        {tipo === 11 && <Esercizio11 key="11" />}
       </main>
     </>
   )
