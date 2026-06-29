@@ -27,6 +27,14 @@ import {
   evaluateEsercizioStruttura10,
   generateEsercizioStruttura11,
   evaluateEsercizioStruttura11,
+  generateEsercizioStruttura12,
+  evaluateEsercizioStruttura12,
+  generateEsercizioStruttura13,
+  evaluateEsercizioStruttura13,
+  generateEsercizioStruttura14,
+  evaluateEsercizioStruttura14,
+  generateEsercizioStruttura15,
+  evaluateEsercizioStruttura15,
   type FraseDaCompletare,
   type FrasiDaRiordinare,
   type DomandePreposizione,
@@ -40,7 +48,10 @@ import {
   type ClozePrepArticoli,
   type ClozeVerbi,
   type ValutazioneClozeVerbi,
-  type ClozeTestoB2
+  type ClozeTestoB2,
+  type ClozePronomiB2,
+  type ValutazioneClozePronomi,
+  type SituazioniB2
 } from '@/lib/gemini/prompts/struttura'
 
 async function requireStudentAndCheckLimit(): Promise<string> {
@@ -286,6 +297,108 @@ export async function submitEsercizio11(
       student_id: userData.user.id,
       tipo: 'esercizio_struttura_11',
       testo_studente: risposte.map((r) => `[${r.numero}]: ${r.opzione_scelta}`).join(' | '),
+      valutazione_ia: valutazione,
+      valutazione_completed_at: new Date().toISOString()
+    })
+  }
+  return valutazione
+}
+
+// B2 actions
+
+export async function startEsercizio12(): Promise<ClozePronomiB2> {
+  await requireStudentAndCheckLimit()
+  return generateEsercizioStruttura12(await getLivelloTarget())
+}
+
+export async function submitEsercizio12(
+  esercizio: ClozePronomiB2,
+  risposte: { numero: number; risposta: string }[]
+): Promise<ValutazioneClozePronomi> {
+  await requireApprovedStudentActionUserId()
+  const valutazione = await evaluateEsercizioStruttura12(esercizio.lacune, risposte)
+  const supabase = createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (userData.user) {
+    await supabase.from('submissions').insert({
+      student_id: userData.user.id,
+      tipo: 'esercizio_struttura_12',
+      testo_studente: risposte.map((r) => `[${r.numero}]: ${r.risposta}`).join(' | '),
+      valutazione_ia: valutazione,
+      valutazione_completed_at: new Date().toISOString()
+    })
+  }
+  return valutazione
+}
+
+export async function startEsercizio13(): Promise<ClozeVerbi> {
+  await requireStudentAndCheckLimit()
+  return generateEsercizioStruttura13(await getLivelloTarget())
+}
+
+export async function submitEsercizio13(
+  esercizio: ClozeVerbi,
+  risposte: { numero: number; risposta: string }[]
+): Promise<ValutazioneClozeVerbi> {
+  await requireApprovedStudentActionUserId()
+  const valutazione = await evaluateEsercizioStruttura13(esercizio.lacune, risposte)
+  const supabase = createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (userData.user) {
+    await supabase.from('submissions').insert({
+      student_id: userData.user.id,
+      tipo: 'esercizio_struttura_13',
+      testo_studente: risposte.map((r) => `[${r.numero}]: ${r.risposta}`).join(' | '),
+      valutazione_ia: valutazione,
+      valutazione_completed_at: new Date().toISOString()
+    })
+  }
+  return valutazione
+}
+
+export async function startEsercizio14(): Promise<ClozeTestoB2> {
+  await requireStudentAndCheckLimit()
+  return generateEsercizioStruttura14(await getLivelloTarget())
+}
+
+export async function submitEsercizio14(
+  esercizio: ClozeTestoB2,
+  risposte: { numero: number; opzione_scelta: string }[]
+): Promise<ValutazioneCloze> {
+  await requireApprovedStudentActionUserId()
+  const valutazione = evaluateEsercizioStruttura14(esercizio.lacune, risposte)
+  const supabase = createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (userData.user) {
+    await supabase.from('submissions').insert({
+      student_id: userData.user.id,
+      tipo: 'esercizio_struttura_14',
+      testo_studente: risposte.map((r) => `[${r.numero}]: ${r.opzione_scelta}`).join(' | '),
+      valutazione_ia: valutazione,
+      valutazione_completed_at: new Date().toISOString()
+    })
+  }
+  return valutazione
+}
+
+export async function startEsercizio15(): Promise<SituazioniB2> {
+  await requireStudentAndCheckLimit()
+  return generateEsercizioStruttura15(await getLivelloTarget())
+}
+
+export async function submitEsercizio15(
+  esercizio: SituazioniB2,
+  risposte: { id: string; opzione_scelta: string }[]
+): Promise<ValutazioneCloze> {
+  await requireApprovedStudentActionUserId()
+  const valutazione = evaluateEsercizioStruttura15(esercizio.domande, risposte)
+  const supabase = createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (userData.user) {
+    await supabase.from('submissions').insert({
+      student_id: userData.user.id,
+      tipo: 'esercizio_struttura_15',
+      testo_studente: risposte.map((r) => `${r.id}: ${r.opzione_scelta}`).join(' | '),
       valutazione_ia: valutazione,
       valutazione_completed_at: new Date().toISOString()
     })

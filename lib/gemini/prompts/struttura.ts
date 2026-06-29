@@ -889,3 +889,307 @@ export function evaluateEsercizioStruttura11(
   })
   return { risultati, punteggio: risultati.filter((r) => r.corretto).length }
 }
+
+// ---------------------------------------------------------------------------
+// Sillabo B2 ufficiale
+// ---------------------------------------------------------------------------
+
+const STRUTTURE_B2 = `Strutture morfosintattiche del sillabo B2 da rispettare
+(includono tutto il B1 più):
+
+Morfologia pronominale:
+- pronomi allocutivi (Lei formale)
+- pronomi e aggettivi indefiniti (chiunque, qualsiasi, alcuno, nessuno...)
+- pronomi combinati (me lo, glielo, ce ne, ve lo...)
+- particelle pronominali ci e ne
+
+Morfologia verbale — TUTTI questi modi e tempi:
+- indicativo presente, passato prossimo, imperfetto, passato remoto,
+  trapassato prossimo, futuro semplice, futuro anteriore
+- condizionale presente e passato
+- congiuntivo presente e imperfetto
+- infinito presente e passato
+- imperativo
+- forma passiva (essere + participio passato)
+- verbi impersonali (bisogna, occorre, capita, sembra, pare, basta)
+
+Sintassi:
+- avverbi di giudizio e dubbio (forse, probabilmente, certamente, quasi, purtroppo)
+- proposizioni coordinate disgiuntive (o, oppure), conclusive (quindi, perciò,
+  dunque), correlative (sia... sia, né... né, o... o)
+- proposizioni subordinate: soggettive (è bello che + congiuntivo), finali
+  (affinché, perché + congiuntivo), comparative (come se + congiuntivo),
+  condizionali ipotesi reale (se + indicativo), concessive esplicite
+  (anche se, sebbene + congiuntivo), consecutive (così... che, tanto... da),
+  temporali implicite (prima di, dopo, nel + infinito)`
+
+// ---------------------------------------------------------------------------
+// TIPO 12 — Cloze pronomi e aggettivi B2 ⭐ Prova N.1
+// ---------------------------------------------------------------------------
+
+export const clozePronomiB2Schema = z.object({
+  titolo: z.string(),
+  testo_con_lacune: z.string(),
+  lacune: z.array(
+    z.object({
+      numero: z.number().int().min(1),
+      risposta_corretta: z.string(),
+      tipo: z.string(),
+      spiegazione: z.string()
+    })
+  ).min(8)
+})
+
+export type ClozePronomiB2 = z.infer<typeof clozePronomiB2Schema>
+
+const valutazioneClozePronomiSchema = z.object({
+  risultati: z.array(
+    z.object({
+      numero: z.number(),
+      corretto: z.boolean(),
+      risposta_corretta: z.string(),
+      risposta_studente: z.string(),
+      tipo: z.string(),
+      feedback: z.string()
+    })
+  ),
+  punteggio: z.number().int().min(0)
+})
+
+export type ValutazioneClozePronomi = z.infer<typeof valutazioneClozePronomiSchema>
+
+export async function generateEsercizioStruttura12(livello: string): Promise<ClozePronomiB2> {
+  const prompt = `Genera un esercizio di cloze su pronomi e aggettivi in
+italiano per uno studente di livello ${livello} B2 che si prepara a superare
+standard internazionali di lingua italiana.
+
+Formato (fedele alla Prova N.1 dell'esame B2):
+1. Un brano narrativo di 160-200 parole (storia di una persona, articolo
+   di cronaca, esperienza personale) con registro medio-alto.
+2. 12 lacune numerate marcate come [N]. Ogni lacuna richiede uno tra:
+   pronome personale atono (lo, la, gli, ci, ne, si...), pronome tonico
+   (lui, lei, sé...), pronome combinato (me lo, glielo, ce ne...),
+   aggettivo/pronome possessivo, dimostrativo, relativo o indefinito.
+3. Per ogni lacuna indica: numero, risposta_corretta, tipo (es. "pronome
+   atono oggetto diretto"), spiegazione grammaticale breve.
+
+Varia i tipi: almeno 4 pronomi atoni, 3 possessivi, 2 combinati,
+2 relativi, 1 indefinito.
+Non menzionare mai nomi di certificazioni specifiche.`
+
+  const raw = await generateStructuredContent({
+    prompt,
+    responseSchema: zodToGeminiSchema(clozePronomiB2Schema),
+    temperature: 0.55
+  })
+  const parsed = clozePronomiB2Schema.safeParse(raw)
+  if (!parsed.success) throw new Error(`Risposta di Gemini non valida: ${parsed.error.message}`)
+  return parsed.data
+}
+
+export async function evaluateEsercizioStruttura12(
+  lacune: ClozePronomiB2['lacune'],
+  risposte: { numero: number; risposta: string }[]
+): Promise<ValutazioneClozePronomi> {
+  const prompt = `Valuta le risposte di uno studente a un esercizio di cloze
+su pronomi e aggettivi in italiano livello B2. Accetta varianti
+grammaticalmente equivalenti (es. "a lui" = "gli").
+
+Lacune e risposte:
+${lacune
+  .map((l) => {
+    const r = risposte.find((x) => x.numero === l.numero)
+    return `[${l.numero}] tipo:"${l.tipo}" | atteso:"${l.risposta_corretta}" | studente:"${r?.risposta ?? ''}"`
+  })
+  .join('\n')}
+
+Restituisci per ogni lacuna: numero, corretto, risposta_corretta,
+risposta_studente, tipo, feedback didattico breve in italiano.
+Il campo punteggio è il totale corretto (max ${lacune.length}).`
+
+  const raw = await generateStructuredContent({
+    prompt,
+    responseSchema: zodToGeminiSchema(valutazioneClozePronomiSchema),
+    temperature: 0.1
+  })
+  const parsed = valutazioneClozePronomiSchema.safeParse(raw)
+  if (!parsed.success) throw new Error(`Valutazione non valida: ${parsed.error.message}`)
+  return parsed.data
+}
+
+// ---------------------------------------------------------------------------
+// TIPO 13 — Cloze verbi B2 ⭐ Prova N.2
+// Stesso formato di E10 ma con TUTTI i tempi del sillabo B2.
+// ---------------------------------------------------------------------------
+
+export async function generateEsercizioStruttura13(livello: string): Promise<ClozeVerbi> {
+  const prompt = `Genera un esercizio di cloze sui verbi in italiano per uno
+studente di livello ${livello} B2 che si prepara a superare standard
+internazionali di lingua italiana.
+
+Formato (fedele alla Prova N.2 dell'esame B2):
+1. Un brano narrativo/descrittivo di 150-180 parole su un evento culturale,
+   tradizione o articolo di attualità italiana.
+2. 12 lacune marcate come "(infinito) [N]" nel testo.
+3. Per ogni lacuna: numero, infinito, risposta_corretta, modo_tempo, persona.
+
+Usa la varietà B2 — almeno:
+- 2 passato remoto, 2 congiuntivo (presente o imperfetto),
+- 2 futuro (semplice o anteriore), 2 condizionale (presente o passato),
+- 2 imperfetto o trapassato, 2 presente indicativo.
+Includi verbi irregolari e passiva (essere + participio).
+Non menzionare mai nomi di certificazioni specifiche.`
+
+  const raw = await generateStructuredContent({
+    prompt,
+    responseSchema: zodToGeminiSchema(clozeVerbiSchema),
+    temperature: 0.6
+  })
+  const parsed = clozeVerbiSchema.safeParse(raw)
+  if (!parsed.success) throw new Error(`Risposta di Gemini non valida: ${parsed.error.message}`)
+  return parsed.data
+}
+
+export async function evaluateEsercizioStruttura13(
+  lacune: ClozeVerbi['lacune'],
+  risposte: { numero: number; risposta: string }[]
+): Promise<ValutazioneClozeVerbi> {
+  const prompt = `Valuta le risposte di uno studente a un esercizio di
+cloze verbale in italiano livello B2. Accetta varianti ortografiche minori
+e forme grammaticalmente equivalenti nel contesto.
+
+Lacune e risposte:
+${lacune
+  .map((l) => {
+    const r = risposte.find((x) => x.numero === l.numero)
+    return `[${l.numero}] infinito:"${l.infinito}" | atteso:"${l.risposta_corretta}" (${l.modo_tempo}, ${l.persona}) | studente:"${r?.risposta ?? ''}"`
+  })
+  .join('\n')}
+
+Per ogni lacuna restituisci: numero, corretto, risposta_corretta,
+risposta_studente, modo_tempo, feedback didattico breve in italiano.
+Il campo punteggio è il totale corretto (max ${lacune.length}).`
+
+  const raw = await generateStructuredContent({
+    prompt,
+    responseSchema: zodToGeminiSchema(valutazioneClozeVerbiSchema),
+    temperature: 0.1
+  })
+  const parsed = valutazioneClozeVerbiSchema.safeParse(raw)
+  if (!parsed.success) throw new Error(`Valutazione non valida: ${parsed.error.message}`)
+  return parsed.data
+}
+
+// ---------------------------------------------------------------------------
+// TIPO 14 — Cloze lessicale scelta multipla B2 ⭐ Prova N.3
+// Stesso schema di E11 ma con vocabolario e contenuti B2.
+// ---------------------------------------------------------------------------
+
+export async function generateEsercizioStruttura14(livello: string): Promise<ClozeTestoB2> {
+  const prompt = `Genera un esercizio di cloze lessicale a scelta multipla
+in italiano per uno studente di livello ${livello} B2 che si prepara a
+superare standard internazionali di lingua italiana.
+
+Formato (fedele alla Prova N.3 dell'esame B2):
+1. Un brano di 180-220 parole su un argomento culturale, tecnologico o
+   di attualità italiana (storia recente, innovazione, media, economia,
+   tradizioni). Usa registro medio-alto con strutture sintattiche complesse.
+2. 12 lacune numerate da [0] a [11] nel testo.
+3. Per ogni lacuna: esattamente 4 opzioni lessicali — una corretta, le
+   altre plausibili ma sbagliate nel contesto (sinonimi parziali, false
+   analogie, parole con radice simile).
+4. Indica il campo semantico testato per ogni lacuna.
+
+Vocabolario B2: lessico specifico e registri variati, collocazioni,
+verbi frasali, espressioni idiomatiche di uso comune.
+Non menzionare mai nomi di certificazioni specifiche.`
+
+  const raw = await generateStructuredContent({
+    prompt,
+    responseSchema: zodToGeminiSchema(clozeTestoB2Schema),
+    temperature: 0.6
+  })
+  const parsed = clozeTestoB2Schema.safeParse(raw)
+  if (!parsed.success) throw new Error(`Risposta di Gemini non valida: ${parsed.error.message}`)
+  return parsed.data
+}
+
+export function evaluateEsercizioStruttura14(
+  lacune: ClozeTestoB2['lacune'],
+  risposte: { numero: number; opzione_scelta: string }[]
+): ValutazioneCloze {
+  return evaluateEsercizioStruttura11(lacune, risposte)
+}
+
+// ---------------------------------------------------------------------------
+// TIPO 15 — Situazioni comunicative B2 ⭐ Prova N.4
+// Dato un testo/espressione, scegliere la situazione comunicativa corretta.
+// Schema con risposta_corretta → valutazione deterministica.
+// ---------------------------------------------------------------------------
+
+export const situazioniB2Schema = z.object({
+  domande: z.array(
+    z.object({
+      id: z.string(),
+      espressione: z.string(),
+      opzioni: z.array(z.string()).min(2),
+      risposta_corretta: z.string(),
+      spiegazione: z.string()
+    })
+  ).min(6)
+})
+
+export type SituazioniB2 = z.infer<typeof situazioniB2Schema>
+
+export async function generateEsercizioStruttura15(livello: string): Promise<SituazioniB2> {
+  const prompt = `Genera un esercizio "situazioni comunicative" in italiano
+per uno studente di livello ${livello} B2 che si prepara a superare
+standard internazionali di lingua italiana.
+
+Formato (fedele alla Prova N.4 dell'esame B2):
+Genera 8 domande. Per ogni domanda:
+1. "espressione": un testo autentico di 2-5 righe (annuncio, SMS, email,
+   avviso, comunicato, cartello, messaggio vocale trascritto) con registro
+   variato (formale, informale, burocratico, commerciale).
+2. "opzioni": esattamente 4 descrizioni della situazione comunicativa —
+   chi parla/scrive, a chi, dove, tramite quale canale. Solo una corretta;
+   le altre sbagliate per un dettaglio specifico (persona, luogo, mezzo).
+3. "risposta_corretta": testo ESATTO dell'opzione corretta tra le 4.
+4. "spiegazione": perché quella è la situazione giusta.
+5. "id": "q1", "q2", ...
+
+Varia i contesti: negozio, ufficio, telefono, internet, aeroporto,
+ospedale, banca, università, famiglia, lavoro, media.
+Non menzionare mai nomi di certificazioni specifiche.`
+
+  const raw = await generateStructuredContent({
+    prompt,
+    responseSchema: zodToGeminiSchema(situazioniB2Schema),
+    temperature: 0.65
+  })
+  const parsed = situazioniB2Schema.safeParse(raw)
+  if (!parsed.success) throw new Error(`Risposta di Gemini non valida: ${parsed.error.message}`)
+  return parsed.data
+}
+
+export function evaluateEsercizioStruttura15(
+  domande: SituazioniB2['domande'],
+  risposte: { id: string; opzione_scelta: string }[]
+): ValutazioneCloze {
+  const normalize = (s: string) => s.trim().toLowerCase()
+  const risultati = domande.map((d, i) => {
+    const r = risposte.find((x) => x.id === d.id)
+    const corretto = normalize(r?.opzione_scelta ?? '') === normalize(d.risposta_corretta)
+    return {
+      numero: i + 1,
+      corretto,
+      risposta_corretta: d.risposta_corretta,
+      risposta_studente: r?.opzione_scelta ?? '',
+      struttura_testata: 'situazione comunicativa',
+      feedback: corretto
+        ? `Corretto. ${d.spiegazione}`
+        : `La risposta corretta è: "${d.risposta_corretta}". ${d.spiegazione}`
+    }
+  })
+  return { risultati, punteggio: risultati.filter((r) => r.corretto).length }
+}
