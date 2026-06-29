@@ -3,6 +3,13 @@ import { zodToGeminiSchema } from '../schema'
 import { z } from 'zod'
 import { descrizioneLivelloGenerazione } from '../cefrLevels'
 
+/** Sanitize a student answer before embedding in a prompt string.
+ *  Truncates and escapes double-quotes to prevent prompt injection. */
+function sa(text: string | null | undefined, max = 500): string {
+  if (!text) return ''
+  return text.slice(0, max).replace(/"/g, "'")
+}
+
 /**
  * Los 4 tipi di esercizio di analisi delle strutture (contrato definitivo):
  *
@@ -78,7 +85,7 @@ Frasi e risposte:
 ${frasi
   .map((f) => {
     const r = risposte.find((x) => x.id === f.id)
-    return `- "${f.testo_con_buco}" (${f.contesto_grammaticale}) → risposta dello studente: "${r?.risposta_studente ?? ''}"`
+    return `- "${f.testo_con_buco}" (${f.contesto_grammaticale}) → risposta dello studente: "${sa(r?.risposta_studente)}"`
   })
   .join('\n')}
 
@@ -150,7 +157,7 @@ Frasi e risposte:
 ${frasi
   .map((f) => {
     const r = risposte.find((x) => x.id === f.id)
-    return `- Parole date: [${f.parole_disordinate.join(', ')}] (${f.contesto_grammaticale}) → ordine dello studente: "${r?.ordine_studente.join(' ') ?? ''}"`
+    return `- Parole date: [${f.parole_disordinate.join(', ')}] (${f.contesto_grammaticale}) → ordine dello studente: "${sa(r?.ordine_studente?.join(' '), 200)}"`
   })
   .join('\n')}
 
@@ -218,7 +225,7 @@ Domande e risposte:
 ${domande
   .map((d) => {
     const r = risposte.find((x) => x.id === d.id)
-    return `- "${d.testo_con_buco}" opzioni: [${d.opzioni.join(', ')}] → scelta dello studente: "${r?.opzione_scelta ?? ''}"`
+    return `- "${d.testo_con_buco}" opzioni: [${d.opzioni.join(', ')}] → scelta dello studente: "${sa(r?.opzione_scelta, 200)}"`
   })
   .join('\n')}
 
@@ -284,7 +291,7 @@ Frasi e risposte:
 ${frasi
   .map((f) => {
     const r = risposte.find((x) => x.id === f.id)
-    return `- "${f.frase_originale}" (${f.istruzione}) → risposta dello studente: "${r?.frase_trasformata ?? ''}"`
+    return `- "${f.frase_originale}" (${f.istruzione}) → risposta dello studente: "${sa(r?.frase_trasformata)}"`
   })
   .join('\n')}
 
@@ -365,7 +372,7 @@ Domande e risposte:
 ${domande
   .map((d) => {
     const r = risposte.find((x) => x.id === d.id)
-    return `- "${d.testo_con_buco}" opzioni: [${d.opzioni.join(', ')}] → scelta dello studente: "${r?.opzione_scelta ?? ''}"`
+    return `- "${d.testo_con_buco}" opzioni: [${d.opzioni.join(', ')}] → scelta dello studente: "${sa(r?.opzione_scelta, 200)}"`
   })
   .join('\n')}
 
@@ -443,7 +450,7 @@ Domande e risposte:
 ${domande
   .map((d) => {
     const r = risposte.find((x) => x.id === d.id)
-    return `- "${d.espressione}" opzioni: [${d.opzioni.join(', ')}] → scelta dello studente: "${r?.opzione_scelta ?? ''}"`
+    return `- "${d.espressione}" opzioni: [${d.opzioni.join(', ')}] → scelta dello studente: "${sa(r?.opzione_scelta, 200)}"`
   })
   .join('\n')}
 
@@ -820,7 +827,7 @@ Lacune e risposte:
 ${lacune
   .map((l) => {
     const r = risposte.find((x) => x.numero === l.numero)
-    return `[${l.numero}] infinito:"${l.infinito}" | atteso:"${l.risposta_corretta}" (${l.modo_tempo}, ${l.persona}) | studente:"${r?.risposta ?? ''}"`
+    return `[${l.numero}] infinito:"${l.infinito}" | atteso:"${l.risposta_corretta}" (${l.modo_tempo}, ${l.persona}) | studente:"${sa(r?.risposta, 200)}"`
   })
   .join('\n')}
 
@@ -1024,7 +1031,7 @@ Lacune e risposte:
 ${lacune
   .map((l) => {
     const r = risposte.find((x) => x.numero === l.numero)
-    return `[${l.numero}] tipo:"${l.tipo}" | atteso:"${l.risposta_corretta}" | studente:"${r?.risposta ?? ''}"`
+    return `[${l.numero}] tipo:"${l.tipo}" | atteso:"${l.risposta_corretta}" | studente:"${sa(r?.risposta, 200)}"`
   })
   .join('\n')}
 
@@ -1090,7 +1097,7 @@ Lacune e risposte:
 ${lacune
   .map((l) => {
     const r = risposte.find((x) => x.numero === l.numero)
-    return `[${l.numero}] infinito:"${l.infinito}" | atteso:"${l.risposta_corretta}" (${l.modo_tempo}, ${l.persona}) | studente:"${r?.risposta ?? ''}"`
+    return `[${l.numero}] infinito:"${l.infinito}" | atteso:"${l.risposta_corretta}" (${l.modo_tempo}, ${l.persona}) | studente:"${sa(r?.risposta, 200)}"`
   })
   .join('\n')}
 
@@ -1291,7 +1298,7 @@ Lacune e risposte:
 ${lacune
     .map((l) => {
       const r = risposte.find((x) => x.numero === l.numero)
-      return `[${l.numero}] infinito:"${l.infinito}" | atteso:"${l.risposta_corretta}" (${l.modo_tempo}, ${l.persona}) | studente:"${r?.risposta ?? ''}"`
+      return `[${l.numero}] infinito:"${l.infinito}" | atteso:"${l.risposta_corretta}" (${l.modo_tempo}, ${l.persona}) | studente:"${sa(r?.risposta, 200)}"`
     })
     .join('\n')}
 
@@ -1401,7 +1408,7 @@ Lacune e risposte:
 ${lacune
     .map((l) => {
       const r = risposte.find((x) => x.numero === l.numero)
-      return `[${l.numero}] struttura:"${l.struttura}" | atteso:"${l.risposta_corretta}" | studente:"${r?.risposta ?? ''}"`
+      return `[${l.numero}] struttura:"${l.struttura}" | atteso:"${l.risposta_corretta}" | studente:"${sa(r?.risposta, 200)}"`
     })
     .join('\n')}
 
@@ -1571,7 +1578,7 @@ ${frasi
   Inizio dato: "${f.inizio_dato}..."
   Struttura richiesta: ${f.struttura_da_usare}
   Esempio risposta: "${f.esempio_risposta}"
-  Risposta studente: "${r?.risposta_studente ?? ''}"`
+  Risposta studente: "${sa(r?.risposta_studente)}"`
     })
     .join('\n\n')}
 

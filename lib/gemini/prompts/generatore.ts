@@ -72,7 +72,7 @@ function buildPrompt(profilo: ProfiloDebolezzeStudente): string {
 
   const areeText =
     profilo.areeDiMiglioramento.length > 0
-      ? profilo.areeDiMiglioramento.map((a) => `- ${a}`).join('\n')
+      ? profilo.areeDiMiglioramento.map((a) => `- ${a.slice(0, 300).replace(/"/g, "'")}`).join('\n')
       : '- Nessuna area specifica rilevata ancora: genera un esercizio di ripasso generale adatto al livello.'
 
   const categorieText =
@@ -86,10 +86,12 @@ function buildPrompt(profilo: ProfiloDebolezzeStudente): string {
 dallo studente in un testo specifico appena analizzato. Questi sono gli errori reali
 (con spiegazione) che devono guidare la creazione dell'esercizio — usali come punto
 di partenza diretto per la teoria, gli esempi e le domande:\n${profilo.erroriSubmissionSpecifica
-          .map(
-            (e, i) =>
-              `${i + 1}. "${e.testo_originale}" → "${e.correzione}" [${e.categoria}]: ${e.spiegazione}`
-          )
+          .map((e, i) => {
+            const orig = e.testo_originale.slice(0, 300).replace(/"/g, "'")
+            const corr = e.correzione.slice(0, 300).replace(/"/g, "'")
+            const spiega = e.spiegazione.slice(0, 400).replace(/"/g, "'")
+            return `${i + 1}. "${orig}" → "${corr}" [${e.categoria}]: ${spiega}`
+          })
           .join('\n')}`
       : ''
 
