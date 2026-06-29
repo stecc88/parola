@@ -35,9 +35,9 @@ const TIPI = [
   { id: 6, label: 'Situazioni comunicative' },
   { id: 7, label: 'Cloze su testo (B1)' },
   { id: 8, label: 'Scelta multipla morfosintattica (B1)' },
-  { id: 9, label: 'Articoli e preposizioni (B2)' },
-  { id: 10, label: 'Cloze verbi (B2)' },
-  { id: 11, label: 'Cloze lessicale (B2)' }
+  { id: 9, label: 'Articoli e preposizioni (B1)' },
+  { id: 10, label: 'Cloze verbi (B1)' },
+  { id: 11, label: 'Cloze lessicale (B1)' }
 ] as const
 
 export default function ExercisesPage() {
@@ -55,7 +55,7 @@ export default function ExercisesPage() {
                 Esercizi di analisi delle strutture
               </h1>
               <p className="text-sm text-ink-secondary">
-                11 tipi di esercizio, formati B1 e B2.
+                11 tipi di esercizio — Formato B1.
               </p>
             </div>
           </div>

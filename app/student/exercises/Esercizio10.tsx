@@ -47,7 +47,7 @@ export function Esercizio10() {
   if (stato === 'idle') {
     return (
       <Card className="text-center">
-        <p className="mb-2 text-sm font-medium text-ink-primary">Cloze verbi su testo — Formato B2</p>
+        <p className="mb-2 text-sm font-medium text-ink-primary">Cloze verbi su testo — Formato B1</p>
         <p className="mb-4 text-sm text-ink-secondary">
           Un brano narrativo con ~13 lacune. Ogni lacuna mostra l'infinito tra parentesi: coniuga il verbo
           nel modo e tempo corretto in base al contesto.

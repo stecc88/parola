@@ -47,7 +47,7 @@ export function Esercizio11() {
   if (stato === 'idle') {
     return (
       <Card className="text-center">
-        <p className="mb-2 text-sm font-medium text-ink-primary">Cloze lessicale su testo — Formato B2</p>
+        <p className="mb-2 text-sm font-medium text-ink-primary">Cloze lessicale su testo — Formato B1</p>
         <p className="mb-4 text-sm text-ink-secondary">
           Un brano con ~15 lacune. Per ogni lacuna scegli una delle quattro opzioni lessicali proposte.
         </p>
