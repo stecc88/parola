@@ -124,8 +124,7 @@ export function Esercizio10() {
               value={risposte[l.numero] ?? ''}
               onChange={(e) => setRisposte((p) => ({ ...p, [l.numero]: e.target.value }))}
               placeholder={`coniuga "${l.infinito}"...`}
-              disabled={stato === 'valutando'}
-              className="flex-1 rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand-400 disabled:opacity-60"
+              className="flex-1 rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-brand-400"
             />
           </div>
         ))}
@@ -133,8 +132,8 @@ export function Esercizio10() {
       {errore && <p className="mt-4 rounded-md bg-danger-bg px-3 py-2 text-sm text-danger-text">{errore}</p>}
       <div className="mt-6 flex items-center justify-between">
         <p className="text-xs text-ink-tertiary">{compilate}/{esercizio.lacune.length} risposte inserite</p>
-        <Button onClick={handleSubmit} disabled={compilate < esercizio.lacune.length || stato === 'valutando'}>
-          {stato === 'valutando' ? 'Valutazione...' : 'Consegna'}
+        <Button onClick={handleSubmit} disabled={compilate < esercizio.lacune.length}>
+          Consegna
         </Button>
       </div>
     </Card>
