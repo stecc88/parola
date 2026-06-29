@@ -653,10 +653,10 @@ export const clozePrepArticoliSchema = z.object({
       numero: z.number().int().min(1),
       preposizione_suggerita: z.string().optional(),
       risposta_corretta: z.string(),
-      tipo: z.enum(['articolo', 'preposizione_semplice', 'preposizione_articolata']),
+      tipo: z.string(),
       spiegazione: z.string()
     })
-  ).min(15).max(20)
+  ).min(8)
 })
 
 export type ClozePrepArticoli = z.infer<typeof clozePrepArticoliSchema>
@@ -666,25 +666,21 @@ export async function generateEsercizioStruttura9(livello: string): Promise<Cloz
 italiano per uno studente di livello ${livello} B1 che si prepara a superare
 standard internazionali di lingua italiana.
 
-Formato esatto (fedele alla Prova N.1 dell'esame B1):
-1. Un brano autentico e coerente di 180-220 parole su un argomento di
-   attualità, cultura, ambiente o vita quotidiana italiana.
-2. 18 lacune numerate nel testo marcate come [N]. Per ogni lacuna:
+Formato (fedele alla Prova N.1 dell'esame B1):
+1. Un brano di 150-180 parole su un argomento di vita quotidiana italiana.
+2. 12 lacune numerate nel testo marcate come [N]. Per ogni lacuna:
    - Se richiede solo un articolo → nel testo: [N]
    - Se richiede una preposizione articolata → nel testo: (prep) [N]
      dove "prep" è la preposizione semplice di base
      es. "(in) [1]" → risposta corretta "nel"
-   - Se richiede solo preposizione semplice senza articolo → [N]
+   - Se richiede solo preposizione semplice → [N]
 3. Per ogni lacuna indica:
-   - Il numero, la preposizione suggerita (se prep. articolata)
-   - La risposta corretta esatta (es. "nel", "alla", "un", "di")
-   - Il tipo: "articolo", "preposizione_semplice" o "preposizione_articolata"
-   - Una breve spiegazione grammaticale
+   - numero, preposizione_suggerita (solo se prep. articolata, altrimenti ometti il campo)
+   - risposta_corretta esatta (es. "nel", "alla", "un", "di")
+   - tipo: una di queste tre stringhe esatte: "articolo", "preposizione_semplice", "preposizione_articolata"
+   - spiegazione grammaticale breve
 
-Varia: almeno 6 articoli (determinativi e indeterminativi), 4 preposizioni
-semplici, 8 preposizioni articolate (del, della, nel, sulla, alla, ecc.).
-Il testo deve contenere strutture grammaticali del sillabo B1 (indicativo
-presente, passato prossimo, imperfetto, condizionale presente).
+Varia: almeno 4 articoli, 3 preposizioni semplici, 5 preposizioni articolate.
 Non menzionare mai nomi di certificazioni specifiche.`
 
   const raw = await generateStructuredContent({
@@ -739,7 +735,7 @@ export const clozeVerbiSchema = z.object({
       modo_tempo: z.string(),
       persona: z.string()
     })
-  ).min(12).max(15)
+  ).min(8)
 })
 
 export type ClozeVerbi = z.infer<typeof clozeVerbiSchema>
@@ -749,33 +745,20 @@ export async function generateEsercizioStruttura10(livello: string): Promise<Clo
 studente di livello ${livello} B1 che si prepara a superare standard
 internazionali di lingua italiana.
 
-Formato esatto (fedele alla Prova N.2 dell'esame B1):
-1. Un brano narrativo di 150-180 parole (racconto in prima o terza persona,
-   lettera, descrizione di un'abitudine o esperienza quotidiana).
-2. 13 lacune numerate marcate come "(infinito) [N]" nel testo.
-   Esempio: "(andare) [1]" → risposta "sono andato" oppure "vado".
-3. Per ogni lacuna indica:
-   - Il numero e l'infinito del verbo
-   - La forma corretta coniugata
-   - Il modo e tempo usando SOLO quelli del sillabo B1
-   - La persona grammaticale (es. "1a singolare")
+Formato (fedele alla Prova N.2 dell'esame B1):
+1. Un brano narrativo di 120-150 parole (racconto, lettera, descrizione
+   di un'abitudine o esperienza quotidiana).
+2. 10 lacune numerate marcate come "(infinito) [N]" nel testo.
+   Esempio: "(andare) [1]" → risposta "sono andato".
+3. Per ogni lacuna indica: numero, infinito, risposta_corretta,
+   modo_tempo, persona grammaticale.
 
-RISPETTA IL SILLABO B1 — usa SOLO questi tempi e modi:
-- indicativo presente
-- indicativo passato prossimo (essere/avere + participio)
-- indicativo imperfetto
-- condizionale presente
-- imperativo
-- infinito presente
-NON usare MAI: passato remoto, trapassato prossimo, futuro semplice,
-futuro anteriore, congiuntivo (nessun tempo), condizionale passato,
-gerundio, participio assoluto.
-
-Varia la distribuzione: almeno 4 passato prossimo, 3 imperfetto,
-3 presente, 2 condizionale presente, 1 imperativo.
-Include verbi irregolari del sillabo: andare, fare, stare, dare,
-potere, sapere, bere, dire, venire e i verbi modali.
-${STRUTTURE_B1}
+Usa SOLO tempi B1: indicativo presente, passato prossimo, imperfetto,
+condizionale presente, imperativo.
+NON usare: passato remoto, futuro, congiuntivo, condizionale passato.
+Varia: almeno 3 passato prossimo, 2 imperfetto, 2 presente, 1 condizionale,
+1 imperativo, 1 a scelta.
+Include verbi irregolari: andare, fare, essere, avere, venire, sapere.
 Non menzionare mai nomi di certificazioni specifiche.`
 
   const raw = await generateStructuredContent({
@@ -799,7 +782,7 @@ const valutazioneClozeVerbiSchema = z.object({
       feedback: z.string()
     })
   ),
-  punteggio: z.number().int().min(0).max(15)
+  punteggio: z.number().int().min(0)
 })
 
 export type ValutazioneClozeVerbi = z.infer<typeof valutazioneClozeVerbiSchema>
@@ -849,11 +832,11 @@ export const clozeTestoB2Schema = z.object({
   lacune: z.array(
     z.object({
       numero: z.number().int().min(0),
-      opzioni: z.array(z.string()).length(4),
+      opzioni: z.array(z.string()).min(2),
       risposta_corretta: z.string(),
       campo_semantico: z.string()
     })
-  ).min(13).max(16)
+  ).min(8)
 })
 
 export type ClozeTestoB2 = z.infer<typeof clozeTestoB2Schema>
@@ -863,16 +846,12 @@ export async function generateEsercizioStruttura11(livello: string): Promise<Clo
 in italiano per uno studente di livello ${livello} B1 che si prepara a
 superare standard internazionali di lingua italiana.
 
-Formato esatto (fedele alla Prova N.3 dell'esame B1):
-1. Un brano di 180-220 parole su un argomento di vita quotidiana, abitudini,
-   viaggi, lavoro, ambiente o cultura italiana. Il testo deve usare strutture
-   grammaticali del sillabo B1 (presente, passato prossimo, imperfetto,
-   condizionale presente — NO congiuntivo, NO passato remoto, NO futuro).
-2. 15 lacune numerate da [0] a [14] nel testo.
-3. Per ogni lacuna: 4 opzioni lessicali dello stesso campo semantico,
-   con sfumature diverse — solo una corretta nel contesto.
-   Le opzioni sbagliate devono essere plausibili: sinonimi parziali,
-   parole con radice simile, false analogie.
+Formato (fedele alla Prova N.3 dell'esame B1):
+1. Un brano di 140-170 parole su un argomento di vita quotidiana italiana.
+   Usa strutture B1: presente, passato prossimo, imperfetto, condizionale.
+2. 12 lacune numerate da [0] a [11] nel testo.
+3. Per ogni lacuna: esattamente 4 opzioni lessicali (stesso campo semantico,
+   una sola corretta, le altre plausibili ma errate nel contesto).
 4. Per ogni lacuna indica il campo semantico testato.
 
 Il vocabolario deve essere livello B1: parole di uso comune e frequente,
