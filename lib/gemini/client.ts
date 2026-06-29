@@ -22,9 +22,9 @@
 
 // Ordered by cost (cheapest first). Each model has independent quota.
 // If primary returns 429/503, we cascade to the next one automatically.
-const GEMINI_MODEL_PRIMARY = 'gemini-3.1-flash-lite'   // cheapest, fast, sufficient for structured exercises
-const GEMINI_MODEL_FALLBACK = 'gemini-2.5-flash-lite'  // known working lite fallback
-const GEMINI_MODEL_FALLBACK_2 = 'gemini-2.5-flash'     // known working, higher quality
+const GEMINI_MODEL_PRIMARY = 'gemini-2.5-flash-lite'   // cheapest known-good model
+const GEMINI_MODEL_FALLBACK = 'gemini-2.5-flash'        // higher quality fallback
+const GEMINI_MODEL_FALLBACK_2 = 'gemini-1.5-flash'      // last-resort fallback
 const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta'
 
 interface ThinkingConfig {
