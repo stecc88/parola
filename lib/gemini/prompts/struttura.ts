@@ -459,18 +459,21 @@ opzione.`
 // verbali, preposizioni articolate, ecc.) secondo il sílabo B1.
 // ---------------------------------------------------------------------------
 
-const STRUTTURE_B1 = `Strutture morfosintattiche del livello B1 da testare:
+const STRUTTURE_B1 = `Strutture morfosintattiche del sillabo B1 ufficiale:
 - articoli determinativi e indeterminativi
-- posizione e accordo dell'aggettivo qualificativo
-- grado comparativo e superlativo dell'aggettivo
+- posizione e accordo dell'aggettivo qualificativo; comparativo e superlativo
 - pronomi personali (forme toniche/atone), riflessivi
 - pronomi relativi (che, cui, il quale)
 - aggettivi e pronomi possessivi, dimostrativi, interrogativi
 - indefiniti: ogni, ciascuno, nessuno, qualche
-- preposizioni articolate (del, della, al, alla, dal, ecc.)
-- indicativo presente, passato prossimo, imperfetto, condizionale presente
-- imperativo
-- proposizioni subordinate: oggettive implicite, temporali, causali, relative esplicite`
+- preposizioni semplici e articolate (del, della, al, alla, dal, nel, ecc.)
+- verbi: indicativo presente, indicativo passato prossimo, indicativo imperfetto,
+  condizionale presente, imperativo, infinito presente
+  (verbi regolari + dare, fare, stare, andare, potere, sapere, bere, dire, venire, modali)
+- proposizioni subordinate: oggettive implicite (di + inf.), temporali (quando, mentre),
+  causali (perché, dato che), relative esplicite (che, cui)
+VIETATO nel sillabo B1: passato remoto, trapassato prossimo, futuro semplice/anteriore,
+congiuntivo (qualsiasi tempo), condizionale passato, gerundio, participio assoluto`
 
 export const clozeTestoSchema = z.object({
   titolo: z.string(),
@@ -632,29 +635,7 @@ export function evaluateEsercizioStruttura8(
   return { risultati, punteggio }
 }
 
-// ---------------------------------------------------------------------------
-// Strutture B1 avanzate (usate da E9, E10, E11)
-// ---------------------------------------------------------------------------
-
-const STRUTTURE_B1_AVANZATE = `Strutture morfosintattiche del livello B1 da testare:
-- pronomi allocutivi (Lei formale)
-- pronomi e aggettivi indefiniti (chiunque, qualsiasi, alcuno...)
-- pronomi combinati (me lo, glielo, ce ne...)
-- particelle pronominali (ci, ne, si impersonale)
-- passato remoto (verbi regolari e irregolari)
-- trapassato prossimo
-- futuro semplice e anteriore
-- condizionale passato
-- congiuntivo presente e imperfetto
-- infinito passato
-- forma passiva (essere + participio passato)
-- verbi impersonali (bisogna, occorre, capita, sembra, pare)
-- avverbi di giudizio e dubbio (forse, probabilmente, certamente, quasi)
-- proposizioni subordinate: soggettive, finali (per + infinito / affinché),
-  comparative (come, quanto), condizionali ipotesi reale (se + indicativo),
-  concessive esplicite (anche se, sebbene + congiuntivo),
-  consecutive esplicite (così... che, tanto... da),
-  temporali implicite (prima di, dopo, nel + infinito)`
+// STRUTTURE_B1 è definita sopra (usata anche da E7/E8)
 
 // ---------------------------------------------------------------------------
 // TIPO 9 — Cloze articoli e preposizioni su testo (B1) ⭐ Prova N.1
@@ -700,7 +681,10 @@ Formato esatto (fedele alla Prova N.1 dell'esame B1):
    - Il tipo: "articolo", "preposizione_semplice" o "preposizione_articolata"
    - Una breve spiegazione grammaticale
 
-Varia: almeno 6 articoli, 4 preposizioni semplici, 8 preposizioni articolate.
+Varia: almeno 6 articoli (determinativi e indeterminativi), 4 preposizioni
+semplici, 8 preposizioni articolate (del, della, nel, sulla, alla, ecc.).
+Il testo deve contenere strutture grammaticali del sillabo B1 (indicativo
+presente, passato prossimo, imperfetto, condizionale presente).
 Non menzionare mai nomi di certificazioni specifiche.`
 
   const raw = await generateStructuredContent({
@@ -766,21 +750,32 @@ studente di livello ${livello} B1 che si prepara a superare standard
 internazionali di lingua italiana.
 
 Formato esatto (fedele alla Prova N.2 dell'esame B1):
-1. Un brano narrativo in prima persona di 150-180 parole su un episodio
-   vissuto (viaggio, incontro, evento meteorologico, esperienza lavorativa).
-   Il brano deve alternare naturalmente tempi diversi.
+1. Un brano narrativo di 150-180 parole (racconto in prima o terza persona,
+   lettera, descrizione di un'abitudine o esperienza quotidiana).
 2. 13 lacune numerate marcate come "(infinito) [N]" nel testo.
-   Esempio: "(alzarsi) [1]" → risposta "mi sono alzata".
+   Esempio: "(andare) [1]" → risposta "sono andato" oppure "vado".
 3. Per ogni lacuna indica:
    - Il numero e l'infinito del verbo
    - La forma corretta coniugata
-   - Il modo e tempo (es. "indicativo passato remoto")
+   - Il modo e tempo usando SOLO quelli del sillabo B1
    - La persona grammaticale (es. "1a singolare")
 
-Usa almeno: 4 passato remoto, 3 imperfetto, 2 trapassato prossimo,
-2 condizionale passato, 1 congiuntivo imperfetto, 1 futuro semplice.
-Include verbi irregolari (andare, fare, essere, avere, venire, sapere...).
-${STRUTTURE_B1_AVANZATE}
+RISPETTA IL SILLABO B1 — usa SOLO questi tempi e modi:
+- indicativo presente
+- indicativo passato prossimo (essere/avere + participio)
+- indicativo imperfetto
+- condizionale presente
+- imperativo
+- infinito presente
+NON usare MAI: passato remoto, trapassato prossimo, futuro semplice,
+futuro anteriore, congiuntivo (nessun tempo), condizionale passato,
+gerundio, participio assoluto.
+
+Varia la distribuzione: almeno 4 passato prossimo, 3 imperfetto,
+3 presente, 2 condizionale presente, 1 imperativo.
+Include verbi irregolari del sillabo: andare, fare, stare, dare,
+potere, sapere, bere, dire, venire e i verbi modali.
+${STRUTTURE_B1}
 Non menzionare mai nomi di certificazioni specifiche.`
 
   const raw = await generateStructuredContent({
@@ -869,17 +864,19 @@ in italiano per uno studente di livello ${livello} B1 che si prepara a
 superare standard internazionali di lingua italiana.
 
 Formato esatto (fedele alla Prova N.3 dell'esame B1):
-1. Un brano autentico di 200-230 parole su un argomento culturale,
-   sociale o di attualità italiana (giornate mondiali, tradizioni,
-   turismo, tecnologia, lavoro, ambiente, gastronomia).
+1. Un brano di 180-220 parole su un argomento di vita quotidiana, abitudini,
+   viaggi, lavoro, ambiente o cultura italiana. Il testo deve usare strutture
+   grammaticali del sillabo B1 (presente, passato prossimo, imperfetto,
+   condizionale presente — NO congiuntivo, NO passato remoto, NO futuro).
 2. 15 lacune numerate da [0] a [14] nel testo.
-3. Per ogni lacuna: 4 opzioni lessicali semanticamente vicine ma con
-   sfumature diverse — solo una corretta nel contesto specifico.
-   Le opzioni sbagliate devono essere plausibili (sinonimi parziali,
-   falsi amici lessicali, stesso campo semantico).
+3. Per ogni lacuna: 4 opzioni lessicali dello stesso campo semantico,
+   con sfumature diverse — solo una corretta nel contesto.
+   Le opzioni sbagliate devono essere plausibili: sinonimi parziali,
+   parole con radice simile, false analogie.
 4. Per ogni lacuna indica il campo semantico testato.
 
-Il vocabolario deve essere autentico livello B1 (non elementare né troppo avanzato).
+Il vocabolario deve essere livello B1: parole di uso comune e frequente,
+non rare né troppo elementari. Evita tecnicismi e lessico specialistico.
 Non menzionare mai nomi di certificazioni specifiche.`
 
   const raw = await generateStructuredContent({
