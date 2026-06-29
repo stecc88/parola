@@ -22,6 +22,7 @@
 
 const GEMINI_MODEL_PRIMARY = 'gemini-2.5-flash'
 const GEMINI_MODEL_FALLBACK = 'gemini-2.5-flash-lite'
+const GEMINI_MODEL_FALLBACK_2 = 'gemini-1.5-flash'
 const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta'
 
 interface ThinkingConfig {
@@ -209,25 +210,25 @@ export async function generateContent(
     ? buildRequestBody({ ...options, thinking: undefined })
     : body
 
+  const shouldFallback = (err: unknown): boolean =>
+    err instanceof GeminiError && err.status !== 400 && err.status !== 404
+
   try {
     return await callModel(GEMINI_MODEL_PRIMARY, body, apiKey, maxRetries)
   } catch (err) {
-    // Passa al modello di fallback per QUALSIASI errore non-400/404 del
-    // primario (quota esaurita, sovraccarico 503, rate limit transitorio).
-    // Un 503 "alta domanda" è esattamente il caso in cui provare un modello
-    // diverso ha senso, non solo quando la quota numerica è esaurita.
-    const shouldFallback = err instanceof GeminiError && err.status !== 400 && err.status !== 404
-    if (shouldFallback) {
-      console.warn(
-        `Errore su ${GEMINI_MODEL_PRIMARY} (status ${
-          (err as GeminiError).status
-        }), riprovo con il modello di fallback ${GEMINI_MODEL_FALLBACK}.`
-      )
-      // Un solo tentativo aggiuntivo sul fallback è sufficiente: se anche
-      // questo fallisce, non ha senso continuare.
+    if (!shouldFallback(err)) throw err
+    console.warn(
+      `Errore su ${GEMINI_MODEL_PRIMARY} (status ${(err as GeminiError).status}), riprovo con ${GEMINI_MODEL_FALLBACK}.`
+    )
+    try {
       return await callModel(GEMINI_MODEL_FALLBACK, bodyWithoutThinking, apiKey, 1)
+    } catch (err2) {
+      if (!shouldFallback(err2)) throw err2
+      console.warn(
+        `Errore su ${GEMINI_MODEL_FALLBACK} (status ${(err2 as GeminiError).status}), riprovo con ${GEMINI_MODEL_FALLBACK_2}.`
+      )
+      return await callModel(GEMINI_MODEL_FALLBACK_2, bodyWithoutThinking, apiKey, 1)
     }
-    throw err
   }
 }
 
