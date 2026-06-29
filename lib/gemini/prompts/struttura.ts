@@ -495,7 +495,7 @@ export const clozeTestoSchema = z.object({
       opzioni: z.array(z.string()).length(4),
       risposta_corretta: z.string(),
       struttura_testata: z.string(),
-      spiegazione: z.string()
+      spiegazione: z.string().optional()
     })
   ).min(8).max(10)
 })
@@ -567,8 +567,8 @@ export function evaluateEsercizioStruttura7(
       risposta_studente: r?.opzione_scelta ?? '',
       struttura_testata: l.struttura_testata,
       feedback: corretto
-        ? `✓ ${l.spiegazione}`
-        : `La risposta corretta è "${l.risposta_corretta}". ${l.spiegazione}`
+        ? `✓ ${l.spiegazione ?? l.struttura_testata}`
+        : `La risposta corretta è "${l.risposta_corretta}". ${l.spiegazione ?? l.struttura_testata}`
     }
   })
   const punteggio = risultati.filter((r) => r.corretto).length
@@ -590,7 +590,7 @@ export const sceltaMorfosintSchema = z.object({
       opzioni: z.array(z.string()).length(4),
       risposta_corretta: z.string(),
       struttura_testata: z.string(),
-      spiegazione: z.string()
+      spiegazione: z.string().optional()
     })
   ).min(8).max(10)
 })
@@ -646,8 +646,8 @@ export function evaluateEsercizioStruttura8(
       risposta_studente: r?.opzione_scelta ?? '',
       struttura_testata: d.struttura_testata,
       feedback: corretto
-        ? `✓ ${d.spiegazione}`
-        : `La risposta corretta è "${d.risposta_corretta}". ${d.spiegazione}`
+        ? `✓ ${d.spiegazione ?? d.struttura_testata}`
+        : `La risposta corretta è "${d.risposta_corretta}". ${d.spiegazione ?? d.struttura_testata}`
     }
   })
   const punteggio = risultati.filter((r) => r.corretto).length
@@ -856,7 +856,7 @@ export const clozeTestoB2Schema = z.object({
       opzioni: z.array(z.string()).min(2),
       risposta_corretta: z.string(),
       campo_semantico: z.string(),
-      spiegazione: z.string()
+      spiegazione: z.string().optional()
     })
   ).min(8)
 })
@@ -908,8 +908,8 @@ export function evaluateEsercizioStruttura11(
       risposta_studente: r?.opzione_scelta ?? '',
       struttura_testata: l.campo_semantico,
       feedback: corretto
-        ? `✓ ${l.spiegazione}`
-        : `La risposta corretta è "${l.risposta_corretta}". ${l.spiegazione}`
+        ? `✓ ${l.spiegazione ?? l.campo_semantico}`
+        : `La risposta corretta è "${l.risposta_corretta}". ${l.spiegazione ?? l.campo_semantico}`
     }
   })
   return { risultati, punteggio: risultati.filter((r) => r.corretto).length }
