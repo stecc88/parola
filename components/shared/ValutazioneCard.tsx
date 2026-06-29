@@ -33,8 +33,8 @@ export function ValutazioneCard({
   const [conteggiPassati, setConteggiPassati] = useState<Record<string, number>>({})
 
   useEffect(() => {
-    getPreviousScritturaScore(submissionId).then(setPuntiPrecedenti)
-    getMyPastErrorCategoryCounts(submissionId).then(setConteggiPassati)
+    getPreviousScritturaScore(submissionId).then(setPuntiPrecedenti).catch(() => {})
+    getMyPastErrorCategoryCounts(submissionId).then(setConteggiPassati).catch(() => {})
   }, [submissionId])
 
   const delta =

@@ -363,7 +363,7 @@ function DeleteTeacherModal({
       setClassi(r.classi)
       setStudentiCount(r.studentiCount)
     })
-    getApprovedTeachersExcept(teacher.id).then(setCandidates)
+    getApprovedTeachersExcept(teacher.id).then(setCandidates).catch(() => {})
   }, [teacher.id])
 
   function handleReassign() {
