@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { startEsercizio11, submitEsercizio11 } from './actions'
 import type { ClozeTestoB2, ValutazioneCloze } from '@/lib/gemini/prompts/struttura'
+import { RisultatoFooter } from './RisultatoFooter'
 import { cn } from '@/lib/utils'
 
 type Stato = 'idle' | 'generando' | 'rispondendo' | 'pronto' | 'errore'
@@ -88,6 +89,7 @@ export function Esercizio11() {
             </div>
           ))}
         </div>
+        <RisultatoFooter corretti={corretti} totale={totale} tipo={11} />
         <div className="mt-4 flex justify-end">
           <Button onClick={handleStart}>Nuovo brano</Button>
         </div>

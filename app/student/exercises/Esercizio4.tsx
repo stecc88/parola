@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { startEsercizio4, submitEsercizio4 } from './actions'
 import type { FrasiDaTrasformare, ValutazioneRisposteStruttura } from '@/lib/gemini/prompts/struttura'
 import { Risultati } from './Esercizio1'
+import { RisultatoFooter } from './RisultatoFooter'
 
 type Stato = 'idle' | 'generando' | 'rispondendo' | 'valutando' | 'pronto' | 'errore'
 
@@ -58,9 +59,11 @@ export function Esercizio4() {
   }
 
   if (stato === 'pronto' && valutazione) {
+    const corretti = valutazione.risultati.filter((r) => r.corretto).length
     return (
       <Card>
         <Risultati valutazione={valutazione} />
+        <RisultatoFooter corretti={corretti} totale={valutazione.risultati.length} tipo={4} />
         <div className="mt-4 flex justify-end">
           <Button onClick={handleStart}>Nuovo esercizio</Button>
         </div>

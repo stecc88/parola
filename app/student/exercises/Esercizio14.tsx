@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { startEsercizio14, submitEsercizio14 } from './actions'
 import type { ClozeTestoB2, ValutazioneCloze } from '@/lib/gemini/prompts/struttura'
 import { cn } from '@/lib/utils'
+import { RisultatoFooter } from './RisultatoFooter'
 
 type Stato = 'idle' | 'generando' | 'rispondendo' | 'pronto' | 'errore'
 
@@ -88,6 +89,7 @@ export function Esercizio14() {
             </div>
           ))}
         </div>
+        <RisultatoFooter corretti={corretti} totale={totale} tipo={14} />
         <div className="mt-4 flex justify-end">
           <Button onClick={handleStart}>Nuovo brano</Button>
         </div>

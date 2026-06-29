@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { startEsercizio1, submitEsercizio1 } from './actions'
 import type { FraseDaCompletare, ValutazioneRisposteStruttura } from '@/lib/gemini/prompts/struttura'
+import { RisultatoFooter } from './RisultatoFooter'
 
 type Stato = 'idle' | 'generando' | 'rispondendo' | 'valutando' | 'pronto' | 'errore'
 
@@ -46,7 +47,8 @@ export function Esercizio1() {
   if (stato === 'idle') {
     return (
       <Card className="text-center">
-        <p className="mb-4 text-sm text-ink-secondary">Completa le frasi con la parola giusta.</p>
+        <p className="mb-2 text-sm font-medium text-ink-primary">Completa la frase — Esercizio adattivo</p>
+        <p className="mb-4 text-sm text-ink-secondary">Inserisci la parola o struttura corretta in ogni frase. L'IA valuterà anche varianti equivalenti.</p>
         <Button onClick={handleStart}>Inizia esercizio</Button>
       </Card>
     )
@@ -57,9 +59,11 @@ export function Esercizio1() {
   }
 
   if (stato === 'pronto' && valutazione) {
+    const corretti = valutazione.risultati.filter((r) => r.corretto).length
     return (
       <Card>
         <Risultati valutazione={valutazione} />
+        <RisultatoFooter corretti={corretti} totale={valutazione.risultati.length} tipo={1} />
         <div className="mt-4 flex justify-end">
           <Button onClick={handleStart}>Nuovo esercizio</Button>
         </div>
@@ -93,17 +97,27 @@ export function Esercizio1() {
   )
 }
 
-export function Risultati({ valutazione }: { valutazione: ValutazioneRisposteStruttura }) {
+export function Risultati({ valutazione, tipo }: { valutazione: ValutazioneRisposteStruttura; tipo?: number }) {
+  const corretti = valutazione.risultati.filter((r) => r.corretto).length
+  const totale = valutazione.risultati.length
   return (
-    <div className="space-y-3">
-      {valutazione.risultati.map((r, i) => (
-        <div key={r.id} className={`rounded-md p-3 text-sm ${r.corretto ? 'bg-success-bg' : 'bg-danger-bg'}`}>
-          <p className={r.corretto ? 'text-success-text' : 'text-danger-text'}>
-            {i + 1}. {r.corretto ? 'Corretto' : `Risposta corretta: ${r.risposta_corretta}`}
-          </p>
-          <p className="mt-1 text-xs text-ink-secondary">{r.feedback}</p>
-        </div>
-      ))}
-    </div>
+    <>
+      <div className="mb-4 flex items-center justify-between">
+        <p className="text-sm font-semibold text-ink-primary">Punteggio: {corretti}/{totale}</p>
+        <span className={`rounded-full px-3 py-1 text-xs font-medium ${corretti >= Math.round(totale * 0.7) ? 'bg-success-bg text-success-text' : corretti >= Math.round(totale * 0.5) ? 'bg-warning-bg text-warning-text' : 'bg-danger-bg text-danger-text'}`}>
+          {corretti >= Math.round(totale * 0.7) ? 'Ottimo' : corretti >= Math.round(totale * 0.5) ? 'Sufficiente' : 'Da rivedere'}
+        </span>
+      </div>
+      <div className="space-y-3">
+        {valutazione.risultati.map((r, i) => (
+          <div key={r.id} className={`rounded-md p-3 text-sm ${r.corretto ? 'bg-success-bg' : 'bg-danger-bg'}`}>
+            <p className={`font-medium ${r.corretto ? 'text-success-text' : 'text-danger-text'}`}>
+              {i + 1}. {r.corretto ? '✓ Corretto' : `✗ Risposta corretta: "${r.risposta_corretta}"`}
+            </p>
+            <p className="mt-1 text-xs text-ink-secondary">{r.feedback}</p>
+          </div>
+        ))}
+      </div>
+    </>
   )
 }

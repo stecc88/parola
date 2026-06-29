@@ -30,78 +30,178 @@ const NAV_ITEMS = [
   { href: '/account', label: 'Account' }
 ]
 
-const TIPI = [
-  { id: 1, label: 'Completa la frase' },
-  { id: 2, label: 'Riordina le parole' },
-  { id: 3, label: 'Scegli la preposizione' },
-  { id: 4, label: 'Trasforma la frase' },
-  { id: 5, label: 'Completamento lessicale' },
-  { id: 6, label: 'Situazioni comunicative' },
-  { id: 7, label: 'Cloze su testo (B1)' },
-  { id: 8, label: 'Scelta multipla morfosintattica (B1)' },
-  { id: 9, label: 'Articoli e preposizioni (B1)' },
-  { id: 10, label: 'Cloze verbi (B1)' },
-  { id: 11, label: 'Cloze lessicale (B1)' },
-  { id: 12, label: 'Pronomi e aggettivi (B2)' },
-  { id: 13, label: 'Cloze verbi (B2)' },
-  { id: 14, label: 'Cloze lessicale (B2)' },
-  { id: 15, label: 'Situazioni comunicative (B2)' }
-] as const
+type GruppoId = 'generale' | 'b1' | 'b2'
+
+const GRUPPI: {
+  id: GruppoId
+  label: string
+  badge?: string
+  descrizione: string
+  esercizi: { id: number; label: string; desc: string }[]
+}[] = [
+  {
+    id: 'generale',
+    label: 'Esercizi generali',
+    descrizione: 'Strutture grammaticali di base — si adattano automaticamente al livello target selezionato.',
+    esercizi: [
+      { id: 1, label: 'Completa la frase', desc: 'Inserisci la parola o struttura corretta in frasi con un buco.' },
+      { id: 2, label: 'Riordina le parole', desc: 'Ricostruisci la frase mettendo le parole nell\'ordine giusto.' },
+      { id: 3, label: 'Scegli la preposizione', desc: 'Scelta multipla: trova la preposizione corretta nel contesto.' },
+      { id: 4, label: 'Trasforma la frase', desc: 'Cambia il tempo verbale, la forma o la struttura della frase.' },
+      { id: 5, label: 'Completamento lessicale', desc: 'Scegli la parola giusta tra sinonimi nel contesto.' },
+      { id: 6, label: 'Situazioni comunicative', desc: 'Collega ogni espressione alla situazione d\'uso corretta.' }
+    ]
+  },
+  {
+    id: 'b1',
+    label: 'Preparazione B1',
+    badge: 'B1',
+    descrizione: 'Esercizi fedeli al formato degli standard internazionali B1 — morfosintassi, verbi e lessico su testo.',
+    esercizi: [
+      { id: 7, label: 'Cloze morfosintattico', desc: 'Brano con 10 lacune: articoli, pronomi, verbi — scegli tra 4 opzioni.' },
+      { id: 8, label: 'Scelta multipla grammaticale', desc: 'Frasi isolate con 4 opzioni: una struttura B1 diversa per ogni domanda.' },
+      { id: 9, label: 'Articoli e preposizioni', desc: 'Brano con lacune: scrivi l\'articolo o la preposizione (semplice o articolata).' },
+      { id: 10, label: 'Cloze verbi', desc: 'Brano narrativo: coniuga ogni verbo — l\'infinito è tra parentesi.' },
+      { id: 11, label: 'Cloze lessicale', desc: 'Brano con lacune lessicali — scegli tra 4 parole dello stesso campo semantico.' }
+    ]
+  },
+  {
+    id: 'b2',
+    label: 'Preparazione B2',
+    badge: 'B2',
+    descrizione: 'Esercizi fedeli al formato degli standard internazionali B2 — strutture avanzate, pronomi combinati, congiuntivo.',
+    esercizi: [
+      { id: 12, label: 'Pronomi e aggettivi', desc: 'Brano con lacune: pronomi atoni, combinati, possessivi e relativi B2.' },
+      { id: 13, label: 'Cloze verbi avanzato', desc: 'Brano con tutti i modi e tempi B2: congiuntivo, futuro, condizionale passato.' },
+      { id: 14, label: 'Cloze lessicale avanzato', desc: 'Brano con vocabolario e registri variati B2 — scelta multipla lessicale.' },
+      { id: 15, label: 'Situazioni comunicative', desc: 'Testi autentici (email, SMS, annunci): identifica il contesto comunicativo.' }
+    ]
+  }
+]
+
+const COMPONENTS: Record<number, React.ComponentType> = {
+  1: Esercizio1, 2: Esercizio2, 3: Esercizio3, 4: Esercizio4,
+  5: Esercizio5, 6: Esercizio6, 7: Esercizio7, 8: Esercizio8,
+  9: Esercizio9, 10: Esercizio10, 11: Esercizio11, 12: Esercizio12,
+  13: Esercizio13, 14: Esercizio14, 15: Esercizio15
+}
 
 export default function ExercisesPage() {
-  const [tipo, setTipo] = useState<number>(1)
+  const [gruppo, setGruppo] = useState<GruppoId>('generale')
+  const [tipo, setTipo] = useState<number | null>(null)
+
+  const gruppoAttivo = GRUPPI.find((g) => g.id === gruppo)!
+  const ExComponent = tipo !== null ? COMPONENTS[tipo] : null
+
+  function cambiaGruppo(id: GruppoId) {
+    setGruppo(id)
+    setTipo(null)
+  }
 
   return (
     <>
       <AppNav items={NAV_ITEMS} />
       <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <ParolaMascot mood="pensieroso" />
+
+        {/* Header */}
+        <div className="mb-6 flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <ParolaMascot mood="pensieroso" className="mt-0.5 shrink-0" />
             <div>
-              <h1 className="text-xl font-semibold text-ink-primary">
-                Esercizi di analisi delle strutture
-              </h1>
-              <p className="text-sm text-ink-secondary">
-                15 tipi di esercizio — Formato B1 e B2.
+              <h1 className="text-xl font-semibold text-ink-primary">Analisi delle strutture</h1>
+              <p className="mt-0.5 text-sm text-ink-secondary">
+                Scegli il formato e inizia a praticare. Gli esercizi si adattano al livello target.
               </p>
             </div>
           </div>
-          <LivelloSelector />
+          <div className="shrink-0">
+            <LivelloSelector />
+          </div>
         </div>
 
-        <div className="mb-6 flex flex-wrap gap-2">
-          {TIPI.map((t) => (
+        {/* Group tabs */}
+        <div className="mb-1 flex gap-1 border-b border-border">
+          {GRUPPI.map((g) => (
             <button
-              key={t.id}
-              onClick={() => setTipo(t.id)}
+              key={g.id}
+              onClick={() => cambiaGruppo(g.id)}
               className={cn(
-                'rounded-md px-3 py-1.5 text-sm transition-colors',
-                tipo === t.id
-                  ? 'bg-brand-400 text-white'
-                  : 'bg-surface-secondary text-ink-secondary hover:bg-surface-tertiary'
+                'flex items-center gap-1.5 rounded-t-md px-4 py-2 text-sm font-medium transition-colors',
+                gruppo === g.id
+                  ? 'border border-b-0 border-border bg-surface text-ink-primary'
+                  : 'text-ink-tertiary hover:text-ink-secondary'
               )}
             >
-              {t.label}
+              {g.badge && (
+                <span className={cn(
+                  'rounded px-1.5 py-0.5 text-xs font-bold',
+                  g.badge === 'B1' ? 'bg-brand-100 text-brand-600' : 'bg-purple-100 text-purple-700'
+                )}>
+                  {g.badge}
+                </span>
+              )}
+              {g.label}
             </button>
           ))}
         </div>
 
-        {tipo === 1 && <Esercizio1 key="1" />}
-        {tipo === 2 && <Esercizio2 key="2" />}
-        {tipo === 3 && <Esercizio3 key="3" />}
-        {tipo === 4 && <Esercizio4 key="4" />}
-        {tipo === 5 && <Esercizio5 key="5" />}
-        {tipo === 6 && <Esercizio6 key="6" />}
-        {tipo === 7 && <Esercizio7 key="7" />}
-        {tipo === 8 && <Esercizio8 key="8" />}
-        {tipo === 9 && <Esercizio9 key="9" />}
-        {tipo === 10 && <Esercizio10 key="10" />}
-        {tipo === 11 && <Esercizio11 key="11" />}
-        {tipo === 12 && <Esercizio12 key="12" />}
-        {tipo === 13 && <Esercizio13 key="13" />}
-        {tipo === 14 && <Esercizio14 key="14" />}
-        {tipo === 15 && <Esercizio15 key="15" />}
+        {/* Group description */}
+        <p className="mb-4 mt-3 text-xs text-ink-tertiary">{gruppoAttivo.descrizione}</p>
+
+        {/* Exercise cards */}
+        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {gruppoAttivo.esercizi.map((e) => (
+            <button
+              key={e.id}
+              onClick={() => setTipo(tipo === e.id ? null : e.id)}
+              className={cn(
+                'group rounded-lg border p-4 text-left transition-all',
+                tipo === e.id
+                  ? 'border-brand-400 bg-brand-50 shadow-sm'
+                  : 'border-border bg-surface hover:border-brand-300 hover:shadow-sm'
+              )}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <p className={cn(
+                  'text-sm font-semibold leading-snug',
+                  tipo === e.id ? 'text-brand-600' : 'text-ink-primary group-hover:text-brand-600'
+                )}>
+                  {e.label}
+                </p>
+                <span className={cn(
+                  'shrink-0 rounded-full border text-xs px-2 py-0.5',
+                  tipo === e.id
+                    ? 'border-brand-400 bg-brand-400 text-white'
+                    : 'border-border text-ink-tertiary group-hover:border-brand-300'
+                )}>
+                  {tipo === e.id ? 'Aperto' : `N.${e.id}`}
+                </span>
+              </div>
+              <p className="mt-1.5 text-xs leading-relaxed text-ink-secondary">{e.desc}</p>
+            </button>
+          ))}
+        </div>
+
+        {/* Active exercise */}
+        {ExComponent && (
+          <div className="rounded-t-none">
+            <div className="mb-3 flex items-center gap-2">
+              <div className="h-px flex-1 bg-border" />
+              <span className="text-xs font-medium text-ink-tertiary">
+                {gruppoAttivo.esercizi.find((e) => e.id === tipo)?.label}
+              </span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+            <ExComponent key={String(tipo)} />
+          </div>
+        )}
+
+        {!tipo && (
+          <div className="rounded-lg border border-dashed border-border py-10 text-center">
+            <p className="text-sm text-ink-tertiary">Seleziona un esercizio qui sopra per iniziare</p>
+          </div>
+        )}
+
       </main>
     </>
   )
