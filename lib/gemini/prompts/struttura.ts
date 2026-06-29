@@ -633,11 +633,10 @@ export function evaluateEsercizioStruttura8(
 }
 
 // ---------------------------------------------------------------------------
-// Strutture B2 condivise
+// Strutture B1 avanzate (usate da E9, E10, E11)
 // ---------------------------------------------------------------------------
 
-const STRUTTURE_B2 = `Strutture morfosintattiche del livello B2 da testare
-(includono tutto il B1 più):
+const STRUTTURE_B1_AVANZATE = `Strutture morfosintattiche del livello B1 da testare:
 - pronomi allocutivi (Lei formale)
 - pronomi e aggettivi indefiniti (chiunque, qualsiasi, alcuno...)
 - pronomi combinati (me lo, glielo, ce ne...)
@@ -658,11 +657,11 @@ const STRUTTURE_B2 = `Strutture morfosintattiche del livello B2 da testare
   temporali implicite (prima di, dopo, nel + infinito)`
 
 // ---------------------------------------------------------------------------
-// TIPO 9 — Cloze articoli e preposizioni su testo (B2) ⭐ Prova N.1
+// TIPO 9 — Cloze articoli e preposizioni su testo (B1) ⭐ Prova N.1
 // Un brano autentico con ~18 lacune: alcune richiedono solo l'articolo,
 // altre una preposizione semplice, altre una preposizione articolata.
 // Le preposizioni semplici richieste sono indicate tra parentesi accanto
-// alla lacuna, esattamente come nel formato d'esame B2.
+// alla lacuna, esattamente come nel formato d'esame B1.
 // ---------------------------------------------------------------------------
 
 export const clozePrepArticoliSchema = z.object({
@@ -683,10 +682,10 @@ export type ClozePrepArticoli = z.infer<typeof clozePrepArticoliSchema>
 
 export async function generateEsercizioStruttura9(livello: string): Promise<ClozePrepArticoli> {
   const prompt = `Genera un esercizio di cloze su articoli e preposizioni in
-italiano per uno studente di livello ${livello} B2 che si prepara a superare
+italiano per uno studente di livello ${livello} B1 che si prepara a superare
 standard internazionali di lingua italiana.
 
-Formato esatto (fedele alla Prova N.1 dell'esame B2):
+Formato esatto (fedele alla Prova N.1 dell'esame B1):
 1. Un brano autentico e coerente di 180-220 parole su un argomento di
    attualità, cultura, ambiente o vita quotidiana italiana.
 2. 18 lacune numerate nel testo marcate come [N]. Per ogni lacuna:
@@ -738,7 +737,7 @@ export function evaluateEsercizioStruttura9(
 }
 
 // ---------------------------------------------------------------------------
-// TIPO 10 — Cloze verbi su testo (B2) ⭐ Prova N.2
+// TIPO 10 — Cloze verbi su testo (B1) ⭐ Prova N.2
 // Un brano narrativo con ~13 lacune: ogni lacuna ha l'infinito del verbo
 // tra parentesi, lo studente deve coniugare nel modo e tempo corretto.
 // La valutazione usa Gemini perché i verbi irregolari e le varianti
@@ -763,10 +762,10 @@ export type ClozeVerbi = z.infer<typeof clozeVerbiSchema>
 
 export async function generateEsercizioStruttura10(livello: string): Promise<ClozeVerbi> {
   const prompt = `Genera un esercizio di cloze sui verbi in italiano per uno
-studente di livello ${livello} B2 che si prepara a superare standard
+studente di livello ${livello} B1 che si prepara a superare standard
 internazionali di lingua italiana.
 
-Formato esatto (fedele alla Prova N.2 dell'esame B2):
+Formato esatto (fedele alla Prova N.2 dell'esame B1):
 1. Un brano narrativo in prima persona di 150-180 parole su un episodio
    vissuto (viaggio, incontro, evento meteorologico, esperienza lavorativa).
    Il brano deve alternare naturalmente tempi diversi.
@@ -781,7 +780,7 @@ Formato esatto (fedele alla Prova N.2 dell'esame B2):
 Usa almeno: 4 passato remoto, 3 imperfetto, 2 trapassato prossimo,
 2 condizionale passato, 1 congiuntivo imperfetto, 1 futuro semplice.
 Include verbi irregolari (andare, fare, essere, avere, venire, sapere...).
-${STRUTTURE_B2}
+${STRUTTURE_B1_AVANZATE}
 Non menzionare mai nomi di certificazioni specifiche.`
 
   const raw = await generateStructuredContent({
@@ -815,7 +814,7 @@ export async function evaluateEsercizioStruttura10(
   risposte: { numero: number; risposta: string }[]
 ): Promise<ValutazioneClozeVerbi> {
   const prompt = `Valuta le risposte di uno studente a un esercizio di
-cloze verbale in italiano livello B2. Per ogni lacuna lo studente ha
+cloze verbale in italiano livello B1. Per ogni lacuna lo studente ha
 ricevuto l'infinito e ha coniugato il verbo nel modo/tempo che riteneva
 corretto. Accetta varianti ortografiche minori e forme grammaticalmente
 equivalenti nel contesto.
@@ -844,7 +843,7 @@ Il campo punteggio è il numero totale di risposte corrette (max ${lacune.length
 }
 
 // ---------------------------------------------------------------------------
-// TIPO 11 — Cloze lessicale scelta multipla B2 ⭐ Prova N.3
+// TIPO 11 — Cloze lessicale scelta multipla B1 ⭐ Prova N.3
 // Un brano di ~220 parole con 15 lacune lessicali (da [0] a [14]),
 // 4 opzioni per ognuna. Più lungo e più ricco del B1 (Esercizio 7).
 // ---------------------------------------------------------------------------
@@ -866,10 +865,10 @@ export type ClozeTestoB2 = z.infer<typeof clozeTestoB2Schema>
 
 export async function generateEsercizioStruttura11(livello: string): Promise<ClozeTestoB2> {
   const prompt = `Genera un esercizio di cloze lessicale a scelta multipla
-in italiano per uno studente di livello ${livello} B2 che si prepara a
+in italiano per uno studente di livello ${livello} B1 che si prepara a
 superare standard internazionali di lingua italiana.
 
-Formato esatto (fedele alla Prova N.3 dell'esame B2):
+Formato esatto (fedele alla Prova N.3 dell'esame B1):
 1. Un brano autentico di 200-230 parole su un argomento culturale,
    sociale o di attualità italiana (giornate mondiali, tradizioni,
    turismo, tecnologia, lavoro, ambiente, gastronomia).
@@ -880,7 +879,7 @@ Formato esatto (fedele alla Prova N.3 dell'esame B2):
    falsi amici lessicali, stesso campo semantico).
 4. Per ogni lacuna indica il campo semantico testato.
 
-Il vocabolario deve essere autentico livello B2 (non elementare).
+Il vocabolario deve essere autentico livello B1 (non elementare né troppo avanzato).
 Non menzionare mai nomi di certificazioni specifiche.`
 
   const raw = await generateStructuredContent({

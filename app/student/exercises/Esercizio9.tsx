@@ -46,7 +46,7 @@ export function Esercizio9() {
   if (stato === 'idle') {
     return (
       <Card className="text-center">
-        <p className="mb-2 text-sm font-medium text-ink-primary">Articoli e preposizioni su testo — Formato B2</p>
+        <p className="mb-2 text-sm font-medium text-ink-primary">Articoli e preposizioni su testo — Formato B1</p>
         <p className="mb-4 text-sm text-ink-secondary">
           Un brano con ~18 lacune. Scrivi l'articolo o la preposizione (semplice o articolata) corretta.
           Se la lacuna ha un suggerimento tra parentesi es. <span className="font-mono">(in)</span>, combina la preposizione con l'articolo giusto.
