@@ -454,7 +454,7 @@ export async function getPendingNameChangeRequests(): Promise<NameChangeRequestR
   const admin = createAdminClient()
 
   // Scade le richieste vecchie prima di mostrarle (best-effort)
-  await admin.rpc('expire_pending_name_change_requests').catch(() => {})
+  await admin.rpc('expire_pending_name_change_requests').then(undefined, () => {})
 
   const [{ data, error }, emailMap] = await Promise.all([
     admin
