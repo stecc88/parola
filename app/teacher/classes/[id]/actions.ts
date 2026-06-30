@@ -10,19 +10,8 @@ import { requireApprovedTeacherActionUserId } from '@/lib/teacher/guard'
  * solo sulle membership di classi il cui teacher_id sia il suo.
  */
 export async function moveStudentToClass(membershipId: string, targetClassId: string) {
+  const teacherId = await requireApprovedTeacherActionUserId()
   const supabase = createClient()
-  const { data: userData, error: authError } = await supabase.auth.getUser()
-  if (authError || !userData.user) throw new Error('Non autenticato.')
-
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role, teacher_status')
-    .eq('id', userData.user.id)
-    .single()
-
-  if (profile?.role !== 'teacher' || profile.teacher_status !== 'approved') {
-    throw new Error('Il tuo account insegnante non è ancora approvato.')
-  }
 
   // Verifica che la classe destinazione appartenga al docente (difesa extra
   // rispetto alla sola RLS sul lato lettura).
@@ -30,7 +19,7 @@ export async function moveStudentToClass(membershipId: string, targetClassId: st
     .from('classes')
     .select('id')
     .eq('id', targetClassId)
-    .eq('teacher_id', userData.user.id)
+    .eq('teacher_id', teacherId)
     .single()
 
   if (!targetClass) throw new Error('Classe di destinazione non valida.')
@@ -50,7 +39,7 @@ export async function moveStudentToClass(membershipId: string, targetClassId: st
 
   const { error: insertError } = await supabase.from('class_memberships').insert({
     student_id: membership.student_id,
-    teacher_id: userData.user.id,
+    teacher_id: teacherId,
     class_id: targetClassId
   })
 
