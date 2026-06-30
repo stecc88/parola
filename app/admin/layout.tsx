@@ -2,14 +2,14 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
 /**
- * Guard server-side para TODO lo bajo /admin/*. Antes de esto, un usuario
- * no-admin que navegaba a /admin/users disparaba el Server Action
- * getTeachers() (que sí valida con assertIsAdmin), pero el error se
- * propagaba como un 500 feo en vez de una redirección limpia — porque
- * nada chequeaba el rol ANTES de renderizar la página.
+ * Guard server-side per tutto ciò che sta sotto /admin/*. Prima di questo,
+ * un utente non-admin che navigava su /admin/users attivava il Server Action
+ * getTeachers() (che valida con assertIsAdmin), ma l'errore si propagava
+ * come un brutto 500 invece di un redirect pulito — perché nulla verificava
+ * il ruolo PRIMA di renderizzare la pagina.
  *
- * Este layout corre primero, en el servidor, para cualquier ruta bajo
- * /admin: si no es admin, redirige antes de que se monte nada.
+ * Questo layout gira per primo, sul server, per qualsiasi route sotto
+ * /admin: se non è admin, fa il redirect prima che venga montato qualcosa.
  */
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
