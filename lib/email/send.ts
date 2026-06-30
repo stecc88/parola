@@ -1,12 +1,11 @@
 /**
- * Cliente minimal de envío de emails vía la API REST de Resend (sin SDK,
- * mismo criterio que el cliente de Gemini: fetch directo).
+ * Client minimale per l'invio di email tramite l'API REST di Resend (senza SDK,
+ * stesso criterio del client di Gemini: fetch diretto).
  *
- * Es deliberadamente OPCIONAL: si RESEND_API_KEY/RESEND_FROM_EMAIL no
- * están configuradas, sendEmail no hace nada (no lanza error) — las
- * notificaciones por email son un "best effort" sobre la notificación
- * in-app ya existente, nunca deben poder romper el flujo principal
- * (che lo studente consegni il suo esercizio).
+ * È deliberatamente OPZIONALE: se RESEND_API_KEY/RESEND_FROM_EMAIL non sono
+ * configurate, sendEmail non fa nulla (non lancia errori) — le notifiche
+ * email sono un "best effort" sopra la notifica in-app già esistente, non
+ * devono mai poter rompere il flusso principale.
  */
 export async function sendEmail({
   to,

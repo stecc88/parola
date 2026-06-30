@@ -2,13 +2,13 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
 /**
- * Cliente Supabase para Server Components, Server Actions y Route Handlers.
- * Usa la sesión del usuario vía cookies — sujeto a RLS normal, NO bypassea
- * políticas. Para operaciones admin (service role) usar lib/supabase/admin.ts.
+ * Client Supabase per Server Components, Server Actions e Route Handlers.
+ * Usa la sessione dell'utente tramite cookie — soggetto alla RLS normale,
+ * NON bypassa le policy. Per operazioni admin (service role) usare lib/supabase/admin.ts.
  *
- * En Server Components el set/remove son no-op porque Next.js no permite
- * mutar cookies fuera de un Server Action o Route Handler; si esto se usa
- * dentro de uno de esos contextos, el set/remove real funciona normalmente.
+ * Nei Server Components set/remove sono no-op perché Next.js non permette
+ * di mutare i cookie fuori da un Server Action o Route Handler; se questo
+ * viene usato dentro uno di quei contesti, set/remove funziona normalmente.
  */
 export function createClient() {
   const cookieStore = cookies()

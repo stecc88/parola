@@ -20,7 +20,7 @@ export const maxDuration = 60
  * POST /api/gemini/evaluate
  * body: { submissionId: string }
  *
- * Flujo:
+ * Flusso:
  *   1. Il client crea prima la submission (Server Action separata) con
  *      testo_studente e valutazione_ia = NULL.
  *   2. Questo endpoint riceve il submissionId, legge il testo (con la
