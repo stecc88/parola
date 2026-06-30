@@ -76,6 +76,10 @@ export function Esercizio7() {
             {corretti >= 7 ? 'Ottimo' : corretti >= 5 ? 'Sufficiente' : 'Da rivedere'}
           </span>
         </div>
+        <div className="mb-5 rounded-md bg-surface-secondary p-4">
+          <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-ink-tertiary">{esercizio.titolo}</p>
+          <p className="text-sm leading-relaxed text-ink-primary">{esercizio.testo_con_lacune}</p>
+        </div>
         <div className="space-y-3">
           {risultato.risultati.map((r) => (
             <div key={r.numero} className={`rounded-md p-3 text-sm ${r.corretto ? 'bg-success-bg' : 'bg-danger-bg'}`}>
