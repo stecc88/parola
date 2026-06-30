@@ -40,6 +40,7 @@ const CATEGORIA_LABEL: Record<CategoriaErrore, string> = {
 
 const TIPO_LABEL: Record<string, string> = {
   scrittura_libera: 'Scrittura libera',
+  scrittura_personalizzata: 'Scrittura personalizzata',
   esercizio_struttura_1: 'Completa la frase',
   esercizio_struttura_2: 'Riordina le parole',
   esercizio_struttura_3: 'Scegli la preposizione',

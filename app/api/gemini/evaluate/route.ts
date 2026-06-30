@@ -104,9 +104,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Submission non trovata.' }, { status: 404 })
   }
 
-  if (submission.tipo !== 'scrittura_libera') {
+  if (submission.tipo !== 'scrittura_libera' && submission.tipo !== 'scrittura_personalizzata') {
     return NextResponse.json(
-      { error: 'Questo endpoint valuta solo submissions di tipo scrittura_libera.' },
+      { error: 'Questo endpoint valuta solo submissions di tipo scrittura.' },
       { status: 400 }
     )
   }

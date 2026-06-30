@@ -9,6 +9,7 @@ export type TeacherStatus = 'pending' | 'approved' | 'rejected' | 'disabled'
 export type LivelloCefr = 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'
 export type SubmissionType =
   | 'scrittura_libera'
+  | 'scrittura_personalizzata'
   | 'esercizio_struttura_1'
   | 'esercizio_struttura_2'
   | 'esercizio_struttura_3'
