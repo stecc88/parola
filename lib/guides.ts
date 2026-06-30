@@ -32,10 +32,9 @@ export interface Guida {
  * Guide di scrittura: modalità guidata con consegna fissa e scaffolding
  * pedagogico completo per tipo di testo. Pensate per chi non sa da dove
  * iniziare a scrivere — non solo "cosa" scrivere ma "come" strutturarlo,
- * con frasi pronte e vocabolario chiave. Al hacer clic en una guía, el
- * estudiante va a /student/write con la consegna pre-cargada; la
- * evaluación de Gemini la tiene en cuenta (ver lib/gemini/prompts/
- * examinador.ts).
+ * con frasi pronte e vocabolario chiave. Cliccando una guida, lo studente
+ * va su /student/write con la consegna pre-caricata; la valutazione di
+ * Gemini la prende in considerazione (vedi lib/gemini/prompts/examinador.ts).
  */
 export const GUIDES: Guida[] = [
   {

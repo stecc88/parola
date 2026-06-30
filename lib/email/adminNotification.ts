@@ -16,17 +16,12 @@ export async function notifyAdminOfNameChangeRequest({
     const admin = createAdminClient()
     const { data: admins } = await admin
       .from('profiles')
-      .select('id')
+      .select('email')
       .eq('role', 'admin')
 
     if (!admins?.length) return
 
-    // Recupera l'email di tutti gli admin da auth.users
-    const emails: string[] = []
-    for (const a of admins) {
-      const { data } = await admin.auth.admin.getUserById(a.id)
-      if (data?.user?.email) emails.push(data.user.email)
-    }
+    const emails = admins.map((a) => a.email).filter((e): e is string => !!e)
     if (!emails.length) return
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL

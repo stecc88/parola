@@ -14,25 +14,16 @@ async function requireAdminUserId(): Promise<string> {
 }
 
 /**
- * Mappa id -> email per TUTTI gli utenti, leggendo da auth.users via
- * service role (non accessibile via RLS normale, e profiles non
- * memorizza l'email). Una sola chiamata paginata invece di N+1 — accettabile
- * per il volume tipico di questa piattaforma; da rivedere se diventasse
- * un collo di bottiglia con migliaia di utenti.
+ * Mappa id -> email leggendo direttamente da profiles.email (colonna
+ * sincronizzata con auth.users tramite trigger — vedi migrazione 0030).
+ * Una sola query invece della vecchia paginazione su auth.admin.listUsers.
  */
 async function getEmailMap(): Promise<Map<string, string>> {
   const admin = createAdminClient()
+  const { data } = await admin.from('profiles').select('id, email')
   const map = new Map<string, string>()
-  let page = 1
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 })
-    if (error || !data) break
-    for (const u of data.users) {
-      if (u.email) map.set(u.id, u.email)
-    }
-    if (data.users.length < 200) break
-    page += 1
+  for (const row of data ?? []) {
+    if (row.email) map.set(row.id, row.email)
   }
   return map
 }
@@ -120,10 +111,6 @@ export async function getTeacherBlockers(teacherId: string) {
 }
 
 /**
- * Reasigna TODAS las classi de un profesor a otro profesor de una sola vez.
- * No toca submissions/exercises (siguen ligadas a student_id, no a teacher_id).
- */
-/**
  * Riassegna TUTTO ciò che lega uno studente a questo insegnante: sia le
  * classi (tabella classes) sia i collegamenti diretti studente-insegnante
  * (class_memberships.teacher_id) — quest'ultima è la colonna che il
@@ -154,9 +141,9 @@ export async function reassignAllClasses(fromTeacherId: string, toTeacherId: str
 }
 
 /**
- * Elimina definitivamente a un profesor. Bloqueado si todavía tiene
- * classi asociadas (constraint ON DELETE RESTRICT en classes.teacher_id
- * actúa como segunda barrera a nivel DB).
+ * Elimina definitivamente un insegnante. Bloccato se ha ancora classi
+ * associate (constraint ON DELETE RESTRICT su classes.teacher_id agisce
+ * come seconda barriera a livello DB).
  */
 export async function deleteTeacher(teacherId: string, confirmName: string, expectedName: string) {
   await requireAdminUserId()

@@ -7,13 +7,12 @@ import { GeminiError, isQuotaExhausted } from '@/lib/gemini/client'
 import { checkSubmissionRateLimit } from '@/lib/student/rate-limit'
 
 /**
- * Le evaluaciones con "thinking" activado en Gemini, sumadas a los
- * reintentos automáticos ante 503/sobrecarga (y el cambio de modelo a
- * gemini-2.5-flash-lite si el principal sigue fallando), pueden superar
- * el límite de tiempo por defecto de una función serverless. Esto
- * extiende el máximo permitido — Vercel aplica de todos modos el techo
- * real de tu plan, así que este valor es seguro de declarar aunque tu
- * plan no llegue a 60s.
+ * Le valutazioni con "thinking" attivo in Gemini, sommate ai retry
+ * automatici su 503/sovraccarico (e al cambio modello su gemini-2.5-flash-lite
+ * se il principale continua a fallire), possono superare il limite di tempo
+ * predefinito di una funzione serverless. Questo estende il massimo
+ * consentito — Vercel applica comunque il tetto reale del piano, quindi
+ * questo valore è sicuro da dichiarare anche se il piano non arriva a 60s.
  */
 export const maxDuration = 60
 
@@ -43,7 +42,7 @@ export const maxDuration = 60
  * con qualsiasi punteggio volesse. La policy UPDATE per gli studenti è
  * stata rimossa (vedi migrazione 0016); la lettura iniziale usa ancora il
  * client dell'utente, così la verifica "è davvero la sua
- * submission" sigue intacta vía RLS de SELECT.
+ * submission" resta intatta tramite RLS SELECT.
  */
 export async function POST(request: NextRequest) {
   const cookieStore = cookies()
@@ -57,7 +56,7 @@ export async function POST(request: NextRequest) {
           return cookieStore.get(name)?.value
         },
         set() {
-          /* no-op: route handler no necesita refrescar cookies de salida aquí */
+          /* no-op: il route handler non deve aggiornare i cookie in uscita qui */
         },
         remove() {
           /* no-op */
@@ -68,7 +67,7 @@ export async function POST(request: NextRequest) {
 
   const { data: userData, error: authError } = await supabase.auth.getUser()
   if (authError || !userData.user) {
-    return NextResponse.json({ error: 'No autenticado.' }, { status: 401 })
+    return NextResponse.json({ error: 'Non autenticato.' }, { status: 401 })
   }
 
   let rawBody: unknown
@@ -107,14 +106,14 @@ export async function POST(request: NextRequest) {
 
   if (submission.tipo !== 'scrittura_libera') {
     return NextResponse.json(
-      { error: 'Este endpoint solo evalúa submissions de tipo scrittura_libera.' },
+      { error: 'Questo endpoint valuta solo submissions di tipo scrittura_libera.' },
       { status: 400 }
     )
   }
 
   if (submission.valutazione_ia) {
     return NextResponse.json(
-      { error: 'Esta submission ya fue evaluada.' },
+      { error: 'Questa submission è già stata valutata.' },
       { status: 409 }
     )
   }

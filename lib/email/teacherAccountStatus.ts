@@ -17,8 +17,12 @@ export async function notifyTeacherAccountStatus({
 }): Promise<void> {
   try {
     const admin = createAdminClient()
-    const { data, error } = await admin.auth.admin.getUserById(teacherId)
-    const email = data?.user?.email
+    const { data: profile, error } = await admin
+      .from('profiles')
+      .select('email')
+      .eq('id', teacherId)
+      .single()
+    const email = profile?.email
     if (error || !email) return
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://parola-puce.vercel.app'

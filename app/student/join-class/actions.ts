@@ -53,10 +53,10 @@ export async function joinClassWithCode(inviteCode: string) {
 }
 
 /**
- * Intenta unir automáticamente usando el invite_code guardado en
- * user_metadata durante el signup (caso: confirmación de email activada,
- * el join no pudo hacerse en el momento del registro porque no había
- * sesión todavía). Se llama desde la home al primer login.
+ * Prova ad unirsi automaticamente usando l'invite_code salvato in
+ * user_metadata durante la registrazione (caso: conferma email attiva,
+ * il join non ha potuto avvenire al momento della registrazione perché
+ * non c'era ancora una sessione). Viene chiamata dalla home al primo login.
  */
 export async function tryAutoJoinFromMetadata(): Promise<boolean> {
   const supabase = createClient()
