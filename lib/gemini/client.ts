@@ -10,11 +10,11 @@
  *     rápidos de modo guiado.
  *   - Input hasta 1,048,576 tokens / output hasta 65,536.
  *
- * Modelo de respaldo: gemini-2.5-flash-lite
- *   - Se usa SOLO cuando el modelo principal devuelve cuota agotada
- *     (RESOURCE_EXHAUSTED) — ver isQuotaExhausted más abajo. Cada modelo
- *     tiene su propia cuota independiente en el plan gratuito, así que
- *     esto da continuidad de servicio sin esperar al reseteo de cuota.
+ * Modello di riserva: gemini-2.5-flash-lite
+ *   - Usato SOLO quando il modello principale restituisce quota esaurita
+ *     (RESOURCE_EXHAUSTED) — vedi isQuotaExhausted più in basso. Ogni
+ *     modello ha la propria quota indipendente nel piano gratuito, quindi
+ *     questo garantisce continuità del servizio senza attendere il reset.
  *
  * GEMINI_API_KEY vive solo en el entorno del servidor (sin prefijo
  * NEXT_PUBLIC_) — este módulo no debe importarse desde código de cliente.

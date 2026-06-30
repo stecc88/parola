@@ -5,9 +5,9 @@ import { createClient } from '@/lib/supabase/server'
 import { requireApprovedStudentActionUserId } from '@/lib/student/guard'
 
 /**
- * Elimina una submission del alumno. La RLS garantiza que solo puede
- * borrar sus propias submissions — si el id no le pertenece, Supabase
- * no borra nada y retornamos error.
+ * Elimina una submission dello studente. La RLS garantisce che possa
+ * eliminare solo le proprie submissions — se l'id non gli appartiene,
+ * Supabase non cancella nulla e restituiamo un errore.
  */
 export async function deleteOwnSubmission(submissionId: string) {
   const studentId = await requireApprovedStudentActionUserId()

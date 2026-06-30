@@ -96,8 +96,8 @@ export async function reenableTeacher(teacherId: string) {
 }
 
 /**
- * Devuelve cuántas classi y estudiantes activos tiene un profesor, para que
- * la UI pueda decidir si bloquear el botón de eliminar definitivamente.
+ * Restituisce quante classi e studenti attivi ha un docente, in modo che
+ * la UI possa decidere se bloccare il pulsante di eliminazione definitiva.
  */
 export async function getTeacherBlockers(teacherId: string) {
   await requireAdminUserId()
@@ -452,6 +452,9 @@ export async function getAdminPendingCount(): Promise<number | null> {
 export async function getPendingNameChangeRequests(): Promise<NameChangeRequestRow[]> {
   await requireAdminUserId()
   const admin = createAdminClient()
+
+  // Scade le richieste vecchie prima di mostrarle (best-effort)
+  await admin.rpc('expire_pending_name_change_requests').catch(() => {})
 
   const [{ data, error }, emailMap] = await Promise.all([
     admin

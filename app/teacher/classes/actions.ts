@@ -46,10 +46,10 @@ export async function createClass(nome: string) {
 }
 
 /**
- * Asigna un estudiante sin clase (class_id NULL) a una classe concreta
- * del profesor. A diferencia de moveStudentToClass (que cierra/reabre la
- * membership), acá alcanza con un UPDATE directo porque el teacher_id ya
- * es el mismo — no hay cambio de "dueño", solo de classe.
+ * Assegna uno studente senza classe (class_id NULL) a una classe concreta
+ * del docente. A differenza di moveStudentToClass (che chiude/riapre la
+ * membership), qui basta un UPDATE diretto perché il teacher_id è già
+ * lo stesso — non c'è cambio di "proprietario", solo di classe.
  */
 export async function assignStudentToClass(membershipId: string, classId: string) {
   const supabase = createClient()
@@ -149,9 +149,9 @@ export async function renameClass(classId: string, nuovoNome: string) {
 }
 
 /**
- * Elimina una classe. Los studenti que estuvieran en ella NO se pierden:
- * vuelven al estado "sin classe assegnata" (class_id = NULL), igual que
- * cuando se unen por primera vez con el codice del profesor.
+ * Elimina una classe. Gli studenti che ne facevano parte NON vanno persi:
+ * tornano allo stato "senza classe assegnata" (class_id = NULL), come
+ * quando si uniscono per la prima volta con il codice del docente.
  */
 export async function deleteClass(classId: string) {
   const supabase = createClient()
@@ -467,10 +467,10 @@ export async function getStudentsOverview(): Promise<StudentOverviewRow[]> {
 }
 
 /**
- * Cuántos ejercicios personalizados generó este docente que el alumno
- * todavía no resolvió (sin submission_id de scrittura ni completato_at
- * de tipo cerrado) — útil para saber si vale la pena recordarle a algún
- * alumno que tiene tarea pendiente.
+ * Quanti esercizi personalizzati ha generato questo docente che lo studente
+ * non ha ancora risolto (senza submission_id di scrittura né completato_at
+ * di tipo chiuso) — utile per sapere se vale la pena ricordare a qualche
+ * studente che ha un compito in sospeso.
  */
 export async function getPendingPersonalizedCount(): Promise<number> {
   const supabase = createClient()
