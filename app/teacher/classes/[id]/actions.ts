@@ -5,9 +5,9 @@ import { createClient } from '@/lib/supabase/server'
 import { requireApprovedTeacherActionUserId } from '@/lib/teacher/guard'
 
 /**
- * Mueve un estudiante de la clase actual a otra clase del MISMO profesor.
- * RLS (memberships_update_by_teacher) garantiza que solo puede operar
- * sobre membresías de classi cuyo teacher_id sea el suyo.
+ * Sposta uno studente dalla classe attuale a un'altra classe dello STESSO
+ * docente. RLS (memberships_update_by_teacher) garantisce che possa operare
+ * solo sulle membership di classi il cui teacher_id sia il suo.
  */
 export async function moveStudentToClass(membershipId: string, targetClassId: string) {
   const supabase = createClient()

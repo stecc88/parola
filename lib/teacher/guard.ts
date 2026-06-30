@@ -2,13 +2,13 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 
 /**
- * Verifica que el usuario autenticado sea un profesor con teacher_status
- * 'approved'. Si no lo es (pending/rejected/disabled, o no es profesor),
- * redirige a /teacher/pending o /login según corresponda.
+ * Verifica che l'utente autenticato sia un docente con teacher_status
+ * 'approved'. Se non lo è (pending/rejected/disabled, o non è docente),
+ * reindirizza a /teacher/pending o /login secondo il caso.
  *
- * Debe llamarse al inicio de TODA página bajo /teacher/* que muestre
- * datos o permita acciones — no alcanza con bloquear solo la redirección
- * inicial desde la home, porque alguien podría entrar directo por URL.
+ * Va chiamata all'inizio di OGNI pagina sotto /teacher/* che mostri dati
+ * o permetta azioni — non è sufficiente bloccare solo il reindirizzamento
+ * iniziale dalla home, perché qualcuno potrebbe accedere direttamente via URL.
  */
 export async function requireApprovedTeacher(): Promise<string> {
   const supabase = createClient()
@@ -32,14 +32,14 @@ export async function requireApprovedTeacher(): Promise<string> {
 }
 
 /**
- * Variante para Server Actions (no para páginas): lanza un Error en vez
- * de redirigir. Antes, las Server Actions del profesor solo verificaban
- * "está logueado" y dejaban toda la autorización a las políticas RLS
- * (teacher_id = auth.uid()) — pero esas políticas no contemplan
- * teacher_status. Resultado: un profesor DESHABILITADO con una sesión ya
- * abierta podía seguir creando clases, generando ejercicios, etc. — las
- * páginas le redirigían a /teacher/pending, pero las acciones del
- * servidor en sí seguían funcionando si las invocaba directamente.
+ * Variante per Server Actions (non per pagine): lancia un Error invece
+ * di redirigere. In precedenza le Server Actions del docente verificavano
+ * solo "è loggato" e delegavano tutta l'autorizzazione alle policy RLS
+ * (teacher_id = auth.uid()) — ma quelle policy non considerano
+ * teacher_status. Risultato: un docente DISABILITATO con sessione aperta
+ * poteva continuare a creare classi, generare esercizi, ecc. — le pagine
+ * lo reindirizzavano a /teacher/pending, ma le Server Actions continuavano
+ * a funzionare se invocate direttamente.
  */
 export async function requireApprovedTeacherActionUserId(): Promise<string> {
   const supabase = createClient()

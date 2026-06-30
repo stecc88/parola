@@ -22,26 +22,27 @@ export const maxDuration = 60
  * body: { submissionId: string }
  *
  * Flujo:
- *   1. Cliente crea primero la submission (Server Action separada) con
- *      testo_studente y valutazione_ia = NULL.
- *   2. Este endpoint recibe el submissionId, lee el texto (con la sesión
- *      del propio usuario — RLS garantiza que solo puede leer la suya),
- *      llama a Gemini, y hace UPDATE de valutazione_ia con el cliente
- *      admin (service role).
+ *   1. Il client crea prima la submission (Server Action separata) con
+ *      testo_studente e valutazione_ia = NULL.
+ *   2. Questo endpoint riceve il submissionId, legge il testo (con la
+ *      sessione dell'utente — RLS garantisce che possa leggere solo il suo),
+ *      chiama Gemini, e fa UPDATE di valutazione_ia con il client admin
+ *      (service role).
  *
- * Por qué en dos pasos: si Gemini falla o tarda, la submission ya existe
- * con su texto guardado — nunca se pierde el envío del estudiante por un
- * problema de la API externa. El cliente puede reintentar solo el paso 2.
+ * Perché in due passi: se Gemini fallisce o impiega troppo, la submission
+ * esiste già con il testo salvato — il testo dello studente non va mai
+ * perso per un problema dell'API esterna. Il client può riprovare solo
+ * il passo 2.
  *
- * IMPORTANTE (hallazgo de auditoría de seguridad): el UPDATE final usa el
- * cliente admin, NO el del usuario. Antes usaba el cliente del propio
- * usuario apoyándose en la RLS policy submissions_update_own_student —
- * pero esa misma policy permitía que cualquier estudiante, llamando
- * directamente a la API REST de Supabase con su propia sesión (sin pasar
- * por este endpoint ni por Gemini), escribiera valutazione_ia con
- * cualquier puntaje que quisiera. La policy de UPDATE para estudiantes
- * fue eliminada (ver migración 0016); la lectura inicial sigue usando el
- * cliente del usuario, así que la verificación de "es realmente su
+ * IMPORTANTE (finding di audit di sicurezza): l'UPDATE finale usa il
+ * client admin, NON quello dell'utente. In precedenza usava il client
+ * dell'utente appoggiandosi alla RLS policy submissions_update_own_student
+ * — ma quella stessa policy permetteva a qualsiasi studente, chiamando
+ * direttamente la REST API di Supabase con la propria sessione (senza
+ * passare per questo endpoint né per Gemini), di scrivere valutazione_ia
+ * con qualsiasi punteggio volesse. La policy UPDATE per gli studenti è
+ * stata rimossa (vedi migrazione 0016); la lettura iniziale usa ancora il
+ * client dell'utente, così la verifica "è davvero la sua
  * submission" sigue intacta vía RLS de SELECT.
  */
 export async function POST(request: NextRequest) {
@@ -174,12 +175,26 @@ export async function POST(request: NextRequest) {
           if (obiettivo) {
             const obiettivoIdx = LIVELLO_ORDER.indexOf(obiettivo)
             if (livelloIdx >= obiettivoIdx) {
+              // Se lo studente ha già visto questo traguardo con un docente
+              // precedente, non va notificato di nuovo (evita doppia notifica
+              // dopo un cambio docente).
+              const { data: prevAchievement } = await admin
+                .from('level_achievements')
+                .select('seen_by_student')
+                .eq('student_id', userData.user.id)
+                .eq('livello', obiettivo)
+                .eq('seen_by_student', true)
+                .limit(1)
+                .maybeSingle()
+
+              const alreadySeenByStudent = prevAchievement !== null
+
               const { error: upsertError } = await admin.from('level_achievements').upsert(
                 {
                   student_id: userData.user.id,
                   teacher_id: membership.teacher_id,
                   livello: obiettivo,
-                  seen_by_student: false,
+                  seen_by_student: alreadySeenByStudent,
                   seen_by_teacher: false
                 },
                 { onConflict: 'student_id,teacher_id,livello', ignoreDuplicates: true }

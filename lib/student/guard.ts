@@ -1,16 +1,16 @@
 import { createClient } from '@/lib/supabase/server'
 
 /**
- * Variante para Server Actions (no para páginas): verifica que el usuario
- * esté logueado Y sea un estudiante con student_status 'approved' (o
- * NULL — caso legacy de quien se unió con código de profesor antes de la
- * migración 0012, ver comentario en esa migración). Lanza un Error en
- * vez de redirigir.
+ * Variante per Server Actions (non per pagine): verifica che l'utente sia
+ * loggato E sia uno studente con student_status 'approved' (o NULL —
+ * caso legacy di chi si è iscritto con codice docente prima della
+ * migrazione 0012, vedi commento in quella migrazione). Lancia un Error
+ * invece di redirigere.
  *
- * Sin esto, un estudiante DESHABILITADO con una sesión ya abierta podía
- * seguir generando ejercicios, escribiendo y enviando textos — el
- * middleware solo bloqueaba el RENDERIZADO de las páginas, no las Server
- * Actions invocadas directamente.
+ * Senza questo, uno studente DISABILITATO con sessione aperta poteva
+ * continuare a generare esercizi, scrivere e inviare testi — il
+ * middleware bloccava solo il RENDERING delle pagine, non le Server
+ * Actions invocate direttamente.
  */
 export async function requireApprovedStudentActionUserId(): Promise<string> {
   const supabase = createClient()

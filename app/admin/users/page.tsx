@@ -460,9 +460,17 @@ function DeleteTeacherModal({
             </div>
 
             {candidates.length === 0 ? (
-              <p className="text-sm text-ink-tertiary">
-                Non ci sono altri insegnanti approvati a cui riassegnare gli studenti.
-              </p>
+              <div className="rounded-md bg-danger-bg p-3 text-sm text-danger-text">
+                <p className="font-medium">Impossibile procedere con l&apos;eliminazione.</p>
+                <p className="mt-1">
+                  Non ci sono altri docenti approvati a cui riassegnare gli studenti.
+                  Prima di eliminare questo account devi:
+                </p>
+                <ol className="mt-2 list-decimal pl-4 space-y-1">
+                  <li>Approvare un altro docente, oppure</li>
+                  <li>Spostare gli studenti in stato indipendente dalla pagina di gestione utenti.</li>
+                </ol>
+              </div>
             ) : (
               <div className="flex items-center gap-2">
                 <select

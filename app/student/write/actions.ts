@@ -9,9 +9,9 @@ const valutazioneErroriSchema = z.object({
 })
 
 /**
- * Crea la submission con el texto del estudiante (valutazione_ia=NULL).
- * Devuelve el id para que el cliente luego llame a /api/gemini/evaluate.
- * Separado en dos pasos a propósito: ver comentario en
+ * Crea la submission con il testo dello studente (valutazione_ia=NULL).
+ * Restituisce l'id affinché il client possa chiamare /api/gemini/evaluate.
+ * Separato in due passi intenzionalmente: vedi commento in
  * app/api/gemini/evaluate/route.ts.
  */
 export async function createScritturaLiberaSubmission(

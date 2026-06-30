@@ -6,7 +6,7 @@
  * están configuradas, sendEmail no hace nada (no lanza error) — las
  * notificaciones por email son un "best effort" sobre la notificación
  * in-app ya existente, nunca deben poder romper el flujo principal
- * (que el alumno entregue su ejercicio).
+ * (che lo studente consegni il suo esercizio).
  */
 export async function sendEmail({
   to,

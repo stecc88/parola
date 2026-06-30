@@ -2,12 +2,12 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { sendEmail } from './send'
 
 /**
- * Notifica al docente por email cuando un alumno entrega un ejercicio
- * personalizado — complemento de la notificación in-app ya existente
- * (seen_by_teacher), no un sustituto. Siempre "best effort": cualquier
- * fallo (email no configurado, error de red, docente sin email
- * recuperable) se loguea y se ignora, nunca debe hacer fallar la
- * entrega del alumno.
+ * Notifica il docente via email quando uno studente consegna un esercizio
+ * personalizzato — complemento della notifica in-app già esistente
+ * (seen_by_teacher), non un sostituto. Sempre "best effort": qualsiasi
+ * errore (email non configurata, errore di rete, email del docente non
+ * recuperabile) viene loggato e ignorato, non deve mai bloccare la
+ * consegna dello studente.
  */
 export async function notifyTeacherOfDelivery({
   teacherId,

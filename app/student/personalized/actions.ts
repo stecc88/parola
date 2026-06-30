@@ -246,10 +246,10 @@ async function avvisaDocente(exerciseId: string, studentId: string) {
 }
 
 /**
- * Cuántos ejercicios personalizados nuevos (generados por el profesor)
- * el alumno todavía no vio — para la campanita de notificaciones.
- * Devuelve null si el usuario no es estudiante (así el componente de
- * campana sabe que no debe mostrarse en absoluto, no solo mostrar 0).
+ * Quanti esercizi personalizzati nuovi (generati dal docente) lo studente
+ * non ha ancora visto — per la campanella di notifiche.
+ * Restituisce null se l'utente non è uno studente (così il componente
+ * della campanella sa che non deve mostrarsi affatto, non solo mostrare 0).
  */
 export async function getUnseenPersonalizedCount(): Promise<number | null> {
   const supabase = createClient()
