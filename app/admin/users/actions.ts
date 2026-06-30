@@ -415,6 +415,80 @@ export async function reassignStudentTeacher(studentId: string, newTeacherId: st
  * referenziano il profilo, poi l'utente in auth.users (che fa cascare
  * l'eliminazione del profilo stesso).
  */
+export interface NameChangeRequestRow {
+  id: string
+  user_id: string
+  nome_richiesto: string
+  cognome_richiesto: string
+  nome_attuale: string
+  cognome_attuale: string
+  stato: 'pending' | 'approved' | 'rejected'
+  created_at: string
+  email: string
+}
+
+export async function getPendingNameChangeRequests(): Promise<NameChangeRequestRow[]> {
+  await requireAdminUserId()
+  const admin = createAdminClient()
+
+  const [{ data, error }, emailMap] = await Promise.all([
+    admin
+      .from('name_change_requests')
+      .select('id, user_id, nome_richiesto, cognome_richiesto, nome_attuale, cognome_attuale, stato, created_at')
+      .eq('stato', 'pending')
+      .order('created_at', { ascending: true }),
+    getEmailMap()
+  ])
+
+  if (error) throw new Error('Errore caricando le richieste di cambio nome.')
+  return (data ?? []).map((r) => ({ ...r, email: emailMap.get(r.user_id) ?? '' })) as NameChangeRequestRow[]
+}
+
+export async function approveNameChangeRequest(requestId: string) {
+  const adminId = await requireAdminUserId()
+  const admin = createAdminClient()
+
+  const { data: req, error: fetchError } = await admin
+    .from('name_change_requests')
+    .select('user_id, nome_richiesto, cognome_richiesto')
+    .eq('id', requestId)
+    .eq('stato', 'pending')
+    .single()
+
+  if (fetchError || !req) throw new Error('Richiesta non trovata o già elaborata.')
+
+  const { error: profileError } = await admin
+    .from('profiles')
+    .update({ nome: req.nome_richiesto, cognome: req.cognome_richiesto })
+    .eq('id', req.user_id)
+
+  if (profileError) throw new Error('Errore aggiornando il profilo.')
+
+  const { error: reqError } = await admin
+    .from('name_change_requests')
+    .update({ stato: 'approved', reviewed_at: new Date().toISOString(), reviewed_by: adminId })
+    .eq('id', requestId)
+
+  if (reqError) throw new Error('Errore aggiornando la richiesta.')
+
+  revalidatePath('/admin/users')
+}
+
+export async function rejectNameChangeRequest(requestId: string) {
+  const adminId = await requireAdminUserId()
+  const admin = createAdminClient()
+
+  const { error } = await admin
+    .from('name_change_requests')
+    .update({ stato: 'rejected', reviewed_at: new Date().toISOString(), reviewed_by: adminId })
+    .eq('id', requestId)
+    .eq('stato', 'pending')
+
+  if (error) throw new Error('Errore rifiutando la richiesta.')
+
+  revalidatePath('/admin/users')
+}
+
 export async function deleteStudentCompletely(
   studentId: string,
   confirmName: string,

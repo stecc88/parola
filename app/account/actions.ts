@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { notifyAdminOfNameChangeRequest } from '@/lib/email/adminNotification'
 
 export interface MyProfile {
   id: string
@@ -9,6 +10,16 @@ export interface MyProfile {
   role: 'admin' | 'teacher' | 'student'
   livello_target: string | null
   livello_obiettivo_classe: string | null
+}
+
+export interface NameChangeRequest {
+  id: string
+  nome_richiesto: string
+  cognome_richiesto: string
+  nome_attuale: string
+  cognome_attuale: string
+  stato: 'pending' | 'approved' | 'rejected'
+  created_at: string
 }
 
 export async function getMyProfile(): Promise<MyProfile | null> {
@@ -25,26 +36,69 @@ export async function getMyProfile(): Promise<MyProfile | null> {
   return data ?? null
 }
 
+export async function getMyPendingNameChangeRequest(): Promise<NameChangeRequest | null> {
+  const supabase = createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return null
+
+  const { data } = await supabase
+    .from('name_change_requests')
+    .select('id, nome_richiesto, cognome_richiesto, nome_attuale, cognome_attuale, stato, created_at')
+    .eq('user_id', userData.user.id)
+    .eq('stato', 'pending')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  return data as NameChangeRequest | null
+}
+
 /**
- * Aggiorna SOLO nome/cognome — non si tocca mai role, teacher_status,
- * livello_target o altri campi sensibili da questo form, anche se la RLS
- * (profiles_update_own) tecnicamente lo permetterebbe a livello di riga.
+ * Invia una richiesta di cambio nome/cognome all'amministratore.
+ * L'utente non può modificare nome/cognome direttamente: solo l'admin
+ * può approvare la richiesta e applicare il cambiamento.
  */
-export async function updateMyName(nome: string, cognome: string) {
+export async function requestNameChange(nome: string, cognome: string): Promise<void> {
   const supabase = createClient()
   const { data: userData, error: authError } = await supabase.auth.getUser()
   if (authError || !userData.user) throw new Error('Non autenticato.')
 
-  if (!nome.trim() || !cognome.trim()) {
-    throw new Error('Nome e cognome sono obbligatori.')
+  const nomeT = nome.trim()
+  const cognomeT = cognome.trim()
+  if (!nomeT || !cognomeT) throw new Error('Nome e cognome sono obbligatori.')
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('nome, cognome')
+    .eq('id', userData.user.id)
+    .single()
+
+  if (!profile) throw new Error('Profilo non trovato.')
+
+  if (profile.nome === nomeT && profile.cognome === cognomeT) {
+    throw new Error('Il nome inserito è uguale a quello attuale.')
   }
 
-  const { error } = await supabase
-    .from('profiles')
-    .update({ nome: nome.trim(), cognome: cognome.trim() })
-    .eq('id', userData.user.id)
+  const { error } = await supabase.from('name_change_requests').insert({
+    user_id: userData.user.id,
+    nome_richiesto: nomeT,
+    cognome_richiesto: cognomeT,
+    nome_attuale: profile.nome,
+    cognome_attuale: profile.cognome
+  })
 
-  if (error) throw new Error('Errore aggiornando il profilo.')
+  if (error) {
+    if (error.code === '42501') throw new Error('Hai già una richiesta in attesa. Aspetta che l\'amministratore la valuti.')
+    throw new Error('Errore inviando la richiesta.')
+  }
+
+  // Notifica best-effort all'admin — non blocca mai l'utente
+  await notifyAdminOfNameChangeRequest({
+    nomeAttuale: profile.nome,
+    cognomeAttuale: profile.cognome,
+    nomeRichiesto: nomeT,
+    cognomeRichiesto: cognomeT
+  })
 }
 
 export async function updateLivelloObiettivo(livello: string | null) {
