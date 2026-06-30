@@ -50,7 +50,7 @@ export function Esercizio14() {
       <Card className="text-center">
         <p className="mb-2 text-sm font-medium text-ink-primary">Cloze lessicale su testo — Formato B2</p>
         <p className="mb-4 text-sm text-ink-secondary">
-          Un brano con lacune lessicali. Scegli la parola corretta tra le opzioni. Simula la Prova N.3 del CILS B2.
+          Un brano con lacune lessicali. Scegli la parola corretta tra le opzioni. Formato tipico degli standard internazionali di lingua italiana — livello B2.
         </p>
         <Button onClick={handleStart}>Inizia esercizio</Button>
       </Card>

@@ -143,10 +143,10 @@ export function computeStudentStats(submissions: SubmissionRow[]): StudentStats 
     if (!isEsaminatoreValutazione(s.valutazione_ia)) continue
     const v = s.valutazione_ia
 
-    // isEsaminatoreValutazione solo garantiza punteggio_complessivo y errori[]
-    // (es lo mínimo para considerarlo "del esaminatore"). El resto de campos
-    // se trata defensivamente: un registro viejo/parcial en la base no debe
-    // romper el cálculo de stats para todo el dashboard.
+    // isEsaminatoreValutazione garantisce solo punteggio_complessivo ed errori[]
+    // (il minimo per considerarla "del esaminatore"). Gli altri campi
+    // vengono trattati difensivamente: un record vecchio/parziale in DB non
+    // deve rompere il calcolo delle stats per tutta la dashboard.
     tuttiPuntiForza.push(...(v.punti_forza ?? []))
     tutteAreeMiglioramento.push(...(v.aree_di_miglioramento ?? []))
 

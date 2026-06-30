@@ -50,7 +50,7 @@ export function Esercizio15() {
       <Card className="text-center">
         <p className="mb-2 text-sm font-medium text-ink-primary">Situazioni comunicative — Formato B2</p>
         <p className="mb-4 text-sm text-ink-secondary">
-          Per ogni espressione, scegli la situazione comunicativa corretta tra le opzioni. Simula la Prova N.4 del CILS B2.
+          Per ogni espressione, scegli la situazione comunicativa corretta tra le opzioni. Formato tipico degli standard internazionali di lingua italiana — livello B2.
         </p>
         <Button onClick={handleStart}>Inizia esercizio</Button>
       </Card>

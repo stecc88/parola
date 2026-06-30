@@ -50,7 +50,7 @@ export function Esercizio12() {
       <Card className="text-center">
         <p className="mb-2 text-sm font-medium text-ink-primary">Pronomi e aggettivi — Formato B2</p>
         <p className="mb-4 text-sm text-ink-secondary">
-          Un brano con lacune da completare con il pronome o aggettivo corretto. Simula la Prova N.1 del CILS B2.
+          Un brano con lacune da completare con il pronome o aggettivo corretto. Formato tipico degli standard internazionali di lingua italiana — livello B2.
         </p>
         <Button onClick={handleStart}>Inizia esercizio</Button>
       </Card>
