@@ -11,6 +11,7 @@ import {
   type CategoriaErrore
 } from '@/lib/analytics/studentStats'
 import { StudentSubmissionEntry } from './StudentSubmissionEntry'
+import { LivelloSelector } from '@/components/shared/LivelloSelector'
 import { z } from 'zod'
 
 const valutazioneSchema = z.object({
@@ -130,6 +131,16 @@ export default async function ProgressPage() {
             </div>
           </div>
         )}
+
+        <Card className="mb-6 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-ink-primary">Il tuo obiettivo</p>
+            <p className="mt-0.5 text-xs text-ink-tertiary">
+              Scegli il livello che vuoi raggiungere. Il tuo insegnante lo vedrà nel tuo profilo.
+            </p>
+          </div>
+          <LivelloSelector />
+        </Card>
 
         {stats.totaleAttivita === 0 ? (
           <Card className="border-dashed py-10 text-center text-sm text-ink-tertiary">
