@@ -23,8 +23,12 @@ import {
   reassignStudentTeacher,
   deleteStudentCompletely,
   setSubscriptionEndDate,
+  getPendingNameChangeRequests,
+  approveNameChangeRequest,
+  rejectNameChangeRequest,
   type TeacherRow,
-  type StudentAdminRow
+  type StudentAdminRow,
+  type NameChangeRequestRow
 } from './actions'
 
 const NAV_ITEMS = [
@@ -73,6 +77,7 @@ export default function AdminUsersPage() {
   const [teachers, setTeachers] = useState<TeacherRow[]>([])
   const [students, setStudents] = useState<StudentAdminRow[]>([])
   const [approvedTeachers, setApprovedTeachers] = useState<TeacherRow[]>([])
+  const [nameChangeRequests, setNameChangeRequests] = useState<NameChangeRequestRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [pending, startTransition] = useTransition()
@@ -82,14 +87,16 @@ export default function AdminUsersPage() {
   async function reload() {
     setLoading(true)
     try {
-      const [t, s, at] = await Promise.all([
+      const [t, s, at, ncr] = await Promise.all([
         getTeachers(),
         getAllStudentsAdmin(),
-        getApprovedTeachers()
+        getApprovedTeachers(),
+        getPendingNameChangeRequests()
       ])
       setTeachers(t)
       setStudents(s)
       setApprovedTeachers(at)
+      setNameChangeRequests(ncr)
       setError(null)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Errore caricando gli insegnanti.')
@@ -141,6 +148,48 @@ export default function AdminUsersPage() {
           <p className="mb-4 rounded-md bg-danger-bg px-3 py-2 text-sm text-danger-text">
             {error}
           </p>
+        )}
+
+        {!loading && nameChangeRequests.length > 0 && (
+          <Card className="mb-6 border-warning-text/30 bg-warning-bg">
+            <h2 className="mb-3 text-sm font-semibold text-warning-text">
+              Richieste di cambio nome ({nameChangeRequests.length})
+            </h2>
+            <div className="space-y-2">
+              {nameChangeRequests.map((r) => (
+                <div
+                  key={r.id}
+                  className="flex items-start justify-between gap-3 rounded-md bg-surface p-3"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs text-ink-tertiary">{r.email}</p>
+                    <p className="mt-0.5 text-sm text-ink-primary">
+                      <span className="text-ink-tertiary">{r.nome_attuale} {r.cognome_attuale}</span>
+                      {' → '}
+                      <strong>{r.nome_richiesto} {r.cognome_richiesto}</strong>
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    <Button
+                      disabled={pending}
+                      onClick={() => run(() => approveNameChangeRequest(r.id))}
+                      className="px-3 py-1.5 text-sm"
+                    >
+                      Approva
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      disabled={pending}
+                      onClick={() => run(() => rejectNameChangeRequest(r.id))}
+                      className="px-3 py-1.5 text-sm"
+                    >
+                      Rifiuta
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
         )}
 
         {!loading && students.filter((s) => s.student_status === 'pending').length > 0 && (
