@@ -12,6 +12,7 @@ import { LogoutButton } from './LogoutButton'
 import { ThemeToggle } from './ThemeToggle'
 import { NotificationBell } from './NotificationBell'
 import { TeacherNotificationBell } from './TeacherNotificationBell'
+import { AdminNotificationBell } from './AdminNotificationBell'
 
 interface NavItem { href: string; label: string }
 interface AppNavProps { items: NavItem[] }
@@ -81,6 +82,7 @@ export function AppNav({ items }: AppNavProps) {
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           <NotificationBell />
           <TeacherNotificationBell />
+          <AdminNotificationBell />
           <ThemeToggle />
           <LogoutButton />
         </div>
