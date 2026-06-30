@@ -427,6 +427,28 @@ export interface NameChangeRequestRow {
   email: string
 }
 
+export async function getAdminPendingCount(): Promise<number | null> {
+  const supabase = createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return null
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', userData.user.id)
+    .single()
+
+  if (profile?.role !== 'admin') return null
+
+  const admin = createAdminClient()
+  const { count } = await admin
+    .from('name_change_requests')
+    .select('id', { count: 'exact', head: true })
+    .eq('stato', 'pending')
+
+  return count ?? 0
+}
+
 export async function getPendingNameChangeRequests(): Promise<NameChangeRequestRow[]> {
   await requireAdminUserId()
   const admin = createAdminClient()
