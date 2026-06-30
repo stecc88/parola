@@ -7,6 +7,7 @@ import { CreateClassForm } from './CreateClassForm'
 import { AssignStudentSelect } from './AssignStudentSelect'
 import { ClassActions } from './ClassActions'
 import { InviteCodeActions } from './InviteCodeActions'
+import { StudentiList } from './StudentiList'
 import {
   getTeacherInviteCode,
   getUnassignedStudents,
@@ -149,49 +150,10 @@ export default async function TeacherClassesPage() {
 
         {panoramica.length > 0 && (
           <Card className="mb-6">
-            <h2 className="mb-3 text-sm font-semibold text-ink-primary">
-              Tutti gli studenti ({panoramica.length})
+            <h2 className="mb-4 text-sm font-semibold text-ink-primary">
+              Tutti gli studenti
             </h2>
-            <div className="space-y-1">
-              {panoramica.map((s) => (
-                <Link key={s.studentId} href={`/teacher/students/${s.studentId}`}>
-                  <div className="flex items-center justify-between gap-3 rounded-md p-2 text-sm hover:bg-surface-secondary">
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium text-ink-primary">
-                        {s.nome} {s.cognome}
-                        {s.richiedeAttenzione && <span className="ml-1">⚠</span>}
-                      </p>
-                      <p className="truncate text-xs text-ink-tertiary">
-                        {s.classeNome ?? 'Nessuna classe'}
-                      </p>
-                    </div>
-                    <div className="hidden shrink-0 text-right text-xs text-ink-tertiary sm:block">
-                      <p>
-                        Ultimo accesso:{' '}
-                        {s.ultimoAccesso
-                          ? new Date(s.ultimoAccesso).toLocaleDateString('it-IT', {
-                              day: '2-digit',
-                              month: '2-digit'
-                            })
-                          : 'mai'}
-                      </p>
-                      <p>{s.totaleAttivita} attività</p>
-                    </div>
-                    <span
-                      className={`shrink-0 rounded-full px-3 py-1 text-xs font-medium ${
-                        s.mediaGenerale === null
-                          ? 'bg-surface-tertiary text-ink-tertiary'
-                          : s.mediaGenerale < 60
-                            ? 'bg-danger-bg text-danger-text'
-                            : 'bg-success-bg text-success-text'
-                      }`}
-                    >
-                      {s.mediaGenerale !== null ? `${s.mediaGenerale}%` : '—'}
-                    </span>
-                  </div>
-                </Link>
-              ))}
-            </div>
+            <StudentiList panoramica={panoramica} />
           </Card>
         )}
 
