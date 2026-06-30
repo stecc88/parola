@@ -110,16 +110,14 @@ export async function submitPersonalizedExerciseResponse(
   consegna: string,
   segnali?: { testoIncollato: boolean; secondiScrittura: number | null }
 ): Promise<string> {
+  const userId = await requireApprovedStudentActionUserId()
+  await checkSubmissionRateLimit(userId)
   const supabase = createClient()
-  const { data: userData, error: authError } = await supabase.auth.getUser()
-  if (authError || !userData.user) throw new Error('Non autenticato.')
-  await requireApprovedStudentActionUserId()
-  await checkSubmissionRateLimit(userData.user.id)
 
   const { data: submission, error: insertError } = await supabase
     .from('submissions')
     .insert({
-      student_id: userData.user.id,
+      student_id: userId,
       tipo: 'scrittura_libera',
       testo_studente: testo,
       consegna,
@@ -142,13 +140,13 @@ export async function submitPersonalizedExerciseResponse(
     .from('personalized_exercises')
     .update({ submission_id: submission.id, seen_by_teacher: false })
     .eq('id', exerciseId)
-    .eq('student_id', userData.user.id)
+    .eq('student_id', userId)
 
   if (updateError) {
     throw new Error("Risposta salvata, ma errore collegando l'esercizio.")
   }
 
-  await avvisaDocente(exerciseId, userData.user.id)
+  await avvisaDocente(exerciseId, userId)
 
   return submission.id
 }
@@ -163,11 +161,9 @@ export async function submitClosedExerciseAnswers(
   exerciseId: string,
   risposte: string[]
 ): Promise<{ punteggio: number }> {
+  const userId = await requireApprovedStudentActionUserId()
+  await checkSubmissionRateLimit(userId)
   const supabase = createClient()
-  const { data: userData, error: authError } = await supabase.auth.getUser()
-  if (authError || !userData.user) throw new Error('Non autenticato.')
-  await requireApprovedStudentActionUserId()
-  await checkSubmissionRateLimit(userData.user.id)
 
   const { data: esercizio, error: fetchError } = await supabase
     .from('personalized_exercises')
@@ -200,13 +196,13 @@ export async function submitClosedExerciseAnswers(
       seen_by_teacher: false
     })
     .eq('id', exerciseId)
-    .eq('student_id', userData.user.id)
+    .eq('student_id', userId)
 
   if (updateError) {
     throw new Error('Errore salvando le risposte.')
   }
 
-  await avvisaDocente(exerciseId, userData.user.id)
+  await avvisaDocente(exerciseId, userId)
 
   return { punteggio }
 }
@@ -275,9 +271,9 @@ export async function getUnseenPersonalizedCount(): Promise<number | null> {
 }
 
 /**
- * Marca como vistos todos los ejercicios personalizados pendientes del
- * alumno — se llama al entrar a /student/personalized, mismo patrón que
- * markPersonalizedExercisesSeen del lado del profesor.
+ * Marca come visti tutti gli esercizi personalizzati in sospeso dello
+ * studente — chiamata all'entrata in /student/personalized, stesso schema
+ * di markPersonalizedExercisesSeen lato docente.
  */
 export async function markPersonalizedExercisesSeenByStudent() {
   const supabase = createClient()
