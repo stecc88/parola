@@ -50,7 +50,7 @@ export function Esercizio13() {
       <Card className="text-center">
         <p className="mb-2 text-sm font-medium text-ink-primary">Cloze verbi su testo — Formato B2</p>
         <p className="mb-4 text-sm text-ink-secondary">
-          Un brano con lacune verbali. Coniuga ogni verbo (tra parentesi) nel modo e tempo corretto. Simula la Prova N.2 del CILS B2.
+          Un brano con lacune verbali. Coniuga ogni verbo (tra parentesi) nel modo e tempo corretto. Formato tipico degli standard internazionali di lingua italiana — livello B2.
         </p>
         <Button onClick={handleStart}>Inizia esercizio</Button>
       </Card>

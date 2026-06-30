@@ -102,7 +102,7 @@ export default async function TeacherDashboardPage() {
 
             <Card className="mb-6">
               <h2 className="mb-3 text-sm font-semibold text-ink-primary">
-                Distribuzione livelli CILS nella classe
+                Distribuzione livelli nella classe
               </h2>
               <div className="space-y-2">
                 {d.distribuzioneLivelli.map((l) => (
@@ -189,7 +189,7 @@ export default async function TeacherDashboardPage() {
             {d.studentiConObiettivo > 0 && (
               <Card className="mb-6">
                 <h2 className="mb-1 flex items-center gap-2 text-sm font-semibold text-ink-primary">
-                  <Target className="h-4 w-4 text-brand-400" /> Obiettivi CILS della classe
+                  <Target className="h-4 w-4 text-brand-400" /> Obiettivi della classe
                 </h2>
                 <p className="mb-3 text-xs text-ink-tertiary">
                   {d.studentiConObiettivo} studenti con obiettivo impostato
