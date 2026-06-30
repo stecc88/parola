@@ -58,14 +58,19 @@ function extractPunteggioGenerico(v: unknown): number | null {
   const obj = v as Record<string, unknown>
 
   if (typeof obj.punteggio_complessivo === 'number') return obj.punteggio_complessivo
-  if (typeof obj.punteggio === 'number') return obj.punteggio
 
+  // Controllare risultati[] PRIMA di punteggio: ValutazioneCloze* ha entrambi,
+  // ma punteggio è un conteggio grezzo (es. 7 su 10) non paragonabile alla
+  // scala 0-100 di punteggio_complessivo. Il calcolo da risultati[] produce
+  // sempre una percentuale comparabile.
   if (Array.isArray(obj.risultati)) {
     const risultati = obj.risultati as { corretto: boolean }[]
     if (risultati.length === 0) return null
     const corretti = risultati.filter((r) => r.corretto).length
     return Math.round((corretti / risultati.length) * 100)
   }
+
+  if (typeof obj.punteggio === 'number') return obj.punteggio
 
   return null
 }
