@@ -23,6 +23,10 @@ export function NotificationBell() {
   const pathname = usePathname()
 
   useEffect(() => {
+    if (pathname === '/student/personalized') {
+      setCount(0)
+      return
+    }
     getUnseenPersonalizedCount().then(setCount).catch(() => {})
   }, [pathname])
 
