@@ -470,28 +470,15 @@ export async function approveNameChangeRequest(requestId: string) {
   const adminId = await requireAdminUserId()
   const admin = createAdminClient()
 
-  const { data: req, error: fetchError } = await admin
-    .from('name_change_requests')
-    .select('user_id, nome_richiesto, cognome_richiesto')
-    .eq('id', requestId)
-    .eq('stato', 'pending')
-    .single()
+  const { error } = await admin.rpc('approve_name_change_request', {
+    p_request_id: requestId,
+    p_admin_id: adminId
+  })
 
-  if (fetchError || !req) throw new Error('Richiesta non trovata o già elaborata.')
-
-  const { error: profileError } = await admin
-    .from('profiles')
-    .update({ nome: req.nome_richiesto, cognome: req.cognome_richiesto })
-    .eq('id', req.user_id)
-
-  if (profileError) throw new Error('Errore aggiornando il profilo.')
-
-  const { error: reqError } = await admin
-    .from('name_change_requests')
-    .update({ stato: 'approved', reviewed_at: new Date().toISOString(), reviewed_by: adminId })
-    .eq('id', requestId)
-
-  if (reqError) throw new Error('Errore aggiornando la richiesta.')
+  if (error) {
+    if (error.code === 'P0002') throw new Error('Richiesta non trovata o già elaborata.')
+    throw new Error('Errore approvando la richiesta.')
+  }
 
   revalidatePath('/admin/users')
 }

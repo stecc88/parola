@@ -79,6 +79,16 @@ export async function requestNameChange(nome: string, cognome: string): Promise<
     throw new Error('Il nome inserito è uguale a quello attuale.')
   }
 
+  const { count: pendingCount } = await supabase
+    .from('name_change_requests')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userData.user.id)
+    .eq('stato', 'pending')
+
+  if (pendingCount && pendingCount > 0) {
+    throw new Error('Hai già una richiesta in attesa. Aspetta che l\'amministratore la valuti.')
+  }
+
   const { error } = await supabase.from('name_change_requests').insert({
     user_id: userData.user.id,
     nome_richiesto: nomeT,
@@ -87,10 +97,7 @@ export async function requestNameChange(nome: string, cognome: string): Promise<
     cognome_attuale: profile.cognome
   })
 
-  if (error) {
-    if (error.code === '42501') throw new Error('Hai già una richiesta in attesa. Aspetta che l\'amministratore la valuti.')
-    throw new Error('Errore inviando la richiesta.')
-  }
+  if (error) throw new Error('Errore inviando la richiesta.')
 
   // Notifica best-effort all'admin — non blocca mai l'utente
   await notifyAdminOfNameChangeRequest({
