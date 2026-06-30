@@ -11,17 +11,17 @@ function sa(text: string | null | undefined, max = 500): string {
 }
 
 /**
- * Los 4 tipi di esercizio di analisi delle strutture (contrato definitivo):
+ * Tipi di esercizio di analisi delle strutture (contratto definitivo):
  *
  * 1. esercizio_struttura_1 — Completa la frase (cloze deletion)
  * 2. esercizio_struttura_2 — Riordina le parole (ricostruzione della frase)
  * 3. esercizio_struttura_3 — Scegli la preposizione corretta (scelta multipla)
  * 4. esercizio_struttura_4 — Trasforma la frase (cambio di tempo verbale)
  *
- * Cada tipo sigue el mismo patrón: generateEsercizioStrutturaN(livello) y
- * evaluateEsercizioStrutturaN(consegna, risposte), ambos usando structured
- * outputs nativos de Gemini. No mencionar nunca certificaciones específicas
- * en los prompts ni en el feedback generado.
+ * Ogni tipo segue lo stesso schema: generateEsercizioStrutturaN(livello) e
+ * evaluateEsercizioStrutturaN(consegna, risposte), entrambi usando structured
+ * outputs nativi di Gemini. Non menzionare mai certificazioni specifiche
+ * nei prompt né nel feedback generato.
  */
 
 // ---------------------------------------------------------------------------
