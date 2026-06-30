@@ -14,25 +14,16 @@ async function requireAdminUserId(): Promise<string> {
 }
 
 /**
- * Mappa id -> email per TUTTI gli utenti, leggendo da auth.users via
- * service role (non accessibile via RLS normale, e profiles non
- * memorizza l'email). Una sola chiamata paginata invece di N+1 — accettabile
- * per il volume tipico di questa piattaforma; da rivedere se diventasse
- * un collo di bottiglia con migliaia di utenti.
+ * Mappa id -> email leggendo direttamente da profiles.email (colonna
+ * sincronizzata con auth.users tramite trigger — vedi migrazione 0030).
+ * Una sola query invece della vecchia paginazione su auth.admin.listUsers.
  */
 async function getEmailMap(): Promise<Map<string, string>> {
   const admin = createAdminClient()
+  const { data } = await admin.from('profiles').select('id, email')
   const map = new Map<string, string>()
-  let page = 1
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
-    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 })
-    if (error || !data) break
-    for (const u of data.users) {
-      if (u.email) map.set(u.id, u.email)
-    }
-    if (data.users.length < 200) break
-    page += 1
+  for (const row of data ?? []) {
+    if (row.email) map.set(row.id, row.email)
   }
   return map
 }

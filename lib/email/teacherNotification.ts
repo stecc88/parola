@@ -22,8 +22,12 @@ export async function notifyTeacherOfDelivery({
 }): Promise<void> {
   try {
     const admin = createAdminClient()
-    const { data, error } = await admin.auth.admin.getUserById(teacherId)
-    const email = data?.user?.email
+    const { data: profile, error } = await admin
+      .from('profiles')
+      .select('email')
+      .eq('id', teacherId)
+      .single()
+    const email = profile?.email
 
     if (error || !email) {
       console.error('Notifica email: impossibile recuperare l\'email del docente.', error)
