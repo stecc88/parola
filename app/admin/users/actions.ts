@@ -120,10 +120,6 @@ export async function getTeacherBlockers(teacherId: string) {
 }
 
 /**
- * Reasigna TODAS las classi de un profesor a otro profesor de una sola vez.
- * No toca submissions/exercises (siguen ligadas a student_id, no a teacher_id).
- */
-/**
  * Riassegna TUTTO ciò che lega uno studente a questo insegnante: sia le
  * classi (tabella classes) sia i collegamenti diretti studente-insegnante
  * (class_memberships.teacher_id) — quest'ultima è la colonna che il
@@ -154,9 +150,9 @@ export async function reassignAllClasses(fromTeacherId: string, toTeacherId: str
 }
 
 /**
- * Elimina definitivamente a un profesor. Bloqueado si todavía tiene
- * classi asociadas (constraint ON DELETE RESTRICT en classes.teacher_id
- * actúa como segunda barrera a nivel DB).
+ * Elimina definitivamente un insegnante. Bloccato se ha ancora classi
+ * associate (constraint ON DELETE RESTRICT su classes.teacher_id agisce
+ * come seconda barriera a livello DB).
  */
 export async function deleteTeacher(teacherId: string, confirmName: string, expectedName: string) {
   await requireAdminUserId()
