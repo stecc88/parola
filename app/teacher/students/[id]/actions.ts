@@ -48,12 +48,9 @@ export async function generatePersonalizedExercise(
   tipoEsercizio?: TipoEsercizioPersonalizzato,
   erroriSubmission?: ErroreSubmission[]
 ) {
+  const teacherId = await requireApprovedTeacherActionUserId()
+  await checkGenerationRateLimit(teacherId)
   const supabase = createClient()
-  const { data: userData, error: authError } = await supabase.auth.getUser()
-  if (authError || !userData.user) throw new Error('Non autenticato.')
-  await requireApprovedTeacherActionUserId()
-
-  await checkGenerationRateLimit(userData.user.id)
 
   // RLS (is_active_teacher_of) garantisce comunque che questa query veda
   // solo dati di uno studente effettivamente attivo sotto questo docente;
@@ -107,7 +104,7 @@ export async function generatePersonalizedExercise(
 
   const { error: insertError } = await supabase.from('personalized_exercises').insert({
     student_id: studentId,
-    teacher_id: userData.user.id,
+    teacher_id: teacherId,
     tipo_esercizio: esercizio.tipo_esercizio,
     titolo: esercizio.titolo,
     teoria: esercizio.teoria,
@@ -223,15 +220,6 @@ export async function getLastSignInForStudent(studentId: string): Promise<string
   }
 }
 
-/**
- * Elimina permanentemente una submission. Si appoggia sulla RLS
- * submissions_delete_by_active_teacher (is_active_teacher_of) — un
- * docente non può eliminare submission di studenti che non sono suoi.
- *
- * ATTENZIONE: cancellazione reale, non reversibile (vedi nota in
- * migrazione 0009 sul cambio di design rispetto all'immutabilità
- * storica originale).
- */
 /**
  * Elimina un esercizio personalizzato. Solo il docente che lo ha creato
  * può eliminarlo — la RLS (teacher_id = auth.uid()) lo garantisce a

@@ -12,24 +12,8 @@ import {
 } from '@/lib/analytics/studentStats'
 
 export async function createClass(nome: string) {
+  const teacherId = await requireApprovedTeacherActionUserId()
   const supabase = createClient()
-
-  const { data: userData, error: authError } = await supabase.auth.getUser()
-  if (authError || !userData.user) {
-    throw new Error('Non autenticato.')
-  }
-
-  // Difesa in profondità: la pagina blocca già i docenti non approvati,
-  // ma questa Server Action è invocabile indipendentemente dalla pagina.
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role, teacher_status')
-    .eq('id', userData.user.id)
-    .single()
-
-  if (profile?.role !== 'teacher' || profile.teacher_status !== 'approved') {
-    throw new Error('Il tuo account insegnante non è ancora approvato.')
-  }
 
   if (!nome.trim()) {
     throw new Error('Il nome della classe è obbligatorio.')
@@ -37,7 +21,7 @@ export async function createClass(nome: string) {
 
   // invite_code viene generato automaticamente dal trigger set_invite_code.
   const { error } = await supabase.from('classes').insert({
-    teacher_id: userData.user.id,
+    teacher_id: teacherId,
     nome: nome.trim()
   })
 
@@ -52,16 +36,14 @@ export async function createClass(nome: string) {
  * lo stesso — non c'è cambio di "proprietario", solo di classe.
  */
 export async function assignStudentToClass(membershipId: string, classId: string) {
+  const teacherId = await requireApprovedTeacherActionUserId()
   const supabase = createClient()
-  const { data: userData, error: authError } = await supabase.auth.getUser()
-  if (authError || !userData.user) throw new Error('Non autenticato.')
-  await requireApprovedTeacherActionUserId()
 
   const { data: targetClass } = await supabase
     .from('classes')
     .select('id')
     .eq('id', classId)
-    .eq('teacher_id', userData.user.id)
+    .eq('teacher_id', teacherId)
     .single()
 
   if (!targetClass) throw new Error('Classe non valida.')
@@ -70,22 +52,20 @@ export async function assignStudentToClass(membershipId: string, classId: string
     .from('class_memberships')
     .update({ class_id: classId })
     .eq('id', membershipId)
-    .eq('teacher_id', userData.user.id)
+    .eq('teacher_id', teacherId)
 
   if (error) throw new Error('Errore assegnando lo studente.')
   revalidatePath('/teacher/classes')
 }
 
 export async function getTeacherInviteCode(): Promise<string | null> {
-  await requireApprovedTeacherActionUserId()
+  const teacherId = await requireApprovedTeacherActionUserId()
   const supabase = createClient()
-  const { data: userData } = await supabase.auth.getUser()
-  if (!userData.user) return null
 
   const { data } = await supabase
     .from('profiles')
     .select('invite_code')
-    .eq('id', userData.user.id)
+    .eq('id', teacherId)
     .single()
 
   return data?.invite_code ?? null
@@ -99,15 +79,13 @@ export interface UnassignedStudent {
 }
 
 export async function getUnassignedStudents(): Promise<UnassignedStudent[]> {
-  await requireApprovedTeacherActionUserId()
+  const teacherId = await requireApprovedTeacherActionUserId()
   const supabase = createClient()
-  const { data: userData } = await supabase.auth.getUser()
-  if (!userData.user) return []
 
   const { data, error } = await supabase
     .from('class_memberships')
     .select('id, student_id, profiles!student_id(nome, cognome)')
-    .eq('teacher_id', userData.user.id)
+    .eq('teacher_id', teacherId)
     .is('class_id', null)
     .is('left_at', null)
 
@@ -128,10 +106,8 @@ export async function getUnassignedStudents(): Promise<UnassignedStudent[]> {
 }
 
 export async function renameClass(classId: string, nuovoNome: string) {
+  const teacherId = await requireApprovedTeacherActionUserId()
   const supabase = createClient()
-  const { data: userData, error: authError } = await supabase.auth.getUser()
-  if (authError || !userData.user) throw new Error('Non autenticato.')
-  await requireApprovedTeacherActionUserId()
 
   if (!nuovoNome.trim()) {
     throw new Error('Il nome della classe è obbligatorio.')
@@ -141,7 +117,7 @@ export async function renameClass(classId: string, nuovoNome: string) {
     .from('classes')
     .update({ nome: nuovoNome.trim() })
     .eq('id', classId)
-    .eq('teacher_id', userData.user.id)
+    .eq('teacher_id', teacherId)
 
   if (error) throw new Error('Errore rinominando la classe.')
   revalidatePath('/teacher/classes')
@@ -154,17 +130,15 @@ export async function renameClass(classId: string, nuovoNome: string) {
  * quando si uniscono per la prima volta con il codice del docente.
  */
 export async function deleteClass(classId: string) {
+  const teacherId = await requireApprovedTeacherActionUserId()
   const supabase = createClient()
-  const { data: userData, error: authError } = await supabase.auth.getUser()
-  if (authError || !userData.user) throw new Error('Non autenticato.')
-  await requireApprovedTeacherActionUserId()
 
   // Verifica che la classe appartenga al docente prima di modificarla.
   const { data: classe } = await supabase
     .from('classes')
     .select('id')
     .eq('id', classId)
-    .eq('teacher_id', userData.user.id)
+    .eq('teacher_id', teacherId)
     .single()
 
   if (!classe) throw new Error('Classe non trovata.')
@@ -175,7 +149,7 @@ export async function deleteClass(classId: string) {
     .from('class_memberships')
     .update({ class_id: null })
     .eq('class_id', classId)
-    .eq('teacher_id', userData.user.id)
+    .eq('teacher_id', teacherId)
 
   const { error } = await supabase.from('classes').delete().eq('id', classId)
 
@@ -187,11 +161,12 @@ export async function getTeacherUnseenCount(): Promise<number | null> {
   const supabase = createClient()
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return null
+  const teacherId = userData.user.id
 
   const { data: profile } = await supabase
     .from('profiles')
     .select('role, teacher_status')
-    .eq('id', userData.user.id)
+    .eq('id', teacherId)
     .single()
 
   if (profile?.role !== 'teacher' || profile.teacher_status !== 'approved') return null
@@ -200,13 +175,13 @@ export async function getTeacherUnseenCount(): Promise<number | null> {
     supabase
       .from('personalized_exercises')
       .select('id', { count: 'exact', head: true })
-      .eq('teacher_id', userData.user.id)
+      .eq('teacher_id', teacherId)
       .eq('seen_by_teacher', false)
       .or('submission_id.not.is.null,completato_at.not.is.null'),
     supabase
       .from('level_achievements')
       .select('id', { count: 'exact', head: true })
-      .eq('teacher_id', userData.user.id)
+      .eq('teacher_id', teacherId)
       .eq('seen_by_teacher', false)
   ])
 
@@ -223,15 +198,13 @@ export interface NotificaTraguardo {
 }
 
 export async function getUnseenLevelAchievements(): Promise<NotificaTraguardo[]> {
-  await requireApprovedTeacherActionUserId()
+  const teacherId = await requireApprovedTeacherActionUserId()
   const supabase = createClient()
-  const { data: userData } = await supabase.auth.getUser()
-  if (!userData.user) return []
 
   const { data, error } = await supabase
     .from('level_achievements')
     .select('id, student_id, livello, created_at, profiles!student_id(nome, cognome)')
-    .eq('teacher_id', userData.user.id)
+    .eq('teacher_id', teacherId)
     .eq('seen_by_teacher', false)
     .order('created_at', { ascending: false })
 
@@ -288,15 +261,13 @@ export interface NotificaConsegna {
  * studente (vedi markPersonalizedExercisesSeen).
  */
 export async function getUnseenDeliveries(): Promise<NotificaConsegna[]> {
-  await requireApprovedTeacherActionUserId()
+  const teacherId = await requireApprovedTeacherActionUserId()
   const supabase = createClient()
-  const { data: userData } = await supabase.auth.getUser()
-  if (!userData.user) return []
 
   const { data, error } = await supabase
     .from('personalized_exercises')
     .select('id, titolo, student_id, created_at, profiles!student_id(nome, cognome)')
-    .eq('teacher_id', userData.user.id)
+    .eq('teacher_id', teacherId)
     .eq('seen_by_teacher', false)
     .or('submission_id.not.is.null,completato_at.not.is.null')
     .order('created_at', { ascending: false })
@@ -347,16 +318,14 @@ export interface StudentOverviewRow {
  * call per studente) causava timeout con classi >30 studenti.
  */
 export async function getStudentsOverview(): Promise<StudentOverviewRow[]> {
-  await requireApprovedTeacherActionUserId()
+  const teacherId = await requireApprovedTeacherActionUserId()
   const supabase = createClient()
-  const { data: userData } = await supabase.auth.getUser()
-  if (!userData.user) return []
 
   // Query 1: memberships + profiles + classi (unica JOIN)
   const { data: memberships, error } = await supabase
     .from('class_memberships')
     .select('student_id, joined_at, profiles!student_id(nome, cognome, livello_target), classes(nome)')
-    .eq('teacher_id', userData.user.id)
+    .eq('teacher_id', teacherId)
     .is('left_at', null)
 
   if (error) {
@@ -476,11 +445,12 @@ export async function getPendingPersonalizedCount(): Promise<number> {
   const supabase = createClient()
   const { data: userData } = await supabase.auth.getUser()
   if (!userData.user) return 0
+  const teacherId = userData.user.id
 
   const { count } = await supabase
     .from('personalized_exercises')
     .select('id', { count: 'exact', head: true })
-    .eq('teacher_id', userData.user.id)
+    .eq('teacher_id', teacherId)
     .is('submission_id', null)
     .is('completato_at', null)
 
