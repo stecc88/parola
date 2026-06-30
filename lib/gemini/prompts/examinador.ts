@@ -7,13 +7,13 @@ import {
 import { descrizioneLivelloValutazione } from '../cefrLevels'
 
 /**
- * Evaluador de "scrittura libera". Activa thinking (presupuesto medio)
- * porque el feedback pedagógico se beneficia de razonamiento más
- * profundo y la latencia adicional es aceptable en este flujo
- * (no es una interacción de hint instantáneo).
+ * Valutatore di "scrittura libera". Attiva il thinking (budget medio)
+ * perché il feedback pedagogico beneficia di un ragionamento più profondo
+ * e la latenza aggiuntiva è accettabile in questo flusso
+ * (non è un'interazione di hint istantaneo).
  *
- * RECORDATORIO: ni el prompt ni ningún string generado aquí debe mencionar
- * CILS/CELI/PLIDA. Usar siempre "standard internazionali di lingua italiana".
+ * PROMEMORIA: né il prompt né alcuna stringa generata qui deve menzionare
+ * CILS/CELI/PLIDA. Usare sempre "standard internazionali di lingua italiana".
  */
 
 const RESPONSE_SCHEMA = zodToGeminiSchema(valutazioneEsaminatoreSchema)

@@ -1,14 +1,14 @@
 import { z } from 'zod'
 
 /**
- * Schema de la valutazione del "esaminatore" para scrittura libera.
- * Se usa con doble propósito:
- *   1. Generar el responseSchema nativo que se envía a Gemini
- *      (structured outputs) — ver lib/gemini/client.ts
- *   2. Validar la respuesta antes de persistirla en submissions.valutazione_ia
+ * Schema della valutazione dell'"esaminatore" per scrittura libera.
+ * Usato con doppio scopo:
+ *   1. Generare il responseSchema nativo da inviare a Gemini
+ *      (structured outputs) — vedi lib/gemini/client.ts
+ *   2. Validare la risposta prima di persistirla in submissions.valutazione_ia
  *
- * IMPORTANTE: ningún texto aquí (ni en prompts) debe mencionar CILS/CELI/PLIDA.
- * Usar siempre "standard internazionali" en cualquier label visible al usuario.
+ * IMPORTANTE: nessun testo qui (né nei prompt) deve menzionare CILS/CELI/PLIDA.
+ * Usare sempre "standard internazionali" in qualsiasi label visibile all'utente.
  */
 export const valutazioneEsaminatoreSchema = z.object({
   punteggio_complessivo: z.number().min(0).max(100),

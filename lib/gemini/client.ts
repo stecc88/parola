@@ -1,14 +1,14 @@
 /**
- * Cliente REST directo a la API de Gemini. NUNCA usar @google/generative-ai
- * ni ningún SDK oficial — regla explícita del proyecto.
+ * Client REST diretto all'API di Gemini. NON usare mai @google/generative-ai
+ * né alcun SDK ufficiale — regola esplicita del progetto.
  *
- * Modelo principal: gemini-2.5-flash
- *   - Structured outputs nativos (responseSchema) → se usan en vez de
- *     parsear JSON "a mano" desde el texto de respuesta.
- *   - Thinking soportado → opcional, se activa solo donde el costo de
- *     latencia se justifica (evaluación del examinador), no en hints
- *     rápidos de modo guiado.
- *   - Input hasta 1,048,576 tokens / output hasta 65,536.
+ * Modello principale: gemini-2.5-flash
+ *   - Structured outputs nativi (responseSchema) → usati invece di
+ *     parsare JSON "a mano" dal testo della risposta.
+ *   - Thinking supportato → opzionale, attivato solo dove il costo di
+ *     latenza è giustificato (valutazione esaminatore), non negli hint
+ *     rapidi della modalità guidata.
+ *   - Input fino a 1.048.576 token / output fino a 65.536.
  *
  * Modello di riserva: gemini-2.5-flash-lite
  *   - Usato SOLO quando il modello principale restituisce quota esaurita
@@ -16,8 +16,8 @@
  *     modello ha la propria quota indipendente nel piano gratuito, quindi
  *     questo garantisce continuità del servizio senza attendere il reset.
  *
- * GEMINI_API_KEY vive solo en el entorno del servidor (sin prefijo
- * NEXT_PUBLIC_) — este módulo no debe importarse desde código de cliente.
+ * GEMINI_API_KEY vive solo nell'ambiente server (senza prefisso
+ * NEXT_PUBLIC_) — questo modulo non deve essere importato da codice client.
  */
 
 // Ordered by cost (cheapest first). Each model has independent quota.
@@ -28,7 +28,7 @@ const GEMINI_MODEL_FALLBACK_2 = 'gemini-2.5-flash'      // higher quality last r
 const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta'
 
 interface ThinkingConfig {
-  thinkingBudget: number // tokens dedicados a thinking; 0 = desactivado
+  thinkingBudget: number // token dedicati al thinking; 0 = disattivato
 }
 
 interface GenerateContentOptions {
@@ -62,14 +62,13 @@ export class GeminiError extends Error {
 }
 
 /**
- * Distingue una cuota agotada (RESOURCE_EXHAUSTED — límite diario/por
- * minuto del plan gratuito de Gemini) de una sobrecarga transitoria
- * (503/otros 429 de rate limiting de corta duración). La primera NO se
- * arregla reintentando con nuestro backoff de milisegundos — Gemini
- * mismo indica "retry in Xs" donde X suele ser varios segundos, más de
- * lo que conviene esperar dentro de una función serverless. Reintentar
- * igual solo desperdicia cuota y tiempo; en su lugar, generateContent
- * cambia de modelo (ver GEMINI_MODEL_FALLBACK).
+ * Distingue una quota esaurita (RESOURCE_EXHAUSTED — limite giornaliero/al
+ * minuto del piano gratuito di Gemini) da un sovraccarico transitorio
+ * (503/altri 429 di rate limiting di breve durata). La prima NON si risolve
+ * riprovando con il nostro backoff in millisecondi — Gemini stesso indica
+ * "retry in Xs" dove X è di solito diversi secondi, troppo per attendere
+ * dentro una funzione serverless. Riprovare comunque spreca solo quota e
+ * tempo; al suo posto, generateContent cambia modello (vedi GEMINI_MODEL_FALLBACK).
  */
 export function isQuotaExhausted(err: GeminiError): boolean {
   if (err.status !== 429) return false
@@ -105,10 +104,10 @@ function buildRequestBody(options: GenerateContentOptions) {
 }
 
 /**
- * Llama a UN modelo específico con reintentos simples ante 429
- * (no-cuota)/5xx. No reintenta ante 4xx de validación (400) ni ante
- * cuota agotada (ver isQuotaExhausted) — en ambos casos reintentar
- * contra el MISMO modelo no ayuda.
+ * Chiama UN modello specifico con semplici tentativi su 429
+ * (non-quota)/5xx. Non riprova su 4xx di validazione (400) né su
+ * quota esaurita (vedi isQuotaExhausted) — in entrambi i casi riprovare
+ * con lo STESSO modello non serve.
  */
 async function callModel(
   model: string,
@@ -138,19 +137,19 @@ async function callModel(
       if (!res.ok) {
         const errorBody = await res.json().catch(() => null)
 
-        // 404 = modelo inexistente, no reintentar con el mismo modelo pero sí
-        // con el siguiente en el cascade. 400 con payload inválido también se
-        // re-lanza (el caller decide si hacer fallback).
+        // 404 = modello inesistente; non riprovare con lo stesso ma con il
+        // successivo nel cascade. Anche 400 con payload non valido viene
+        // rilanciato (il chiamante decide se fare fallback).
         if (res.status === 404) {
           throw new GeminiError(
-            `Gemini rechazó la solicitud (${res.status}): ${JSON.stringify(errorBody)}`,
+            `Gemini ha rifiutato la richiesta (${res.status}): ${JSON.stringify(errorBody)}`,
             res.status,
             errorBody,
             model
           )
         }
 
-        throw new GeminiError(`Gemini respondió con error ${res.status}`, res.status, errorBody, model)
+        throw new GeminiError(`Gemini ha risposto con errore ${res.status}`, res.status, errorBody, model)
       }
 
       const data = (await res.json()) as GeminiResponse
@@ -158,7 +157,7 @@ async function callModel(
 
       if (!text) {
         throw new GeminiError(
-          'Gemini devolvió una respuesta sin contenido de texto.',
+          'Gemini ha restituito una risposta senza contenuto testuale.',
           res.status,
           data,
           model
@@ -169,7 +168,7 @@ async function callModel(
     } catch (err) {
       const esTimeout = err instanceof Error && err.name === 'AbortError'
       lastError = esTimeout
-        ? new GeminiError('Gemini no respondió a tiempo (timeout).', 504, null, model)
+        ? new GeminiError('Gemini non ha risposto in tempo (timeout).', 504, null, model)
         : err
 
       const isRetryable =
@@ -182,21 +181,21 @@ async function callModel(
         break
       }
 
-      // backoff exponencial simple: 300ms, 900ms, ...
+      // backoff esponenziale semplice: 300ms, 900ms, ...
       await new Promise((r) => setTimeout(r, 300 * 3 ** attempt))
     } finally {
       clearTimeout(timeoutId)
     }
   }
 
-  throw lastError instanceof Error ? lastError : new GeminiError('Error desconocido llamando a Gemini.')
+  throw lastError instanceof Error ? lastError : new GeminiError('Errore sconosciuto durante la chiamata a Gemini.')
 }
 
 /**
- * Genera contenido con el modelo principal; si éste devuelve cuota
- * agotada, cambia automáticamente al modelo de respaldo (cuota
- * independiente) antes de rendirse. El llamador no necesita saber cuál
- * de los dos modelos respondió finalmente.
+ * Genera contenuto con il modello principale; se questo restituisce quota
+ * esaurita, passa automaticamente al modello di riserva (quota
+ * indipendente) prima di arrendersi. Il chiamante non ha bisogno di sapere
+ * quale dei due modelli ha risposto alla fine.
  */
 export async function generateContent(
   options: GenerateContentOptions,
@@ -237,10 +236,10 @@ export async function generateContent(
 }
 
 /**
- * Wrapper de conveniencia: genera contenido con structured output y
- * parsea el JSON resultante. NO valida con Zod aquí — eso es responsabilidad
- * de quien llama (cada prompt builder usa su propio schema de
- * lib/gemini/schema.ts para validar antes de persistir).
+ * Wrapper di convenienza: genera contenuto con structured output e
+ * fa il parse del JSON risultante. NON valida con Zod qui — è responsabilità
+ * del chiamante (ogni prompt builder usa il proprio schema da
+ * lib/gemini/schema.ts per validare prima di persistere).
  */
 export async function generateStructuredContent(
   options: GenerateContentOptions,
@@ -251,7 +250,7 @@ export async function generateStructuredContent(
     return JSON.parse(text)
   } catch {
     throw new GeminiError(
-      'Gemini devolvió texto no-JSON a pesar de responseSchema. Respuesta cruda: ' +
+      'Gemini ha restituito testo non-JSON nonostante responseSchema. Risposta grezza: ' +
         text.slice(0, 500)
     )
   }

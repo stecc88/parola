@@ -13,7 +13,7 @@ import { descrizioneLivelloGenerazione } from '../cefrLevels'
  * un testo: CREA materiale didattico (teoria + spiegazione + esempio +
  * consegna/items) su misura per le difficoltà specifiche di UNO studente.
  *
- * RECORDATORIO: stesso vincolo del resto del progetto — mai menzionare
+ * PROMEMORIA: stesso vincolo del resto del progetto — mai menzionare
  * CILS/CELI/PLIDA, usare sempre "standard internazionali di lingua italiana".
  */
 
