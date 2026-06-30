@@ -253,13 +253,23 @@ export async function getUnseenLevelAchievements(): Promise<NotificaTraguardo[]>
   })
 }
 
-export async function markLevelAchievementSeenByTeacher(achievementId: string): Promise<void> {
-  await requireApprovedTeacherActionUserId()
+export async function markAllTeacherNotificationsSeen(): Promise<void> {
+  const teacherId = await requireApprovedTeacherActionUserId()
   const admin = createAdminClient()
-  await admin
-    .from('level_achievements')
-    .update({ seen_by_teacher: true })
-    .eq('id', achievementId)
+
+  await Promise.all([
+    admin
+      .from('level_achievements')
+      .update({ seen_by_teacher: true })
+      .eq('teacher_id', teacherId)
+      .eq('seen_by_teacher', false),
+    admin
+      .from('personalized_exercises')
+      .update({ seen_by_teacher: true })
+      .eq('teacher_id', teacherId)
+      .eq('seen_by_teacher', false)
+      .or('submission_id.not.is.null,completato_at.not.is.null')
+  ])
 }
 
 export interface NotificaConsegna {

@@ -16,6 +16,10 @@ export function TeacherNotificationBell() {
   const pathname = usePathname()
 
   useEffect(() => {
+    if (pathname === '/teacher/classes') {
+      setCount(0)
+      return
+    }
     getTeacherUnseenCount().then(setCount).catch(() => {})
   }, [pathname])
 
