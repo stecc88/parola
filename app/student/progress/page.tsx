@@ -35,7 +35,20 @@ const TIPO_LABEL: Record<string, string> = {
   esercizio_struttura_3: 'Scegli la preposizione',
   esercizio_struttura_4: 'Trasforma la frase',
   esercizio_struttura_5: 'Completamento lessicale',
-  esercizio_struttura_6: 'Situazioni comunicative'
+  esercizio_struttura_6: 'Situazioni comunicative',
+  esercizio_struttura_7: 'Cloze morfosintattico',
+  esercizio_struttura_8: 'Scelta multipla grammaticale',
+  esercizio_struttura_9: 'Articoli e preposizioni',
+  esercizio_struttura_10: 'Cloze verbi',
+  esercizio_struttura_11: 'Cloze lessicale',
+  esercizio_struttura_12: 'Pronomi e aggettivi',
+  esercizio_struttura_13: 'Cloze verbi avanzato',
+  esercizio_struttura_14: 'Cloze lessicale avanzato',
+  esercizio_struttura_15: 'Situazioni comunicative B2',
+  esercizio_struttura_16: 'Cloze verbi C1',
+  esercizio_struttura_17: 'Completamento testuale C1',
+  esercizio_struttura_18: 'Scelta multipla C1',
+  esercizio_struttura_19: 'Trasformazione sintattica'
 }
 
 const CATEGORIA_LABEL: Record<CategoriaErrore, string> = {

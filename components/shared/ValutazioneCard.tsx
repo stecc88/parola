@@ -15,7 +15,7 @@ const CATEGORIA_LABEL: Record<string, string> = {
 }
 
 /**
- * Tarjeta de risultato condivisa tra /student/write e gli esercizi
+ * Scheda dei risultati condivisa tra /student/write e gli esercizi
  * personalizzati di tipo "scrittura" — evita duplicare la logica di
  * confronto col tentativo precedente e di ricorrenza degli errori in due
  * posti diversi.
