@@ -26,7 +26,7 @@ export async function checkGenerationRateLimit(
 
   if ((count ?? 0) >= maxPerWindow) {
     throw new Error(
-      `Hai generato già ${maxPerWindow} esercizi negli ultimi ${windowMinutes} minuti. Attendi qualche minuto prima di generarne altri — questo aiuta a non esaurire la cuota IA condivisa.`
+      `Hai generato già ${maxPerWindow} esercizi negli ultimi ${windowMinutes} minuti. Attendi qualche minuto prima di generarne altri — questo aiuta a non esaurire la quota IA condivisa.`
     )
   }
 }
