@@ -12,7 +12,8 @@ import {
   getUnassignedStudents,
   getUnseenDeliveries,
   getStudentsOverview,
-  getUnseenLevelAchievements
+  getUnseenLevelAchievements,
+  markAllTeacherNotificationsSeen
 } from './actions'
 
 const NAV_ITEMS = [
@@ -25,16 +26,19 @@ export default async function TeacherClassesPage() {
   await requireApprovedTeacher()
   const supabase = createClient()
 
-  const [{ data: classi }, inviteCode, unassigned, notifiche, panoramica, traguardi] = await Promise.all([
-    supabase
-      .from('classes')
-      .select('id, nome, created_at')
-      .order('created_at', { ascending: false }),
-    getTeacherInviteCode(),
-    getUnassignedStudents(),
-    getUnseenDeliveries(),
-    getStudentsOverview(),
-    getUnseenLevelAchievements()
+  const [[{ data: classi }, inviteCode, unassigned, notifiche, panoramica, traguardi]] = await Promise.all([
+    Promise.all([
+      supabase
+        .from('classes')
+        .select('id, nome, created_at')
+        .order('created_at', { ascending: false }),
+      getTeacherInviteCode(),
+      getUnassignedStudents(),
+      getUnseenDeliveries(),
+      getStudentsOverview(),
+      getUnseenLevelAchievements()
+    ]),
+    markAllTeacherNotificationsSeen().catch(() => {})
   ])
 
   const studentiAttenzione = panoramica.filter((s) => s.richiedeAttenzione)
