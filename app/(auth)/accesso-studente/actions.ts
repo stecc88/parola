@@ -100,7 +100,7 @@ export async function registerStudent(
     .update({
       access_code: accessCode,
       livello_target: livello,
-      student_status: 'approved'
+      student_status: 'pending'
     })
     .eq('id', userId)
 

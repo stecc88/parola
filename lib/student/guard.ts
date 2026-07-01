@@ -28,7 +28,7 @@ export async function requireApprovedStudentActionUserId(): Promise<string> {
   }
 
   if (profile.student_status !== null && profile.student_status !== 'approved') {
-    throw new Error('Il tuo account non è attivo. Contatta un amministratore.')
+    throw new Error('Il tuo account non è ancora attivo. Contatta il tuo insegnante.')
   }
 
   return userData.user.id

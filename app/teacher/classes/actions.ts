@@ -78,13 +78,97 @@ export interface UnassignedStudent {
   cognome: string
 }
 
+export interface PendingStudent {
+  student_id: string
+  nome: string
+  cognome: string
+  livello_target: string | null
+  created_at: string
+}
+
+export async function getPendingStudents(): Promise<PendingStudent[]> {
+  const teacherId = await requireApprovedTeacherActionUserId()
+  const supabase = createClient()
+
+  const { data, error } = await supabase
+    .from('class_memberships')
+    .select('student_id, created_at, profiles!student_id(nome, cognome, livello_target, student_status)')
+    .eq('teacher_id', teacherId)
+    .is('left_at', null)
+
+  if (error) return []
+
+  return (data ?? [])
+    .filter((m) => {
+      const p = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles
+      return p?.student_status === 'pending'
+    })
+    .map((m) => {
+      const p = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles
+      return {
+        student_id: m.student_id,
+        nome: p?.nome ?? '',
+        cognome: p?.cognome ?? '',
+        livello_target: p?.livello_target ?? null,
+        created_at: m.created_at
+      }
+    })
+}
+
+export async function approveStudent(studentId: string): Promise<void> {
+  const teacherId = await requireApprovedTeacherActionUserId()
+  const admin = createAdminClient()
+
+  // Verifica che lo studente sia effettivamente di questo docente
+  const { data: membership } = await admin
+    .from('class_memberships')
+    .select('id')
+    .eq('teacher_id', teacherId)
+    .eq('student_id', studentId)
+    .is('left_at', null)
+    .maybeSingle()
+
+  if (!membership) throw new Error('Studente non trovato.')
+
+  const { error } = await admin
+    .from('profiles')
+    .update({ student_status: 'approved' })
+    .eq('id', studentId)
+
+  if (error) throw new Error('Errore approvando lo studente.')
+  revalidatePath('/teacher/classes')
+}
+
+export async function rejectStudent(studentId: string): Promise<void> {
+  const teacherId = await requireApprovedTeacherActionUserId()
+  const admin = createAdminClient()
+
+  const { data: membership } = await admin
+    .from('class_memberships')
+    .select('id')
+    .eq('teacher_id', teacherId)
+    .eq('student_id', studentId)
+    .is('left_at', null)
+    .maybeSingle()
+
+  if (!membership) throw new Error('Studente non trovato.')
+
+  const { error } = await admin
+    .from('profiles')
+    .update({ student_status: 'rejected' })
+    .eq('id', studentId)
+
+  if (error) throw new Error('Errore rifiutando lo studente.')
+  revalidatePath('/teacher/classes')
+}
+
 export async function getUnassignedStudents(): Promise<UnassignedStudent[]> {
   const teacherId = await requireApprovedTeacherActionUserId()
   const supabase = createClient()
 
   const { data, error } = await supabase
     .from('class_memberships')
-    .select('id, student_id, profiles!student_id(nome, cognome)')
+    .select('id, student_id, profiles!student_id(nome, cognome, student_status)')
     .eq('teacher_id', teacherId)
     .is('class_id', null)
     .is('left_at', null)
@@ -94,15 +178,20 @@ export async function getUnassignedStudents(): Promise<UnassignedStudent[]> {
     return []
   }
 
-  return (data ?? []).map((m) => {
-    const profile = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles
-    return {
-      membership_id: m.id,
-      student_id: m.student_id,
-      nome: profile?.nome ?? '',
-      cognome: profile?.cognome ?? ''
-    }
-  })
+  return (data ?? [])
+    .filter((m) => {
+      const p = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles
+      return p?.student_status === 'approved' || p?.student_status === null
+    })
+    .map((m) => {
+      const profile = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles
+      return {
+        membership_id: m.id,
+        student_id: m.student_id,
+        nome: profile?.nome ?? '',
+        cognome: profile?.cognome ?? ''
+      }
+    })
 }
 
 export async function renameClass(classId: string, nuovoNome: string) {

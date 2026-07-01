@@ -11,11 +11,13 @@ import { StudentiList } from './StudentiList'
 import {
   getTeacherInviteCode,
   getUnassignedStudents,
+  getPendingStudents,
   getUnseenDeliveries,
   getStudentsOverview,
   getUnseenLevelAchievements,
   markAllTeacherNotificationsSeen
 } from './actions'
+import { PendingStudentActions } from './PendingStudentActions'
 
 const NAV_ITEMS = [
   { href: '/teacher/dashboard', label: 'Dashboard' },
@@ -27,7 +29,7 @@ export default async function TeacherClassesPage() {
   await requireApprovedTeacher()
   const supabase = createClient()
 
-  const [[{ data: classi }, inviteCode, unassigned, notifiche, panoramica, traguardi]] = await Promise.all([
+  const [[{ data: classi }, inviteCode, unassigned, pending, notifiche, panoramica, traguardi]] = await Promise.all([
     Promise.all([
       supabase
         .from('classes')
@@ -35,6 +37,7 @@ export default async function TeacherClassesPage() {
         .order('created_at', { ascending: false }),
       getTeacherInviteCode(),
       getUnassignedStudents(),
+      getPendingStudents(),
       getUnseenDeliveries(),
       getStudentsOverview(),
       getUnseenLevelAchievements()
@@ -60,6 +63,32 @@ export default async function TeacherClassesPage() {
           </p>
           {inviteCode && <InviteCodeActions code={inviteCode} />}
         </Card>
+
+        {pending.length > 0 && (
+          <Card className="mb-6 border-info-text/30 bg-info-bg">
+            <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-info-text">
+              🕐 Studenti in attesa di approvazione ({pending.length})
+            </h2>
+            <div className="space-y-2">
+              {pending.map((s) => (
+                <div
+                  key={s.student_id}
+                  className="flex items-center justify-between rounded-md bg-surface p-3"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-ink-primary">
+                      {s.nome} {s.cognome}
+                    </p>
+                    {s.livello_target && (
+                      <p className="text-xs text-ink-tertiary">Livello target: {s.livello_target}</p>
+                    )}
+                  </div>
+                  <PendingStudentActions studentId={s.student_id} />
+                </div>
+              ))}
+            </div>
+          </Card>
+        )}
 
         {traguardi.length > 0 && (
           <Card className="mb-6 border-success-text/30 bg-success-bg">
