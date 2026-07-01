@@ -118,7 +118,7 @@ export async function submitPersonalizedExerciseResponse(
     .from('submissions')
     .insert({
       student_id: userId,
-      tipo: 'scrittura_libera',
+      tipo: 'scrittura_personalizzata',
       testo_studente: testo,
       consegna,
       testo_incollato: segnali?.testoIncollato ?? false,
