@@ -229,6 +229,7 @@ function WritePageInner() {
           )}
 
           <textarea
+            aria-label="Il tuo testo"
             value={testo}
             onChange={(e) => {
               markInterazione()

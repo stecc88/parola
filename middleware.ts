@@ -26,21 +26,25 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
   const isStudentArea = pathname.startsWith('/student')
-  const isExempt = pathname === '/student/pending' || pathname === '/student/join-class'
+  const isExempt =
+    pathname === '/student/pending' ||
+    pathname === '/student/expired' ||
+    pathname === '/student/join-class'
 
   if (userData.user && isStudentArea && !isExempt) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role, student_status')
+      .select('role, student_status, subscription_end_at')
       .eq('id', userData.user.id)
       .single()
 
-    if (
-      profile?.role === 'student' &&
-      profile.student_status !== 'approved' &&
-      profile.student_status !== null
-    ) {
-      return NextResponse.redirect(new URL('/student/pending', request.url))
+    if (profile?.role === 'student') {
+      if (profile.student_status !== 'approved' && profile.student_status !== null) {
+        return NextResponse.redirect(new URL('/student/pending', request.url))
+      }
+      if (profile.subscription_end_at && new Date(profile.subscription_end_at) < new Date()) {
+        return NextResponse.redirect(new URL('/student/expired', request.url))
+      }
     }
   }
 

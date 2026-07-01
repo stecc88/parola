@@ -145,6 +145,9 @@ export default function LoginPage() {
                 Crea account studente
               </Link>
             </p>
+            <p className="text-center text-xs text-ink-tertiary">
+              Hai perso il codice? Chiedilo al tuo insegnante — lo trova nel tuo profilo.
+            </p>
           </form>
         ) : (
           <form onSubmit={handleTeacherLogin} className="flex flex-col gap-4">
