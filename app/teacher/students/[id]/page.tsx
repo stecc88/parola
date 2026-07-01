@@ -23,6 +23,7 @@ import { SubmissionHistoryEntry } from './SubmissionHistoryEntry'
 import { PersonalizedExerciseEntry } from './PersonalizedExerciseEntry'
 import { ListChecks, TrendingUp, GraduationCap, Target, PenLine, Dumbbell, Calendar } from 'lucide-react'
 import { ExportReportButton } from './ExportReportButton'
+import { ExportCorrezioniButton } from './ExportCorrezioniButton'
 import { CopyButton } from '@/components/ui/CopyButton'
 
 const NAV_ITEMS = [
@@ -170,12 +171,26 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
             </div>
           </div>
           {stats.totaleAttivita > 0 && (
-            <ExportReportButton
-              nomeCompleto={`${profile.nome} ${profile.cognome}`}
-              livelloTarget={profile.livello_target}
-              stats={stats}
-              ultimoAccesso={ultimoAccesso}
-            />
+            <div className="flex flex-wrap gap-2">
+              <ExportReportButton
+                nomeCompleto={`${profile.nome} ${profile.cognome}`}
+                livelloTarget={profile.livello_target}
+                stats={stats}
+                ultimoAccesso={ultimoAccesso}
+              />
+              <ExportCorrezioniButton
+                nomeCompleto={`${profile.nome} ${profile.cognome}`}
+                submissions={(allSubmissions ?? []).map((s) => ({
+                  tipo: TIPO_LABEL[s.tipo] ?? s.tipo,
+                  data: new Date(s.created_at).toLocaleDateString('it-IT', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                  }),
+                  testo: s.testo_studente,
+                  valutazione_ia: s.valutazione_ia as Record<string, unknown> | null
+                }))}
+              />
+            </div>
           )}
         </div>
 
@@ -583,6 +598,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                       key={s.id}
                       id={s.id}
                       studentId={params.id}
+                      nomeStudente={`${profile.nome} ${profile.cognome}`}
                       tipoLabel={TIPO_LABEL[s.tipo] ?? s.tipo}
                       dataLabel={new Date(s.created_at).toLocaleDateString('it-IT', {
                         day: '2-digit',

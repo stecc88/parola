@@ -24,6 +24,7 @@ interface Errore {
 interface Props {
   id: string
   studentId: string
+  nomeStudente: string
   tipoLabel: string
   dataLabel: string
   testo: string
@@ -35,9 +36,100 @@ interface Props {
   valutazioneCompleta?: ValutazioneEsaminatore | null
 }
 
+async function scaricaCorrezionePdf(opts: {
+  nomeStudente: string
+  tipoLabel: string
+  dataLabel: string
+  testo: string
+  punteggio: number | null
+  valutazioneCompleta: ValutazioneEsaminatore | null | undefined
+}) {
+  const { jsPDF } = await import('jspdf')
+  const doc = new jsPDF()
+  const W = 174 // larghezza utile (210 - 2*18)
+  let y = 18
+
+  function riga(testo: string, opts: { size?: number; bold?: boolean; gap?: number; colore?: [number, number, number] } = {}) {
+    doc.setFontSize(opts.size ?? 11)
+    doc.setFont('helvetica', opts.bold ? 'bold' : 'normal')
+    if (opts.colore) doc.setTextColor(...opts.colore)
+    else doc.setTextColor(30, 30, 30)
+    const lines = doc.splitTextToSize(testo, W)
+    if (y + lines.length * (opts.size ?? 11) * 0.45 > 270) {
+      doc.addPage()
+      y = 18
+    }
+    doc.text(lines, 18, y)
+    y += lines.length * (opts.size ?? 11) * 0.45 + (opts.gap ?? 4)
+  }
+
+  function separatore() {
+    doc.setDrawColor(200, 200, 200)
+    doc.line(18, y, 192, y)
+    y += 5
+  }
+
+  riga('Parola — Correzione testo', { size: 16, bold: true, gap: 2 })
+  riga(`Generato il ${new Date().toLocaleDateString('it-IT')}`, { size: 9, gap: 6 })
+
+  riga(opts.nomeStudente, { size: 14, bold: true, gap: 2 })
+  riga(`${opts.tipoLabel}  ·  ${opts.dataLabel}${opts.punteggio !== null ? `  ·  Punteggio: ${opts.punteggio}%` : ''}`, { size: 10, gap: 6 })
+
+  separatore()
+  riga('Testo scritto dallo studente', { size: 11, bold: true, gap: 3 })
+  riga(opts.testo, { size: 10, gap: 8 })
+
+  if (opts.valutazioneCompleta) {
+    const v = opts.valutazioneCompleta
+    separatore()
+    riga('Feedback generale', { size: 11, bold: true, gap: 3 })
+    riga(v.feedback_generale, { size: 10, gap: 6 })
+
+    if (v.punti_forza.length > 0) {
+      riga('Punti di forza', { size: 10, bold: true, gap: 2 })
+      for (const p of v.punti_forza) riga(`• ${p}`, { size: 10, gap: 2 })
+      y += 2
+    }
+
+    if (v.aree_di_miglioramento.length > 0) {
+      riga('Aree da lavorare', { size: 10, bold: true, gap: 2 })
+      for (const a of v.aree_di_miglioramento) riga(`• ${a}`, { size: 10, gap: 2 })
+      y += 2
+    }
+
+    if (v.errori.length > 0) {
+      separatore()
+      riga(`Correzioni (${v.errori.length} errori rilevati)`, { size: 11, bold: true, gap: 4 })
+      for (const e of v.errori) {
+        riga(`${e.testo_originale}  →  ${e.correzione}`, { size: 10, bold: true, gap: 1 })
+        riga(`[${e.categoria}] ${e.spiegazione}`, { size: 9, gap: 4, colore: [100, 100, 100] })
+      }
+    }
+
+    if (v.rispetto_consegna) {
+      separatore()
+      const rc = v.rispetto_consegna as { rispetta_consegna: boolean; note?: string }
+      riga(`Consegna ${rc.rispetta_consegna ? 'rispettata ✓' : 'non completamente rispettata ⚠'}`, {
+        size: 10, bold: true, gap: 2
+      })
+      if (rc.note) riga(rc.note, { size: 10, gap: 4 })
+    }
+  }
+
+  separatore()
+  riga(
+    'Le valutazioni sono generate da un sistema di intelligenza artificiale come supporto didattico, non come certificazione ufficiale.',
+    { size: 8, gap: 0, colore: [150, 150, 150] }
+  )
+
+  const nomeFile = `correzione-${opts.nomeStudente.toLowerCase().replace(/\s+/g, '-')}-${opts.dataLabel.replace(/[/:, ]/g, '-')}.pdf`
+  doc.save(nomeFile)
+}
+
 export function SubmissionHistoryEntry({
   id,
   studentId,
+  nomeStudente,
   tipoLabel,
   dataLabel,
   testo,
@@ -279,7 +371,18 @@ export function SubmissionHistoryEntry({
         </div>
       )}
 
-      <div className="mt-2 flex items-center justify-end gap-2">
+      <div className="mt-2 flex items-center justify-end gap-3">
+        {valutazioneCompleta && (
+          <button
+            onClick={() =>
+              scaricaCorrezionePdf({ nomeStudente, tipoLabel, dataLabel, testo, punteggio, valutazioneCompleta })
+            }
+            className="text-xs text-brand-400 hover:underline"
+            title="Scarica PDF con testo e correzione"
+          >
+            ↓ PDF correzione
+          </button>
+        )}
         {confirmingDelete ? (
           <>
             <span className="text-xs text-danger-text">Eliminare definitivamente?</span>
