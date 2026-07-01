@@ -8,6 +8,15 @@ export async function joinClassWithCode(inviteCode: string) {
   const { data: userData, error: authError } = await supabase.auth.getUser()
   if (authError || !userData.user) throw new Error('Non autenticato.')
 
+  const { data: callerProfile } = await supabase
+    .from('profiles')
+    .select('student_status')
+    .eq('id', userData.user.id)
+    .single()
+  if (callerProfile?.student_status === 'disabled') {
+    throw new Error('Il tuo account è stato disabilitato. Contatta l\'amministratore.')
+  }
+
   const admin = createAdminClient()
   const { data: teacher, error: teacherError } = await admin
     .from('profiles')
