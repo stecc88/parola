@@ -36,6 +36,21 @@ export async function getMyProfile(): Promise<MyProfile | null> {
   return data ?? null
 }
 
+export async function getMyAccessCode(): Promise<string | null> {
+  const supabase = createClient()
+  const { data: userData } = await supabase.auth.getUser()
+  if (!userData.user) return null
+
+  const { data } = await supabase
+    .from('profiles')
+    .select('role, access_code')
+    .eq('id', userData.user.id)
+    .single()
+
+  if (data?.role !== 'student') return null
+  return (data as { role: string; access_code: string | null }).access_code ?? null
+}
+
 export async function getMyPendingNameChangeRequest(): Promise<NameChangeRequest | null> {
   const supabase = createClient()
   const { data: userData } = await supabase.auth.getUser()

@@ -3,9 +3,10 @@ import { AppNav } from '@/components/shared/AppNav'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
-import { getMyProfile } from './actions'
+import { getMyProfile, getMyAccessCode } from './actions'
 import { AccountForm } from './AccountForm'
 import { LivelloObiettivoForm } from './LivelloObiettivoForm'
+import { AccessCodeCard } from './AccessCodeCard'
 import { hasActiveMembership } from '@/app/student/join-class/actions'
 
 const NAV_ITEMS_BY_ROLE: Record<string, { href: string; label: string }[]> = {
@@ -36,6 +37,7 @@ export default async function AccountPage() {
 
   const navItems = NAV_ITEMS_BY_ROLE[profile.role] ?? [{ href: '/account', label: 'Account' }]
   const isStudentSenzaInsegnante = profile.role === 'student' && !(await hasActiveMembership())
+  const accessCode = profile.role === 'student' ? await getMyAccessCode() : null
 
   return (
     <>
@@ -73,7 +75,9 @@ export default async function AccountPage() {
           </Card>
         )}
 
-        <AccountForm nomeIniziale={profile.nome} cognomeIniziale={profile.cognome} />
+        {accessCode && <AccessCodeCard accessCode={accessCode} />}
+
+        <AccountForm nomeIniziale={profile.nome} cognomeIniziale={profile.cognome} hidePassword={!!accessCode} />
       </main>
     </>
   )
