@@ -23,6 +23,7 @@ import { SubmissionHistoryEntry } from './SubmissionHistoryEntry'
 import { PersonalizedExerciseEntry } from './PersonalizedExerciseEntry'
 import { ListChecks, TrendingUp, GraduationCap, Target } from 'lucide-react'
 import { ExportReportButton } from './ExportReportButton'
+import { CopyButton } from '@/components/ui/CopyButton'
 
 const NAV_ITEMS = [
   { href: '/teacher/dashboard', label: 'Dashboard' },
@@ -73,7 +74,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
   // bisogno di un controllo manuale aggiuntivo qui.
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, nome, cognome, livello_target')
+    .select('id, nome, cognome, livello_target, access_code')
     .eq('id', params.id)
     .eq('role', 'student')
     .single()
@@ -147,6 +148,15 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
             </h1>
             <div className="flex flex-wrap items-center gap-3 text-sm text-ink-tertiary">
               {profile.livello_target && <span>Livello target: {profile.livello_target}</span>}
+              {(profile as { access_code?: string | null }).access_code && (
+                <span className="flex items-center gap-1.5">
+                  Codice:{' '}
+                  <span className="font-mono font-semibold tracking-wider text-ink-primary">
+                    {(profile as { access_code?: string | null }).access_code}
+                  </span>
+                  <CopyButton text={(profile as { access_code?: string | null }).access_code!} />
+                </span>
+              )}
               <span>
                 Ultimo accesso:{' '}
                 {ultimoAccesso
