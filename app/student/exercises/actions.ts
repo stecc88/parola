@@ -98,16 +98,13 @@ export async function startEsercizio6(): Promise<SituazioniComunicative> {
   return generateEsercizioStruttura6(await getLivelloTarget())
 }
 
-async function persistSubmission(tipo: string, testo: string, valutazione: ValutazioneRisposteStruttura) {
+async function persistSubmission(userId: string, tipo: string, testo: string, valutazione: ValutazioneRisposteStruttura) {
   const parsed = valutazioneRisposteSchema.safeParse(valutazione)
   if (!parsed.success) throw new Error('Dati di valutazione non validi.')
 
   const supabase = createClient()
-  const { data: userData, error } = await supabase.auth.getUser()
-  if (error || !userData.user) throw new Error('Non autenticato.')
-
   await supabase.from('submissions').insert({
-    student_id: userData.user.id,
+    student_id: userId,
     tipo,
     testo_studente: testo,
     valutazione_ia: valutazione,
@@ -119,8 +116,10 @@ export async function submitEsercizio1(
   frasi: FraseDaCompletare['frasi'],
   risposte: { id: string; risposta_studente: string }[]
 ) {
+  const userId = await requireApprovedStudentActionUserId()
   const valutazione = await evaluateEsercizioStruttura1(frasi, risposte)
   await persistSubmission(
+    userId,
     'esercizio_struttura_1',
     risposte.map((r) => `${r.id}: ${r.risposta_studente}`).join(' | '),
     valutazione
@@ -132,8 +131,10 @@ export async function submitEsercizio2(
   frasi: FrasiDaRiordinare['frasi'],
   risposte: { id: string; ordine_studente: string[] }[]
 ) {
+  const userId = await requireApprovedStudentActionUserId()
   const valutazione = await evaluateEsercizioStruttura2(frasi, risposte)
   await persistSubmission(
+    userId,
     'esercizio_struttura_2',
     risposte.map((r) => `${r.id}: ${r.ordine_studente.join(' ')}`).join(' | '),
     valutazione
@@ -145,8 +146,10 @@ export async function submitEsercizio3(
   domande: DomandePreposizione['domande'],
   risposte: { id: string; opzione_scelta: string }[]
 ) {
+  const userId = await requireApprovedStudentActionUserId()
   const valutazione = await evaluateEsercizioStruttura3(domande, risposte)
   await persistSubmission(
+    userId,
     'esercizio_struttura_3',
     risposte.map((r) => `${r.id}: ${r.opzione_scelta}`).join(' | '),
     valutazione
@@ -158,8 +161,10 @@ export async function submitEsercizio4(
   frasi: FrasiDaTrasformare['frasi'],
   risposte: { id: string; frase_trasformata: string }[]
 ) {
+  const userId = await requireApprovedStudentActionUserId()
   const valutazione = await evaluateEsercizioStruttura4(frasi, risposte)
   await persistSubmission(
+    userId,
     'esercizio_struttura_4',
     risposte.map((r) => `${r.id}: ${r.frase_trasformata}`).join(' | '),
     valutazione
@@ -171,8 +176,10 @@ export async function submitEsercizio5(
   domande: CompletamentoLessicale['domande'],
   risposte: { id: string; opzione_scelta: string }[]
 ) {
+  const userId = await requireApprovedStudentActionUserId()
   const valutazione = await evaluateEsercizioStruttura5(domande, risposte)
   await persistSubmission(
+    userId,
     'esercizio_struttura_5',
     risposte.map((r) => `${r.id}: ${r.opzione_scelta}`).join(' | '),
     valutazione
@@ -184,8 +191,10 @@ export async function submitEsercizio6(
   domande: SituazioniComunicative['domande'],
   risposte: { id: string; opzione_scelta: string }[]
 ) {
+  const userId = await requireApprovedStudentActionUserId()
   const valutazione = await evaluateEsercizioStruttura6(domande, risposte)
   await persistSubmission(
+    userId,
     'esercizio_struttura_6',
     risposte.map((r) => `${r.id}: ${r.opzione_scelta}`).join(' | '),
     valutazione
