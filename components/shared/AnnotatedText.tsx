@@ -75,7 +75,7 @@ export function AnnotatedText({ testo, errori }: { testo: string; errori: Errore
               {seg.testo}
             </span>
             {attivo === i && (
-              <span className="absolute left-0 top-full z-20 mt-1 block w-64 rounded-md border border-border bg-surface p-2.5 text-xs font-normal normal-case text-ink-primary shadow-xl">
+              <span className="absolute left-0 top-full z-20 mt-1 block w-max max-w-[min(16rem,calc(100vw-2rem))] rounded-md border border-border bg-surface p-2.5 text-xs font-normal normal-case text-ink-primary shadow-xl">
                 <span className="mb-1 block font-semibold text-success-text">
                   {seg.errore.correzione}
                 </span>

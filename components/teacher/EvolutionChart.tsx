@@ -47,7 +47,7 @@ export function EvolutionChart({ punti }: { punti: PuntoEvoluzione[] }) {
   return (
     <svg
       viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-      className="h-40 w-full"
+      className="h-32 w-full sm:h-40 md:h-48"
       preserveAspectRatio="none"
       role="img"
       aria-label="Evoluzione del punteggio nel tempo"

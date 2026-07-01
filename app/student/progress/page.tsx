@@ -146,7 +146,7 @@ export default async function ProgressPage() {
           </div>
         )}
 
-        <Card className="mb-6 flex items-center justify-between gap-4">
+        <Card className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
             <p className="text-sm font-semibold text-ink-primary">Il tuo obiettivo</p>
             <p className="mt-0.5 text-xs text-ink-tertiary">
@@ -290,7 +290,7 @@ export default async function ProgressPage() {
                         return (
                           <div key={categoria}>
                             <div className="flex items-center gap-3">
-                              <span className="w-24 shrink-0 text-xs font-medium text-ink-secondary">
+                              <span className="w-16 shrink-0 text-xs font-medium text-ink-secondary sm:w-24">
                                 {CATEGORIA_LABEL[categoria as CategoriaErrore]}
                               </span>
                               <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface-tertiary">
@@ -303,7 +303,7 @@ export default async function ProgressPage() {
                                 {conteggio}
                               </span>
                             </div>
-                            <div className="ml-[6.5rem] mt-1.5 space-y-1">
+                            <div className="ml-[4.75rem] mt-1.5 space-y-1 sm:ml-[6.5rem]">
                               {dettagli.length > 0 ? dettagli.map((d, i) => (
                                 <div key={i} className="flex items-start gap-1.5">
                                   <span className="mt-0.5 shrink-0 text-[10px] text-brand-400">▸</span>
