@@ -287,7 +287,7 @@ export default async function TeacherDashboardPage() {
                         .sort((a, b) => b[1] - a[1])
                         .map(([cat, n]) => (
                           <div key={cat} className="flex items-center gap-2">
-                            <span className="w-20 shrink-0 text-xs text-ink-secondary">
+                            <span className="w-16 shrink-0 text-xs text-ink-secondary">
                               {CATEGORIA_LABEL[cat]}
                             </span>
                             <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-tertiary">
@@ -335,7 +335,7 @@ export default async function TeacherDashboardPage() {
                   .map((r) => (
                     <Link key={r.studentId} href={`/teacher/students/${r.studentId}`}>
                       <div className="flex items-center gap-2 hover:opacity-80">
-                        <span className="w-28 shrink-0 truncate text-xs text-ink-secondary">
+                        <span className="w-16 shrink-0 truncate text-xs text-ink-secondary sm:w-28">
                           {r.nome}
                         </span>
                         <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface-tertiary">

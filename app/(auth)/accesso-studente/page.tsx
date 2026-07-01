@@ -137,7 +137,7 @@ export default function AccessoStudentePage() {
 
           <div>
             <label className="mb-1 block text-sm text-ink-secondary">Livello di italiano</label>
-            <div className="grid grid-cols-6 gap-1">
+            <div className="grid grid-cols-3 gap-1 sm:grid-cols-6">
               {LIVELLI.map((l) => (
                 <button
                   key={l}
