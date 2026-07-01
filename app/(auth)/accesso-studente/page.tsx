@@ -63,6 +63,14 @@ export default function AccessoStudentePage() {
             </p>
           </div>
 
+          <div className="mb-4 rounded-md bg-info-bg px-3 py-3 text-sm text-info-text text-left">
+            <p className="font-semibold mb-1">Prossimo passo</p>
+            <p>
+              Il tuo insegnante deve approvare il tuo account. Non appena lo fa, potrai
+              accedere con il codice qui sopra.
+            </p>
+          </div>
+
           <div className="mb-6 rounded-md bg-warning-bg px-3 py-3 text-sm text-warning-text text-left">
             <p className="font-semibold mb-1">Salva questo codice!</p>
             <p>

@@ -1,17 +1,16 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Card } from '@/components/ui/Card'
-import { Button } from '@/components/ui/Button'
 import { ParolaMascot } from '@/components/shared/ParolaMascot'
 import { LogoutButton } from '@/components/shared/LogoutButton'
-import Link from 'next/link'
 
 const STATUS_MESSAGE: Record<string, string> = {
   pending:
-    'Il tuo account è in attesa di approvazione da parte di un amministratore. Riceverai accesso non appena verrà confermato.',
+    'Il tuo account è in attesa di approvazione da parte del tuo insegnante. Riceverai accesso non appena lo avrà confermato.',
   rejected:
-    'La tua registrazione non è stata approvata. Contatta un amministratore per maggiori informazioni.',
-  disabled: 'Il tuo account è stato disabilitato. Contatta un amministratore per maggiori informazioni.'
+    'La tua registrazione non è stata approvata dal tuo insegnante. Contatta il tuo insegnante per maggiori informazioni.',
+  disabled:
+    'Il tuo account è stato disabilitato. Contatta il tuo insegnante per maggiori informazioni.'
 }
 
 export default async function StudentPendingPage() {
@@ -40,20 +39,7 @@ export default async function StudentPendingPage() {
         <ParolaMascot mood="pensieroso" className="mx-auto mb-4 h-16 w-16" />
         <h1 className="mb-2 text-lg font-semibold text-ink-primary">Account in attesa</h1>
         <p className="text-sm text-ink-secondary">{message}</p>
-
-        {profile.student_status === 'pending' && (
-          <div className="mt-4 rounded-md bg-info-bg p-3 text-sm text-info-text">
-            Hai un codice insegnante? Puoi usarlo per accedere subito, senza aspettare
-            l&apos;approvazione.
-            <Link href="/student/join-class" className="mt-2 block">
-              <Button variant="secondary" className="w-full">
-                Inserisci un codice insegnante
-              </Button>
-            </Link>
-          </div>
-        )}
-
-        <div className="mt-4">
+        <div className="mt-6">
           <LogoutButton />
         </div>
       </Card>
