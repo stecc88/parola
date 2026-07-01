@@ -19,7 +19,7 @@ export async function requireApprovedStudentActionUserId(): Promise<string> {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, student_status')
+    .select('role, student_status, subscription_end_at')
     .eq('id', userData.user.id)
     .single()
 
@@ -29,6 +29,10 @@ export async function requireApprovedStudentActionUserId(): Promise<string> {
 
   if (profile.student_status !== null && profile.student_status !== 'approved') {
     throw new Error('Il tuo account non è ancora attivo. Contatta il tuo insegnante.')
+  }
+
+  if (profile.subscription_end_at && new Date(profile.subscription_end_at) < new Date()) {
+    throw new Error('Il tuo accesso è scaduto. Contatta il tuo insegnante per rinnovarlo.')
   }
 
   return userData.user.id

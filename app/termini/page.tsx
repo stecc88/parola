@@ -86,6 +86,17 @@ export default function TerminiPage() {
               .
             </p>
           </section>
+
+          <section>
+            <h2 className="mb-2 text-base font-semibold text-ink-primary">8. Contatti</h2>
+            <p>
+              Per qualsiasi domanda o segnalazione relativa al servizio, contatta{' '}
+              <strong>Stecco Hernán</strong> — responsabile della piattaforma Parola:{' '}
+              <a href="mailto:steccoh88@gmail.com" className="text-brand-400 underline">
+                steccoh88@gmail.com
+              </a>
+            </p>
+          </section>
         </div>
       </main>
     </>

@@ -20,12 +20,16 @@ export async function requireApprovedTeacher(): Promise<string> {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, teacher_status')
+    .select('role, teacher_status, subscription_end_at')
     .eq('id', userData.user.id)
     .single()
 
   if (profile?.role !== 'teacher' || profile.teacher_status !== 'approved') {
     redirect('/teacher/pending')
+  }
+
+  if (profile.subscription_end_at && new Date(profile.subscription_end_at) < new Date()) {
+    redirect('/teacher/expired')
   }
 
   return userData.user.id
@@ -48,12 +52,16 @@ export async function requireApprovedTeacherActionUserId(): Promise<string> {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, teacher_status')
+    .select('role, teacher_status, subscription_end_at')
     .eq('id', userData.user.id)
     .single()
 
   if (profile?.role !== 'teacher' || profile.teacher_status !== 'approved') {
     throw new Error('Il tuo account insegnante non è attivo.')
+  }
+
+  if (profile.subscription_end_at && new Date(profile.subscription_end_at) < new Date()) {
+    throw new Error('Il tuo abbonamento è scaduto. Contatta l\'amministratore per rinnovarlo.')
   }
 
   return userData.user.id
