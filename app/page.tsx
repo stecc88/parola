@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { tryAutoJoinFromMetadata, hasActiveMembership } from '@/app/student/join-class/actions'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { ParolaMascot } from '@/components/shared/ParolaMascot'
@@ -30,21 +29,8 @@ export default async function HomePage() {
     redirect(profile.teacher_status === 'approved' ? '/teacher/classes' : '/teacher/pending')
   }
 
-  if (!(await hasActiveMembership())) {
-    const joined = await tryAutoJoinFromMetadata()
-    if (!joined) {
-      // Senza un insegnante, lo studente è "indipendente": se è pending
-      // (registrato senza codice, in attesa di un admin) va alla pagina
-      // di attesa; se è approved (admin lo ha già confermato, o caso
-      // legacy) può usare comunque la scrittura libera e gli esercizi di
-      // struttura, che non richiedono un insegnante.
-      if (profile?.student_status === 'pending') {
-        redirect('/student/pending')
-      }
-      if (profile?.student_status === 'rejected') {
-        redirect('/student/pending')
-      }
-    }
+  if (profile?.student_status === 'pending' || profile?.student_status === 'rejected') {
+    redirect('/student/pending')
   }
 
   redirect('/student/progress')
@@ -172,7 +158,7 @@ function LandingPage() {
           </p>
 
           <div className="animate-fade-in-up delay-4 mt-9 flex flex-col gap-3 sm:flex-row">
-            <Link href="/registrati">
+            <Link href="/accesso-studente">
               <Button className="w-full px-8 py-3 text-base sm:w-auto">
                 Inizia a scrivere — gratis
               </Button>
@@ -289,8 +275,11 @@ function LandingPage() {
             <Link href="/login" className="hover:text-ink-primary">
               Accedi
             </Link>
+            <Link href="/accesso-studente" className="hover:text-ink-primary">
+              Studenti
+            </Link>
             <Link href="/registrati" className="hover:text-ink-primary">
-              Registrati
+              Insegnanti
             </Link>
             <Link href="/privacy" className="hover:text-ink-primary">
               Privacy
