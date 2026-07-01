@@ -93,17 +93,21 @@ export async function registerStudent(
   }
 
   // Il trigger handle_new_user crea il profilo con nome/cognome dai metadata.
-  // Aggiungiamo access_code e livello_target con admin (il profilo è già creato
-  // in modo sincrono dal trigger DB, o quasi — lo upsert è sicuro in entrambi i casi).
+  // L'upsert include tutti i campi obbligatori per essere sicuro anche nei
+  // casi in cui il trigger DB sia leggermente asincrono rispetto all'API call.
+  // Non incatenare .eq() sull'upsert: PostgREST lo tratta come filtro sull'UPDATE
+  // ma non sull'INSERT, causando errori se la riga non esiste ancora.
   const { error: profileError } = await admin
     .from('profiles')
     .upsert({
       id: userId,
+      nome: nome.trim(),
+      cognome: cognome.trim(),
+      role: 'student',
       access_code: accessCode,
       livello_target: livello,
       student_status: 'pending'
     })
-    .eq('id', userId)
 
   if (profileError) {
     // Pulizia auth utente se l'update fallisce (best-effort)
