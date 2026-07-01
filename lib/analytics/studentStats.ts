@@ -21,6 +21,22 @@ export interface FrequenzaVoce {
 
 export type CategoriaErrore = 'grammatica' | 'lessico' | 'sintassi' | 'coerenza' | 'ortografia'
 
+export interface GruppoAttivita {
+  conteggio: number
+  media: number | null
+}
+
+export interface AttivitaPerTipo {
+  scritturaLibera: GruppoAttivita
+  scritturaPersonalizzata: GruppoAttivita
+  eserciziStruttura: GruppoAttivita
+}
+
+export interface AttivitaSettimanale {
+  etichetta: string  // es. "23/6 – 29/6"
+  conteggio: number
+}
+
 export interface StudentStats {
   totaleAttivita: number
   valutate: number
@@ -34,6 +50,12 @@ export interface StudentStats {
   consegna: { rispettate: number; totali: number; percentuale: number | null }
   livelloAttuale: string | null
   livelloPrecedente: string | null
+  attivitaPerTipo: AttivitaPerTipo
+  attivitaUltimi7Giorni: number
+  attivitaUltimi14Giorni: number
+  attivitaUltimi30Giorni: number
+  mediaSessioniPerSettimana: number | null
+  attivitaPerSettimana: AttivitaSettimanale[]
 }
 
 const CATEGORIE_ERRORE: CategoriaErrore[] = [
@@ -189,6 +211,71 @@ export function computeStudentStats(submissions: SubmissionRow[]): StudentStats 
     })
   ) as Record<CategoriaErrore, FrequenzaVoce[]>
 
+  // --- Allenamento per tipo ---
+  const isEsercizioStruttura = (tipo: string) => tipo.startsWith('esercizio_struttura_')
+
+  const buildGruppo = (rows: SubmissionRow[]): GruppoAttivita => ({
+    conteggio: rows.length,
+    media: media(rows.map((s) => extractPunteggioGenerico(s.valutazione_ia)).filter((p): p is number => p !== null))
+  })
+
+  const attivitaPerTipo: AttivitaPerTipo = {
+    scritturaLibera: buildGruppo(submissions.filter((s) => s.tipo === 'scrittura_libera')),
+    scritturaPersonalizzata: buildGruppo(submissions.filter((s) => s.tipo === 'scrittura_personalizzata')),
+    eserciziStruttura: buildGruppo(submissions.filter((s) => isEsercizioStruttura(s.tipo)))
+  }
+
+  // --- Frequenza di allenamento ---
+  const ora = new Date()
+  const msInGiorno = 86_400_000
+  const attivitaUltimi7Giorni = submissions.filter(
+    (s) => ora.getTime() - new Date(s.created_at).getTime() <= 7 * msInGiorno
+  ).length
+  const attivitaUltimi14Giorni = submissions.filter(
+    (s) => ora.getTime() - new Date(s.created_at).getTime() <= 14 * msInGiorno
+  ).length
+  const attivitaUltimi30Giorni = submissions.filter(
+    (s) => ora.getTime() - new Date(s.created_at).getTime() <= 30 * msInGiorno
+  ).length
+
+  // Media sessioni/settimana dalla prima submission fino a oggi
+  let mediaSessioniPerSettimana: number | null = null
+  if (submissions.length > 0) {
+    const prima = submissions.reduce(
+      (min, s) => (new Date(s.created_at) < new Date(min) ? s.created_at : min),
+      submissions[0].created_at
+    )
+    const giorniTotali = Math.max(1, (ora.getTime() - new Date(prima).getTime()) / msInGiorno)
+    const settimane = giorniTotali / 7
+    mediaSessioniPerSettimana = Math.round((submissions.length / settimane) * 10) / 10
+  }
+
+  // Attività per settimana (ultime 8 settimane), lunedì come inizio settimana
+  const lunediDiSettimana = (d: Date): Date => {
+    const day = d.getDay() // 0=dom, 1=lun, ...
+    const diff = (day === 0 ? -6 : 1 - day)
+    const lun = new Date(d)
+    lun.setHours(0, 0, 0, 0)
+    lun.setDate(d.getDate() + diff)
+    return lun
+  }
+
+  const settimanaCorrente = lunediDiSettimana(ora)
+  const attivitaPerSettimana: AttivitaSettimanale[] = Array.from({ length: 8 }, (_, i) => {
+    const lunedi = new Date(settimanaCorrente)
+    lunedi.setDate(settimanaCorrente.getDate() - (7 - i) * 7)
+    const domenica = new Date(lunedi)
+    domenica.setDate(lunedi.getDate() + 6)
+    domenica.setHours(23, 59, 59, 999)
+    const conteggio = submissions.filter((s) => {
+      const t = new Date(s.created_at).getTime()
+      return t >= lunedi.getTime() && t <= domenica.getTime()
+    }).length
+    const fmt = (d: Date) =>
+      d.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })
+    return { etichetta: `${fmt(lunedi)}–${fmt(domenica)}`, conteggio }
+  })
+
   return {
     totaleAttivita,
     valutate,
@@ -206,7 +293,13 @@ export function computeStudentStats(submissions: SubmissionRow[]): StudentStats 
         consegneTotali > 0 ? Math.round((consegneRispettate / consegneTotali) * 100) : null
     },
     livelloAttuale: livelliCronologici[0]?.livello ?? null,
-    livelloPrecedente: livelliCronologici[1]?.livello ?? null
+    livelloPrecedente: livelliCronologici[1]?.livello ?? null,
+    attivitaPerTipo,
+    attivitaUltimi7Giorni,
+    attivitaUltimi14Giorni,
+    attivitaUltimi30Giorni,
+    mediaSessioniPerSettimana,
+    attivitaPerSettimana
   }
 }
 
