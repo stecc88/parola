@@ -531,11 +531,14 @@ export async function getStudentsOverview(): Promise<StudentOverviewRow[]> {
  * studente che ha un compito in sospeso.
  */
 export async function getPendingPersonalizedCount(): Promise<number> {
-  const supabase = createClient()
-  const { data: userData } = await supabase.auth.getUser()
-  if (!userData.user) return 0
-  const teacherId = userData.user.id
+  let teacherId: string
+  try {
+    teacherId = await requireApprovedTeacherActionUserId()
+  } catch {
+    return 0
+  }
 
+  const supabase = createClient()
   const { count } = await supabase
     .from('personalized_exercises')
     .select('id', { count: 'exact', head: true })

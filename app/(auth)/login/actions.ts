@@ -33,9 +33,12 @@ export async function resolveStudentAccessCode(code: string): Promise<{ email: s
     throw new Error('Codice non valido.')
   }
 
-  // Allinea la password al codice — necessario per gli studenti esistenti
-  // che avevano una password diversa impostata con il vecchio flusso.
-  await admin.auth.admin.updateUserById(profile.id, { password: trimmed })
+  // Per gli account con email sintetica la password è sempre il codice (impostata
+  // alla creazione). Per account legacy con email reale non modifichiamo la
+  // password — l'utente deve usare la propria password o il reset password.
+  if (authUser.user.email.endsWith('@student.parola.internal')) {
+    await admin.auth.admin.updateUserById(profile.id, { password: trimmed })
+  }
 
   return { email: authUser.user.email }
 }

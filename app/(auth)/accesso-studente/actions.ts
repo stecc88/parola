@@ -97,7 +97,8 @@ export async function registerStudent(
   // in modo sincrono dal trigger DB, o quasi — lo upsert è sicuro in entrambi i casi).
   const { error: profileError } = await admin
     .from('profiles')
-    .update({
+    .upsert({
+      id: userId,
       access_code: accessCode,
       livello_target: livello,
       student_status: 'pending'

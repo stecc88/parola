@@ -127,6 +127,10 @@ export async function POST(request: NextRequest) {
       .eq('id', userData.user.id)
       .single()
 
+    if (!submission.testo_studente) {
+      return NextResponse.json({ error: 'Testo della submission non trovato.' }, { status: 422 })
+    }
+
     const valutazione = await evaluateScritturaLibera(
       submission.testo_studente,
       profile?.livello_target ?? undefined,
