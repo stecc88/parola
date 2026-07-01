@@ -106,10 +106,14 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="mb-2 text-base font-semibold text-ink-primary">7. Contatti</h2>
+            <h2 className="mb-2 text-base font-semibold text-ink-primary">7. Titolare del trattamento e contatti</h2>
             <p>
-              Per qualsiasi domanda su questa informativa o sui tuoi dati, contatta
-              l&apos;insegnante o l&apos;istituzione che ti ha invitato su Parola.
+              Il titolare del trattamento dei dati è <strong>Stecco Hernán</strong>, responsabile
+              della piattaforma Parola. Per qualsiasi domanda su questa informativa, per esercitare
+              i tuoi diritti o per segnalare un problema, puoi contattarci direttamente:{' '}
+              <a href="mailto:steccoh88@gmail.com" className="text-brand-400 underline">
+                steccoh88@gmail.com
+              </a>
             </p>
           </section>
         </div>

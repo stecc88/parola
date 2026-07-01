@@ -288,9 +288,12 @@ function LandingPage() {
               Termini
             </Link>
           </nav>
-          <p className="text-xs text-ink-tertiary">
-            © {new Date().getFullYear()} Parola — uno spazio per scrivere, sbagliare, migliorare.
-          </p>
+          <div className="text-xs text-ink-tertiary">
+            <p>© {new Date().getFullYear()} Parola — Stecco Hernán</p>
+            <a href="mailto:steccoh88@gmail.com" className="underline underline-offset-2 hover:text-ink-secondary">
+              steccoh88@gmail.com
+            </a>
+          </div>
         </div>
       </footer>
     </main>
