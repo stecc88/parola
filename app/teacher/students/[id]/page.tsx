@@ -21,7 +21,7 @@ import {
 import { GeneratePersonalizedExerciseButton } from './GeneratePersonalizedExerciseButton'
 import { SubmissionHistoryEntry } from './SubmissionHistoryEntry'
 import { PersonalizedExerciseEntry } from './PersonalizedExerciseEntry'
-import { ListChecks, TrendingUp, GraduationCap, Target } from 'lucide-react'
+import { ListChecks, TrendingUp, GraduationCap, Target, PenLine, Dumbbell, Calendar } from 'lucide-react'
 import { ExportReportButton } from './ExportReportButton'
 import { CopyButton } from '@/components/ui/CopyButton'
 
@@ -96,11 +96,9 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
     console.error('Errore caricando le submissions dello studente:', error)
   }
 
-  // Stats calcolate su TUTTE le submission per preservare la storia
-  // pedagogica completa. La UI mostra le ultime 5 — stessa finestra
-  // che vede lo studente.
+  // Stats calcolate su TUTTE le submission per preservare la storia pedagogica completa.
   const stats = computeStudentStats((allSubmissions as SubmissionRow[]) ?? [])
-  const submissions = (allSubmissions ?? []).slice(0, 5)
+  const submissions = (allSubmissions ?? []).slice(0, 10)
 
   // Side-effect deliberato: visitare questa pagina marca come "lette" le
   // consegne in attesa — stesso pattern di qualsiasi notifica in-app.
@@ -290,6 +288,130 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
               </Card>
             </div>
 
+            {/* Frequenza di allenamento */}
+            <Card className="mb-6">
+              <div className="mb-4 flex items-center gap-2">
+                <Calendar className="h-4 w-4 text-brand-400" strokeWidth={1.75} />
+                <h2 className="text-sm font-semibold text-ink-primary">Frequenza di allenamento</h2>
+              </div>
+
+              {/* Contatori periodo */}
+              <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="rounded-lg bg-surface-secondary p-3 text-center">
+                  <p className="text-xl font-semibold text-ink-primary">{stats.attivitaUltimi7Giorni}</p>
+                  <p className="mt-0.5 text-xs text-ink-tertiary">Ultimi 7 giorni</p>
+                </div>
+                <div className="rounded-lg bg-surface-secondary p-3 text-center">
+                  <p className="text-xl font-semibold text-ink-primary">{stats.attivitaUltimi14Giorni}</p>
+                  <p className="mt-0.5 text-xs text-ink-tertiary">Ultimi 14 giorni</p>
+                </div>
+                <div className="rounded-lg bg-surface-secondary p-3 text-center">
+                  <p className="text-xl font-semibold text-ink-primary">{stats.attivitaUltimi30Giorni}</p>
+                  <p className="mt-0.5 text-xs text-ink-tertiary">Ultimi 30 giorni</p>
+                </div>
+                <div className="rounded-lg bg-surface-secondary p-3 text-center">
+                  <p className="text-xl font-semibold text-ink-primary">
+                    {stats.mediaSessioniPerSettimana !== null
+                      ? stats.mediaSessioniPerSettimana
+                      : '—'}
+                  </p>
+                  <p className="mt-0.5 text-xs text-ink-tertiary">Media sessioni/settimana</p>
+                </div>
+              </div>
+
+              {/* Mini grafico a barre per settimana */}
+              <p className="mb-2 text-xs font-medium text-ink-tertiary">Attività nelle ultime 8 settimane</p>
+              {(() => {
+                const maxW = Math.max(1, ...stats.attivitaPerSettimana.map((s) => s.conteggio))
+                return (
+                  <div className="space-y-1.5">
+                    {stats.attivitaPerSettimana.map((settimana, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="w-24 shrink-0 text-right text-[10px] text-ink-tertiary">
+                          {settimana.etichetta}
+                        </span>
+                        <div className="h-4 flex-1 overflow-hidden rounded-sm bg-surface-tertiary">
+                          <div
+                            className="h-full rounded-sm bg-brand-400 transition-all duration-500"
+                            style={{ width: `${(settimana.conteggio / maxW) * 100}%` }}
+                          />
+                        </div>
+                        <span className="w-5 shrink-0 text-right text-xs text-ink-tertiary">
+                          {settimana.conteggio}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )
+              })()}
+            </Card>
+
+            {/* Attività per tipo */}
+            <Card className="mb-6">
+              <div className="mb-4 flex items-center gap-2">
+                <Dumbbell className="h-4 w-4 text-brand-400" strokeWidth={1.75} />
+                <h2 className="text-sm font-semibold text-ink-primary">Attività per tipo</h2>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {/* Scrittura libera */}
+                <div className="rounded-lg border border-border p-3">
+                  <div className="mb-2 flex items-center gap-1.5">
+                    <PenLine className="h-3.5 w-3.5 text-info-text" strokeWidth={1.75} />
+                    <span className="text-xs font-medium text-ink-primary">Scrittura libera</span>
+                  </div>
+                  <p className="text-2xl font-semibold text-ink-primary">
+                    {stats.attivitaPerTipo.scritturaLibera.conteggio}
+                  </p>
+                  <p className="mt-0.5 text-xs text-ink-tertiary">
+                    {stats.attivitaPerTipo.scritturaLibera.media !== null
+                      ? `Media: ${stats.attivitaPerTipo.scritturaLibera.media}%`
+                      : 'Nessuna valutata'}
+                  </p>
+                </div>
+
+                {/* Esercizi struttura */}
+                <div className="rounded-lg border border-border p-3">
+                  <div className="mb-2 flex items-center gap-1.5">
+                    <ListChecks className="h-3.5 w-3.5 text-guided-text" strokeWidth={1.75} />
+                    <span className="text-xs font-medium text-ink-primary">Esercizi struttura</span>
+                  </div>
+                  <p className="text-2xl font-semibold text-ink-primary">
+                    {stats.attivitaPerTipo.eserciziStruttura.conteggio}
+                  </p>
+                  <p className="mt-0.5 text-xs text-ink-tertiary">
+                    {stats.attivitaPerTipo.eserciziStruttura.media !== null
+                      ? `Media: ${stats.attivitaPerTipo.eserciziStruttura.media}%`
+                      : 'Nessuno completato'}
+                  </p>
+                </div>
+
+                {/* Scrittura personalizzata (assegnata dal docente) */}
+                <div className="rounded-lg border border-border p-3">
+                  <div className="mb-2 flex items-center gap-1.5">
+                    <Target className="h-3.5 w-3.5 text-warning-text" strokeWidth={1.75} />
+                    <span className="text-xs font-medium text-ink-primary">Scrittura personalizzata</span>
+                  </div>
+                  <p className="text-2xl font-semibold text-ink-primary">
+                    {stats.attivitaPerTipo.scritturaPersonalizzata.conteggio}
+                  </p>
+                  <p className="mt-0.5 text-xs text-ink-tertiary">
+                    {stats.attivitaPerTipo.scritturaPersonalizzata.media !== null
+                      ? `Media: ${stats.attivitaPerTipo.scritturaPersonalizzata.media}%`
+                      : 'Nessuna valutata'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Se fa solo esercizi assegnati e mai in autonomia, mostrare un avviso */}
+              {stats.attivitaPerTipo.scritturaLibera.conteggio === 0 &&
+                stats.attivitaPerTipo.eserciziStruttura.conteggio === 0 &&
+                stats.attivitaPerTipo.scritturaPersonalizzata.conteggio > 0 && (
+                  <p className="mt-3 rounded-md bg-warning-bg px-3 py-2 text-xs text-warning-text">
+                    Questo studente ha risposto solo agli esercizi assegnati dal docente — non ha mai allenato in autonomia.
+                  </p>
+                )}
+            </Card>
+
             {/* Evoluzione nel tempo */}
             <Card className="mb-6">
               <h2 className="mb-3 text-sm font-semibold text-ink-primary">
@@ -421,6 +543,11 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
             <Card>
               <h2 className="mb-3 text-sm font-semibold text-ink-primary">
                 Storico attività e produzione scritta
+                {(allSubmissions?.length ?? 0) > 10 && (
+                  <span className="ml-2 text-xs font-normal text-ink-tertiary">
+                    (ultime 10 su {allSubmissions?.length})
+                  </span>
+                )}
               </h2>
               <div className="space-y-2">
                 {(submissions ?? []).map((s) => {
