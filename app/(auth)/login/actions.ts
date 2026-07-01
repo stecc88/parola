@@ -23,7 +23,11 @@ export async function resolveStudentAccessCode(code: string): Promise<{ email: s
     .eq('role', 'student')
     .maybeSingle()
 
-  if (profileError || !profile) {
+  if (profileError) {
+    console.error('[resolveStudentAccessCode] errore DB:', profileError)
+    throw new Error('Codice non valido.')
+  }
+  if (!profile) {
     throw new Error('Codice non valido.')
   }
 
