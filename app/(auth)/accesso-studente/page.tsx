@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { ParolaMascot } from '@/components/shared/ParolaMascot'
+import { CopyButton } from '@/components/ui/CopyButton'
 import { registerStudent } from './actions'
 import { cn } from '@/lib/utils'
 
@@ -18,7 +19,6 @@ export default function AccessoStudentePage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [accessCode, setAccessCode] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -37,14 +37,6 @@ export default function AccessoStudentePage() {
     }
 
     setLoading(false)
-  }
-
-  function handleCopy() {
-    if (!accessCode) return
-    navigator.clipboard.writeText(accessCode).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
   }
 
   if (accessCode) {
@@ -79,9 +71,10 @@ export default function AccessoStudentePage() {
             </p>
           </div>
 
-          <Button onClick={handleCopy} variant="secondary" className="mb-4 w-full">
-            {copied ? '✓ Copiato!' : 'Copia codice'}
-          </Button>
+          <CopyButton
+            text={accessCode}
+            className="mb-4 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm text-ink-secondary hover:border-brand-400 hover:text-ink-primary transition-colors"
+          />
 
           <Link href="/login">
             <Button className="w-full">Accedi ora</Button>
