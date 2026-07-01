@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { ParolaMascot } from '@/components/shared/ParolaMascot'
 import { cn } from '@/lib/utils'
+import { resolveStudentAccessCode } from './actions'
 
 type Tab = 'student' | 'teacher'
 
@@ -33,10 +34,19 @@ export default function LoginPage() {
     setLoading(true)
 
     const code = accessCode.trim().toUpperCase()
-    const syntheticEmail = `${code}@student.parola.internal`
+
+    let email: string
+    try {
+      const result = await resolveStudentAccessCode(code)
+      email = result.email
+    } catch {
+      setLoading(false)
+      setError('Codice non valido. Controlla di averlo inserito correttamente.')
+      return
+    }
 
     const { error: authError } = await supabase.auth.signInWithPassword({
-      email: syntheticEmail,
+      email,
       password: code
     })
 
