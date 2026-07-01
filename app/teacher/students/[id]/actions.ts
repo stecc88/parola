@@ -126,8 +126,22 @@ export async function generatePersonalizedExercise(
 export async function getPersonalizedExercisesForStudent(
   studentId: string
 ): Promise<PersonalizedExerciseRow[]> {
-  await requireApprovedTeacherActionUserId()
+  const teacherId = await requireApprovedTeacherActionUserId()
   const supabase = createClient()
+
+  // Verifica che lo studente sia attivo sotto questo docente prima di restituire
+  // gli esercizi — la RLS filtra per teacher_id ma non richiede una membership
+  // attiva, quindi un docente potrebbe altrimenti vedere esercizi storici di
+  // studenti già riassegnati ad altri.
+  const { data: membership } = await supabase
+    .from('class_memberships')
+    .select('id')
+    .eq('student_id', studentId)
+    .eq('teacher_id', teacherId)
+    .is('left_at', null)
+    .maybeSingle()
+
+  if (!membership) return []
 
   const { data, error } = await supabase
     .from('personalized_exercises')
@@ -259,12 +273,31 @@ export async function deletePersonalizedExercise(exerciseId: string, studentId: 
 }
 
 export async function deleteSubmission(submissionId: string, studentId: string) {
-  await requireApprovedTeacherActionUserId()
+  const teacherId = await requireApprovedTeacherActionUserId()
   const supabase = createClient()
-  const { error } = await supabase.from('submissions').delete().eq('id', submissionId)
+
+  // Verifica esplicita di ownership prima del delete — difesa in profondità
+  // rispetto alla sola RLS, allineata al pattern di deletePersonalizedExercise.
+  const { data: membership } = await supabase
+    .from('class_memberships')
+    .select('id')
+    .eq('student_id', studentId)
+    .eq('teacher_id', teacherId)
+    .is('left_at', null)
+    .maybeSingle()
+
+  if (!membership) {
+    throw new Error("Studente non trovato o non appartiene alla tua classe.")
+  }
+
+  const { error } = await supabase
+    .from('submissions')
+    .delete()
+    .eq('id', submissionId)
+    .eq('student_id', studentId)
 
   if (error) {
-    throw new Error("Errore eliminando lo scritto. Potrebbe non essere più tuo da gestire.")
+    throw new Error("Errore eliminando lo scritto.")
   }
 
   revalidatePath(`/teacher/students/${studentId}`)
