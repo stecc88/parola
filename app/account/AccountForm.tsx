@@ -7,10 +7,12 @@ import { requestNameChange, changeMyPassword, getMyPendingNameChangeRequest, typ
 
 export function AccountForm({
   nomeIniziale,
-  cognomeIniziale
+  cognomeIniziale,
+  hidePassword = false
 }: {
   nomeIniziale: string
   cognomeIniziale: string
+  hidePassword?: boolean
 }) {
   const [pendingRequest, setPendingRequest] = useState<NameChangeRequest | null | undefined>(undefined)
   const [nome, setNome] = useState(nomeIniziale)
@@ -133,7 +135,7 @@ export function AccountForm({
         )}
       </Card>
 
-      <Card>
+      {!hidePassword && <Card>
         <h2 className="mb-3 text-sm font-semibold text-ink-primary">Cambia password</h2>
         <form onSubmit={handleCambiaPassword} className="flex flex-col gap-3">
           <div>
@@ -172,7 +174,7 @@ export function AccountForm({
             </Button>
           </div>
         </form>
-      </Card>
+      </Card>}
     </div>
   )
 }
