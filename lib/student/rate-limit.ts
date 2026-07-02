@@ -1,4 +1,7 @@
+import { createHash } from 'crypto'
+import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 // Codici Postgres/PostgREST che indicano un errore transitorio di
 // infrastruttura (connessione, timeout, restart) — in questi casi
@@ -44,4 +47,32 @@ export async function checkSubmissionRateLimit(
   // → fail closed: blocca la submission e segnala il problema
   console.error('[rate-limit] errore critico, fail closed:', error.code, error.message)
   throw new Error('Errore interno nel controllo limiti. Riprova.')
+}
+
+/**
+ * Rate limit PRE-autenticazione (login con codice, registrazione studente),
+ * chiave = sha-256 dell'IP. Usa il client admin perché l'utente non ha
+ * ancora una sessione. Fail-open sugli errori infrastrutturali — un
+ * problema del DB non deve bloccare il login a tutti — ma il superamento
+ * del limite blocca sempre. (Migrazione 0033.)
+ */
+export async function checkPreAuthRateLimit(
+  { maxPerWindow = 10, windowMinutes = 5 }: { maxPerWindow?: number; windowMinutes?: number } = {}
+): Promise<void> {
+  const ip = headers().get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+  const keyHash = createHash('sha256').update(ip).digest('hex')
+
+  const admin = createAdminClient()
+  const { error } = await admin.rpc('check_login_rate_limit_atomic', {
+    p_key_hash: keyHash,
+    p_window_minutes: windowMinutes,
+    p_max: maxPerWindow
+  })
+
+  if (error?.message?.includes('rate_limit_exceeded')) {
+    throw new Error('Troppi tentativi. Riprova fra qualche minuto.')
+  }
+  if (error) {
+    console.error('[checkPreAuthRateLimit] errore non bloccante:', error.code, error.message)
+  }
 }

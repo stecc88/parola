@@ -10,7 +10,7 @@ export function StudentiList({ panoramica }: { panoramica: StudentOverviewRow[] 
   const [filtroLivello, setFiltroLivello] = useState<string>('tutti')
 
   const studenti = (filtroLivello === 'tutti'
-    ? panoramica
+    ? [...panoramica]
     : panoramica.filter((s) => s.livelloTarget === filtroLivello)
   ).sort((a, b) => {
     if (a.studentStatus === 'pending' && b.studentStatus !== 'pending') return -1
@@ -28,6 +28,7 @@ export function StudentiList({ panoramica }: { panoramica: StudentOverviewRow[] 
         <div className="flex items-center gap-2 text-sm text-ink-secondary">
           <span className="text-xs">Filtra per obiettivo:</span>
           <select
+            aria-label="Filtra per obiettivo"
             value={filtroLivello}
             onChange={(e) => setFiltroLivello(e.target.value)}
             className="rounded-md border border-border bg-surface px-2 py-1 text-xs outline-none focus:border-brand-400"

@@ -429,17 +429,33 @@ export async function getStudentsOverview(): Promise<StudentOverviewRow[]> {
   const admin = createAdminClient()
   const oraMs = Date.now()
 
-  // Query 2 + 3 in parallelo: tutte le submissions (IN) + listUsers per last_sign_in
-  const [{ data: allSubmissions }, { data: authUsers }] = await Promise.all([
+  // listUsers è paginato: una singola chiamata con perPage=1000 tronca
+  // silenziosamente oltre i 1000 utenti TOTALI della piattaforma, facendo
+  // sparire il last_sign_in di alcuni studenti. Itera finché la pagina
+  // torna piena; errori non bloccanti come prima.
+  const listAllAuthUsers = async () => {
+    const users: { id: string; last_sign_in_at?: string | null }[] = []
+    try {
+      for (let page = 1; ; page++) {
+        const { data, error: listError } = await admin.auth.admin.listUsers({ page, perPage: 1000 })
+        if (listError) throw listError
+        users.push(...(data?.users ?? []))
+        if ((data?.users?.length ?? 0) < 1000) break
+      }
+    } catch (err) {
+      console.error('Errore recuperando last_sign_in (non bloccante):', err)
+    }
+    return users
+  }
+
+  // Query 2 + 3 in parallelo: tutte le submissions (IN) + auth users per last_sign_in
+  const [{ data: allSubmissions }, authUsersList] = await Promise.all([
     supabase
       .from('submissions')
       .select('id, student_id, tipo, created_at, consegna, valutazione_ia, valutazione_completed_at')
       .in('student_id', studentIds)
       .order('created_at', { ascending: false }),
-    admin.auth.admin.listUsers({ perPage: 1000 }).catch((err) => {
-      console.error('Errore recuperando last_sign_in (non bloccante):', err)
-      return { data: { users: [] } }
-    })
+    listAllAuthUsers()
   ])
 
   // Mappa in-memory: student_id → submissions (già ordinate desc per created_at)
@@ -452,7 +468,7 @@ export async function getStudentsOverview(): Promise<StudentOverviewRow[]> {
 
   // Mappa in-memory: student_id → last_sign_in_at
   const lastSignInMap = new Map<string, string | null>()
-  for (const u of authUsers?.users ?? []) {
+  for (const u of authUsersList) {
     if (studentIds.includes(u.id)) {
       lastSignInMap.set(u.id, u.last_sign_in_at ?? null)
     }

@@ -1,6 +1,7 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { checkPreAuthRateLimit } from '@/lib/student/rate-limit'
 
 const LIVELLI_VALIDI = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] as const
 type Livello = (typeof LIVELLI_VALIDI)[number]
@@ -38,6 +39,10 @@ export async function registerStudent(
   if (!inviteCodeNorm) {
     throw new Error('Il codice insegnante è obbligatorio.')
   }
+
+  // La registrazione crea utenti Auth reali: senza limite, un loop può
+  // riempire il progetto di account. Finestra più stretta del login.
+  await checkPreAuthRateLimit({ maxPerWindow: 5, windowMinutes: 10 })
 
   const admin = createAdminClient()
 

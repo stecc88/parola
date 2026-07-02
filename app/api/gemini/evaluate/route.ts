@@ -139,16 +139,28 @@ export async function POST(request: NextRequest) {
 
     const admin = createAdminClient()
 
-    const { error: updateError } = await admin
+    // .is('valutazione_ia', null) rende l'UPDATE atomico: due richieste
+    // concorrenti che superano entrambe il check di riga 114 non possono
+    // sovrascriversi a vicenda — la seconda non matcha nessuna riga.
+    const { data: updatedRows, error: updateError } = await admin
       .from('submissions')
       .update({
         valutazione_ia: valutazione,
         valutazione_completed_at: new Date().toISOString()
       })
       .eq('id', submissionId)
+      .is('valutazione_ia', null)
+      .select('id')
 
     if (updateError) {
       throw updateError
+    }
+
+    if (!updatedRows || updatedRows.length === 0) {
+      return NextResponse.json(
+        { error: 'Questa submission è già stata valutata.' },
+        { status: 409 }
+      )
     }
 
     // Controlla se lo studente ha raggiunto il livello obiettivo del docente.

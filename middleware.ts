@@ -95,5 +95,10 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)']
+  // Solo le aree che richiedono una sessione: le pagine pubbliche (home,
+  // privacy, login, manifest, favicon…) non devono pagare una chiamata
+  // auth.getUser() (round-trip verso Supabase) a ogni visita. /account è
+  // incluso per il refresh del token di sessione anche se non ha logica
+  // di ruolo qui (il suo guard è server-side nella pagina).
+  matcher: ['/student/:path*', '/teacher/:path*', '/admin/:path*', '/account/:path*']
 }

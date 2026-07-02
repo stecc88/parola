@@ -58,11 +58,11 @@ export function Esercizio19() {
   }
 
   if (stato === 'generando') {
-    return <Card className="text-center text-sm text-ink-tertiary">Generazione esercizio in corso...</Card>
+    return <Card role="status" aria-live="polite" className="text-center text-sm text-ink-tertiary">Generazione esercizio in corso...</Card>
   }
 
   if (stato === 'valutando') {
-    return <Card className="text-center text-sm text-ink-tertiary">Valutazione in corso...</Card>
+    return <Card role="status" aria-live="polite" className="text-center text-sm text-ink-tertiary">Valutazione in corso...</Card>
   }
 
   if (stato === 'pronto' && risultato && esercizio) {
@@ -121,6 +121,8 @@ export function Esercizio19() {
             <div className="flex items-start gap-2">
               <span className="mt-2 shrink-0 text-sm font-medium text-brand-600">{f.inizio_dato}</span>
               <input
+                aria-label={`Risposta <input
+                value={risposte[f.id]`}
                 value={risposte[f.id] ?? ''}
                 onChange={(e) => setRisposte((p) => ({ ...p, [f.id]: e.target.value }))}
                 placeholder="completa la frase..."
@@ -130,7 +132,7 @@ export function Esercizio19() {
           </div>
         ))}
       </div>
-      {errore && <p className="mt-4 rounded-md bg-danger-bg px-3 py-2 text-sm text-danger-text">{errore}</p>}
+      {errore && <p role="alert" className="mt-4 rounded-md bg-danger-bg px-3 py-2 text-sm text-danger-text">{errore}</p>}
       <div className="mt-6 flex items-center justify-between">
         <p className="text-xs text-ink-tertiary">{compilate}/{esercizio.frasi.length} risposte inserite</p>
         <Button onClick={handleSubmit} disabled={compilate < esercizio.frasi.length}>

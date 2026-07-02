@@ -1,6 +1,7 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { checkPreAuthRateLimit } from '@/lib/student/rate-limit'
 
 /**
  * Riceve il codice personale dello studente, recupera la sua email
@@ -13,6 +14,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 export async function resolveStudentAccessCode(code: string): Promise<{ email: string }> {
   const trimmed = code.trim().toUpperCase()
   if (!trimmed) throw new Error('Codice non valido.')
+
+  await checkPreAuthRateLimit()
 
   const admin = createAdminClient()
 

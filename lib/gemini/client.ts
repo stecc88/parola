@@ -213,8 +213,11 @@ export async function generateContent(
     ? buildRequestBody({ ...options, thinking: undefined })
     : body
 
-  const shouldFallback = (err: unknown): boolean =>
-    err instanceof GeminiError && err.status !== 404
+  // Qualsiasi GeminiError giustifica il passaggio al modello successivo:
+  // 429/503 (quota o sovraccarico — quote indipendenti per modello) e anche
+  // 404 (modello inesistente/ritirato — vedi commento in callModel: "non
+  // riprovare con lo stesso ma con il successivo nel cascade").
+  const shouldFallback = (err: unknown): boolean => err instanceof GeminiError
 
   try {
     return await callModel(GEMINI_MODEL_PRIMARY, body, apiKey, maxRetries)
