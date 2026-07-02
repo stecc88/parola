@@ -10,7 +10,7 @@ export function StudentiList({ panoramica }: { panoramica: StudentOverviewRow[] 
   const [filtroLivello, setFiltroLivello] = useState<string>('tutti')
 
   const studenti = (filtroLivello === 'tutti'
-    ? panoramica
+    ? [...panoramica]
     : panoramica.filter((s) => s.livelloTarget === filtroLivello)
   ).sort((a, b) => {
     if (a.studentStatus === 'pending' && b.studentStatus !== 'pending') return -1
