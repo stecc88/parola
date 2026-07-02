@@ -58,7 +58,7 @@ export function Esercizio2() {
   }
 
   if (stato === 'generando') {
-    return <Card className="text-center text-sm text-ink-tertiary">Generazione in corso...</Card>
+    return <Card role="status" aria-live="polite" className="text-center text-sm text-ink-tertiary">Generazione in corso...</Card>
   }
 
   if (stato === 'pronto' && valutazione) {
@@ -84,6 +84,8 @@ export function Esercizio2() {
             </p>
             <p className="mb-1 text-xs text-ink-tertiary">{f.contesto_grammaticale}</p>
             <input
+              aria-label={`Risposta <input
+              value={risposte[f.id]`}
               value={risposte[f.id] ?? ''}
               onChange={(e) => setRisposte((p) => ({ ...p, [f.id]: e.target.value }))}
               placeholder="Scrivi la frase nell'ordine corretto"
@@ -93,7 +95,7 @@ export function Esercizio2() {
           </div>
         ))}
       </div>
-      {errore && <p className="mt-4 rounded-md bg-danger-bg px-3 py-2 text-sm text-danger-text">{errore}</p>}
+      {errore && <p role="alert" className="mt-4 rounded-md bg-danger-bg px-3 py-2 text-sm text-danger-text">{errore}</p>}
       <div className="mt-4 flex justify-end">
         <Button onClick={handleSubmit} disabled={stato === 'valutando'}>
           {stato === 'valutando' ? 'Valutazione in corso...' : 'Invia risposte'}

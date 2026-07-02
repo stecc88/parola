@@ -58,11 +58,11 @@ export function Esercizio16() {
   }
 
   if (stato === 'generando') {
-    return <Card className="text-center text-sm text-ink-tertiary">Generazione brano in corso...</Card>
+    return <Card role="status" aria-live="polite" className="text-center text-sm text-ink-tertiary">Generazione brano in corso...</Card>
   }
 
   if (stato === 'valutando') {
-    return <Card className="text-center text-sm text-ink-tertiary">Valutazione in corso...</Card>
+    return <Card role="status" aria-live="polite" className="text-center text-sm text-ink-tertiary">Valutazione in corso...</Card>
   }
 
   if (stato === 'pronto' && risultato && esercizio) {
@@ -126,6 +126,7 @@ export function Esercizio16() {
               <p className="mt-0.5 text-xs italic text-brand-500">({l.infinito})</p>
             </div>
             <input
+              aria-label={`Risposta `}
               value={risposte[l.numero] ?? ''}
               onChange={(e) => setRisposte((p) => ({ ...p, [l.numero]: e.target.value }))}
               placeholder={`coniuga "${l.infinito}"...`}
@@ -134,7 +135,7 @@ export function Esercizio16() {
           </div>
         ))}
       </div>
-      {errore && <p className="mt-4 rounded-md bg-danger-bg px-3 py-2 text-sm text-danger-text">{errore}</p>}
+      {errore && <p role="alert" className="mt-4 rounded-md bg-danger-bg px-3 py-2 text-sm text-danger-text">{errore}</p>}
       <div className="mt-6 flex items-center justify-between">
         <p className="text-xs text-ink-tertiary">{compilate}/{esercizio.lacune.length} risposte inserite</p>
         <Button onClick={handleSubmit} disabled={compilate < esercizio.lacune.length}>

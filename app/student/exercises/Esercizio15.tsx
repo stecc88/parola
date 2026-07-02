@@ -58,7 +58,7 @@ export function Esercizio15() {
   }
 
   if (stato === 'generando') {
-    return <Card className="text-center text-sm text-ink-tertiary">Generazione esercizio in corso...</Card>
+    return <Card role="status" aria-live="polite" className="text-center text-sm text-ink-tertiary">Generazione esercizio in corso...</Card>
   }
 
   if (stato === 'pronto' && risultato && esercizio) {
@@ -126,7 +126,7 @@ export function Esercizio15() {
           </div>
         ))}
       </div>
-      {errore && <p className="mt-4 rounded-md bg-danger-bg px-3 py-2 text-sm text-danger-text">{errore}</p>}
+      {errore && <p role="alert" className="mt-4 rounded-md bg-danger-bg px-3 py-2 text-sm text-danger-text">{errore}</p>}
       <div className="mt-6 flex items-center justify-between">
         <p className="text-xs text-ink-tertiary">{compilate}/{esercizio.domande.length} risposte inserite</p>
         <Button onClick={handleSubmit} disabled={compilate < esercizio.domande.length}>
