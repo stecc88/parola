@@ -397,6 +397,7 @@ export interface StudentOverviewRow {
   giorniPrimaCorrezione: number | null
   richiedeAttenzione: boolean
   motiviAttenzione: string[]
+  studentStatus: string | null
 }
 
 /**
@@ -413,7 +414,7 @@ export async function getStudentsOverview(): Promise<StudentOverviewRow[]> {
   // Query 1: memberships + profiles + classi (unica JOIN)
   const { data: memberships, error } = await supabase
     .from('class_memberships')
-    .select('student_id, joined_at, profiles!student_id(nome, cognome, livello_target), classes(nome)')
+    .select('student_id, joined_at, profiles!student_id(nome, cognome, livello_target, student_status), classes(nome)')
     .eq('teacher_id', teacherId)
     .is('left_at', null)
 
@@ -514,7 +515,8 @@ export async function getStudentsOverview(): Promise<StudentOverviewRow[]> {
       giorniSenzaAttivita,
       giorniPrimaCorrezione,
       richiedeAttenzione: motivi.length > 0,
-      motiviAttenzione: motivi
+      motiviAttenzione: motivi,
+      studentStatus: (profile as { student_status?: string | null } | null)?.student_status ?? null
     } satisfies StudentOverviewRow
   })
 

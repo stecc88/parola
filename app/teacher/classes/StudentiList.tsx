@@ -9,9 +9,14 @@ const LIVELLI = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
 export function StudentiList({ panoramica }: { panoramica: StudentOverviewRow[] }) {
   const [filtroLivello, setFiltroLivello] = useState<string>('tutti')
 
-  const studenti = filtroLivello === 'tutti'
+  const studenti = (filtroLivello === 'tutti'
     ? panoramica
     : panoramica.filter((s) => s.livelloTarget === filtroLivello)
+  ).sort((a, b) => {
+    if (a.studentStatus === 'pending' && b.studentStatus !== 'pending') return -1
+    if (a.studentStatus !== 'pending' && b.studentStatus === 'pending') return 1
+    return 0
+  })
 
   return (
     <div className="space-y-3">
@@ -43,11 +48,16 @@ export function StudentiList({ panoramica }: { panoramica: StudentOverviewRow[] 
         <div className="space-y-1">
           {studenti.map((s) => (
             <Link key={s.studentId} href={`/teacher/students/${s.studentId}`}>
-              <div className="flex items-center justify-between gap-3 rounded-md p-2 text-sm hover:bg-surface-secondary">
+              <div className={`flex items-center justify-between gap-3 rounded-md p-2 text-sm hover:bg-surface-secondary ${s.studentStatus === 'pending' ? 'bg-warning-bg border border-warning-border' : ''}`}>
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium text-ink-primary">
                     {s.nome} {s.cognome}
-                    {s.richiedeAttenzione && <span className="ml-1">⚠</span>}
+                    {s.studentStatus === 'pending' && (
+                      <span className="ml-2 rounded-full bg-warning-border px-2 py-0.5 text-xs font-medium text-warning-text">
+                        in attesa
+                      </span>
+                    )}
+                    {s.richiedeAttenzione && s.studentStatus !== 'pending' && <span className="ml-1">⚠</span>}
                   </p>
                   <p className="truncate text-xs text-ink-tertiary">
                     {s.classeNome ?? 'Nessuna classe'}
