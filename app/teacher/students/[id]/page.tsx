@@ -25,6 +25,7 @@ import { ListChecks, TrendingUp, GraduationCap, Target, PenLine, Dumbbell, Calen
 import { ExportReportButton } from './ExportReportButton'
 import { ExportCorrezioniButton } from './ExportCorrezioniButton'
 import { CopyButton } from '@/components/ui/CopyButton'
+import { PendingStudentActions } from '@/app/teacher/classes/PendingStudentActions'
 
 const NAV_ITEMS = [
   { href: '/teacher/dashboard', label: 'Dashboard' },
@@ -75,7 +76,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
   // bisogno di un controllo manuale aggiuntivo qui.
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id, nome, cognome, livello_target, access_code')
+    .select('id, nome, cognome, livello_target, access_code, student_status')
     .eq('id', params.id)
     .eq('role', 'student')
     .single()
@@ -139,6 +140,15 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
         <Link href="/teacher/classes" className="text-sm text-brand-400 underline">
           ← Tutte le classi
         </Link>
+
+        {(profile as { student_status?: string | null }).student_status === 'pending' && (
+          <div className="mt-4 flex items-center justify-between gap-4 rounded-lg border border-warning-border bg-warning-bg px-4 py-3">
+            <p className="text-sm text-warning-text">
+              Questo studente è in attesa di approvazione.
+            </p>
+            <PendingStudentActions studentId={profile.id} />
+          </div>
+        )}
 
         <div className="mt-2 mb-6 flex flex-wrap items-start justify-between gap-3">
           <div>
