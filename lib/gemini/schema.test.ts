@@ -58,4 +58,34 @@ describe('zodToGeminiSchema', () => {
     const schema = z.object({ data: z.date() })
     expect(() => zodToGeminiSchema(schema)).toThrow(/no soportado/)
   })
+
+  it('propagates array min/max length to Gemini (minItems/maxItems)', () => {
+    // Regressione: senza questo, Gemini poteva restituire un array vuoto
+    // (o più lungo del previsto) per campi come punti_forza/aree_di_
+    // miglioramento (.min(1).max(5)), che poi falliva la validazione Zod
+    // finale con un errore generico 502 invece di essere prevenuto a monte.
+    const schema = z.object({
+      punti_forza: z.array(z.string()).min(1).max(5)
+    })
+    const result = zodToGeminiSchema(schema)
+    expect(result.properties).toEqual({
+      punti_forza: { type: 'array', items: { type: 'string' }, minItems: 1, maxItems: 5 }
+    })
+  })
+
+  it('propagates string min/max length to Gemini (minLength/maxLength)', () => {
+    const schema = z.object({ feedback_generale: z.string().min(1) })
+    const result = zodToGeminiSchema(schema)
+    expect(result.properties).toEqual({
+      feedback_generale: { type: 'string', minLength: 1 }
+    })
+  })
+
+  it('propagates number min/max to Gemini (minimum/maximum)', () => {
+    const schema = z.object({ punteggio_complessivo: z.number().min(0).max(100) })
+    const result = zodToGeminiSchema(schema)
+    expect(result.properties).toEqual({
+      punteggio_complessivo: { type: 'number', minimum: 0, maximum: 100 }
+    })
+  })
 })
