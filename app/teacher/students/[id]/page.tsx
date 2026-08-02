@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { AppNav } from '@/components/shared/AppNav'
 import { Card } from '@/components/ui/Card'
 import { createClient } from '@/lib/supabase/server'
 import { requireApprovedTeacher } from '@/lib/teacher/guard'
@@ -26,7 +25,6 @@ import { ExportReportButton } from './ExportReportButton'
 import { ExportCorrezioniButton } from './ExportCorrezioniButton'
 import { CopyButton } from '@/components/ui/CopyButton'
 import { PendingStudentActions } from '@/app/teacher/classes/PendingStudentActions'
-import { TEACHER_NAV_ITEMS } from '@/components/shared/teacherNav'
 
 const CATEGORIA_LABEL: Record<CategoriaErrore, string> = {
   grammatica: 'Grammatica',
@@ -129,12 +127,10 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
   }
 
   return (
-    <>
-      <AppNav items={TEACHER_NAV_ITEMS} />
-      <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
-        <Link href="/teacher/classes" className="text-sm text-brand-400 underline">
-          ← Tutte le classi
-        </Link>
+    <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
+      <Link href="/teacher/classes" className="text-sm text-brand-400 underline">
+        ← Tutte le classi
+      </Link>
 
         {(profile as { student_status?: string | null }).student_status === 'pending' && (
           <div className="mt-4 flex items-center justify-between gap-4 rounded-lg border border-warning-border bg-warning-bg px-4 py-3">
@@ -623,10 +619,9 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                   )
                 })}
               </div>
-            </Card>
-          </>
-        )}
-      </main>
-    </>
+          </Card>
+        </>
+      )}
+    </main>
   )
 }

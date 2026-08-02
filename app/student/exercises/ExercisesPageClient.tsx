@@ -2,13 +2,11 @@
 
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
-import { AppNav } from '@/components/shared/AppNav'
 import { Card } from '@/components/ui/Card'
 import { ParolaMascot } from '@/components/shared/ParolaMascot'
 import { LivelloSelector } from '@/components/shared/LivelloSelector'
 import { cn } from '@/lib/utils'
 import { ExerciseErrorBoundary } from '@/components/shared/ExerciseErrorBoundary'
-import { STUDENT_NAV_ITEMS } from '@/components/shared/studentNav'
 import type { LivelloCefr } from '@/lib/supabase/database.types'
 
 // Ogni esercizio viene caricato solo quando lo studente lo apre — prima
@@ -122,11 +120,9 @@ export function ExercisesPageClient({ livelloIniziale }: { livelloIniziale: Live
   }
 
   return (
-    <>
-      <AppNav items={STUDENT_NAV_ITEMS} />
-      <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
+    <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
 
-        {/* Header */}
+      {/* Header */}
         <div className="mb-6 flex items-start justify-between gap-4">
           <div className="flex items-start gap-3">
             <ParolaMascot mood="pensieroso" className="mt-0.5 shrink-0" />
@@ -225,13 +221,12 @@ export function ExercisesPageClient({ livelloIniziale }: { livelloIniziale: Live
           </div>
         )}
 
-        {!tipo && (
-          <div className="rounded-lg border border-dashed border-border py-10 text-center">
-            <p className="text-sm text-ink-tertiary">Seleziona un esercizio qui sopra per iniziare</p>
-          </div>
-        )}
+      {!tipo && (
+        <div className="rounded-lg border border-dashed border-border py-10 text-center">
+          <p className="text-sm text-ink-tertiary">Seleziona un esercizio qui sopra per iniziare</p>
+        </div>
+      )}
 
-      </main>
-    </>
+    </main>
   )
 }

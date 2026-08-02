@@ -1,11 +1,9 @@
 import Link from 'next/link'
-import { AppNav } from '@/components/shared/AppNav'
 import { Card } from '@/components/ui/Card'
 import { createClient } from '@/lib/supabase/server'
 import { requireApprovedTeacher } from '@/lib/teacher/guard'
 import { MoveStudentSelect } from './MoveStudentSelect'
 import { ClassActions } from '../ClassActions'
-import { TEACHER_NAV_ITEMS } from '@/components/shared/teacherNav'
 
 export default async function ClassDetailPage({ params }: { params: { id: string } }) {
   await requireApprovedTeacher()
@@ -30,57 +28,51 @@ export default async function ClassDetailPage({ params }: { params: { id: string
 
   if (!classe) {
     return (
-      <>
-        <AppNav items={TEACHER_NAV_ITEMS} />
-        <main className="p-6">
-          <p className="text-sm text-danger-text">Classe non trovata.</p>
-        </main>
-      </>
+      <main className="p-6">
+        <p className="text-sm text-danger-text">Classe non trovata.</p>
+      </main>
     )
   }
 
   return (
-    <>
-      <AppNav items={TEACHER_NAV_ITEMS} />
-      <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
-        <Link href="/teacher/classes" className="text-sm text-brand-400 underline">
-          ← Tutte le classi
-        </Link>
+    <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
+      <Link href="/teacher/classes" className="text-sm text-brand-400 underline">
+        ← Tutte le classi
+      </Link>
 
-        <div className="mt-2 mb-6 flex flex-wrap items-center justify-between gap-2">
-          <h1 className="text-xl font-semibold text-ink-primary">{classe.nome}</h1>
-          <ClassActions classId={classe.id} nomeAttuale={classe.nome} redirectAfterDelete />
+      <div className="mt-2 mb-6 flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-xl font-semibold text-ink-primary">{classe.nome}</h1>
+        <ClassActions classId={classe.id} nomeAttuale={classe.nome} redirectAfterDelete />
+      </div>
+
+      <h2 className="mb-3 text-sm font-semibold text-ink-primary">Studenti</h2>
+
+      {!memberships || memberships.length === 0 ? (
+        <Card className="border-dashed text-center text-sm text-ink-tertiary">
+          Nessuno studente in questa classe.
+        </Card>
+      ) : (
+        <div className="space-y-2">
+          {memberships.map((m) => {
+            // Il join Supabase può restituire oggetto o array; normalizziamo.
+            const profile = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles
+            return (
+              <Card key={m.id} className="flex flex-wrap items-center justify-between gap-2">
+                <Link
+                  href={`/teacher/students/${m.student_id}`}
+                  className="min-w-0 truncate text-sm text-ink-primary underline-offset-2 hover:underline"
+                >
+                  {profile?.nome} {profile?.cognome}
+                </Link>
+                <MoveStudentSelect
+                  membershipId={m.id}
+                  classi={altreClassi ?? []}
+                />
+              </Card>
+            )
+          })}
         </div>
-
-        <h2 className="mb-3 text-sm font-semibold text-ink-primary">Studenti</h2>
-
-        {!memberships || memberships.length === 0 ? (
-          <Card className="border-dashed text-center text-sm text-ink-tertiary">
-            Nessuno studente in questa classe.
-          </Card>
-        ) : (
-          <div className="space-y-2">
-            {memberships.map((m) => {
-              // Il join Supabase può restituire oggetto o array; normalizziamo.
-              const profile = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles
-              return (
-                <Card key={m.id} className="flex flex-wrap items-center justify-between gap-2">
-                  <Link
-                    href={`/teacher/students/${m.student_id}`}
-                    className="min-w-0 truncate text-sm text-ink-primary underline-offset-2 hover:underline"
-                  >
-                    {profile?.nome} {profile?.cognome}
-                  </Link>
-                  <MoveStudentSelect
-                    membershipId={m.id}
-                    classi={altreClassi ?? []}
-                  />
-                </Card>
-              )
-            })}
-          </div>
-        )}
-      </main>
-    </>
+      )}
+    </main>
   )
 }

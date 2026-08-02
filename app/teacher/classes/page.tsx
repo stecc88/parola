@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { AppNav } from '@/components/shared/AppNav'
 import { Card } from '@/components/ui/Card'
 import { createClient } from '@/lib/supabase/server'
 import { requireApprovedTeacher } from '@/lib/teacher/guard'
@@ -17,7 +16,6 @@ import {
   markAchievementNotificationsSeen
 } from './actions'
 import { PendingStudentActions } from './PendingStudentActions'
-import { TEACHER_NAV_ITEMS } from '@/components/shared/teacherNav'
 
 export default async function TeacherClassesPage() {
   await requireApprovedTeacher()
@@ -39,10 +37,8 @@ export default async function TeacherClassesPage() {
   ])
 
   return (
-    <>
-      <AppNav items={TEACHER_NAV_ITEMS} />
-      <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
-        {/* Codice invito + azioni che richiedono una decisione del docente */}
+    <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
+      {/* Codice invito + azioni che richiedono una decisione del docente */}
         <Card className="mb-6 bg-guided-bg">
           <p className="text-sm text-guided-text">Il tuo codice insegnante</p>
           <p className="mt-1 font-mono text-2xl font-semibold text-guided-text">
@@ -170,10 +166,9 @@ export default async function TeacherClassesPage() {
             <h2 className="mb-4 text-sm font-semibold text-ink-primary">
               Tutti gli studenti
             </h2>
-            <StudentiList panoramica={panoramica} />
-          </Card>
-        )}
-      </main>
-    </>
+          <StudentiList panoramica={panoramica} />
+        </Card>
+      )}
+    </main>
   )
 }

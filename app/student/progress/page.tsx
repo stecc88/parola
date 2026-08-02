@@ -1,4 +1,3 @@
-import { AppNav } from '@/components/shared/AppNav'
 import { Card } from '@/components/ui/Card'
 import { ParolaMascot } from '@/components/shared/ParolaMascot'
 import { createClient } from '@/lib/supabase/server'
@@ -13,7 +12,6 @@ import {
 import { StudentSubmissionEntry } from './StudentSubmissionEntry'
 import { LivelloSelector } from '@/components/shared/LivelloSelector'
 import { z } from 'zod'
-import { STUDENT_NAV_ITEMS } from '@/components/shared/studentNav'
 import { getLivelloTarget } from '@/lib/student/livello'
 
 const valutazioneSchema = z.object({
@@ -118,10 +116,8 @@ export default async function ProgressPage() {
   const submissions = recentSubmissions ?? []
 
   return (
-    <>
-      <AppNav items={STUDENT_NAV_ITEMS} />
-      <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
-        {/* Hero */}
+    <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
+      {/* Hero */}
         <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 via-violet-600 to-coral-600 p-6 text-white shadow-glow-brand">
           <div aria-hidden className="pointer-events-none absolute -right-8 -top-8 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
           <div aria-hidden className="pointer-events-none absolute -left-8 bottom-0 h-32 w-32 rounded-full bg-sunshine-400/20 blur-2xl" />
@@ -369,7 +365,6 @@ export default async function ProgressPage() {
             </Card>
           </>
         )}
-      </main>
-    </>
+    </main>
   )
 }

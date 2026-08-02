@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import { AppNav } from '@/components/shared/AppNav'
 import { Card } from '@/components/ui/Card'
 import { requireApprovedTeacher } from '@/lib/teacher/guard'
 import {
@@ -20,7 +19,6 @@ import {
   Target,
   FileClock
 } from 'lucide-react'
-import { TEACHER_NAV_ITEMS } from '@/components/shared/teacherNav'
 
 const CATEGORIA_LABEL: Record<string, string> = {
   grammatica: 'Grammatica',
@@ -49,10 +47,8 @@ export default async function TeacherDashboardPage() {
   const medaglie = ['🥇', '🥈', '🥉']
 
   return (
-    <>
-      <AppNav items={TEACHER_NAV_ITEMS} />
-      <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
-        <h1 className="mb-6 text-xl font-semibold text-ink-primary">Dashboard</h1>
+    <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
+      <h1 className="mb-6 text-xl font-semibold text-ink-primary">Dashboard</h1>
 
         {d.studentiTotali === 0 ? (
           <Card className="border-dashed text-center text-sm text-ink-tertiary">
@@ -421,7 +417,6 @@ export default async function TeacherDashboardPage() {
             </Card>
           </>
         )}
-      </main>
-    </>
+    </main>
   )
 }
