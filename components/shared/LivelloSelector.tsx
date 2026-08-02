@@ -7,14 +7,19 @@ import type { LivelloCefr } from '@/lib/supabase/database.types'
 const LIVELLI: LivelloCefr[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
 
 export function LivelloSelector({
+  livelloIniziale,
   onLivelloChange
 }: {
+  // Se il genitore (server component) conosce già il livello, passarlo qui
+  // evita il round-trip client-side su mount e il flash "null" iniziale.
+  livelloIniziale?: LivelloCefr
   onLivelloChange?: (livello: LivelloCefr) => void
 }) {
-  const [livello, setLivello] = useState<LivelloCefr | null>(null)
+  const [livello, setLivello] = useState<LivelloCefr | null>(livelloIniziale ?? null)
   const [pending, startTransition] = useTransition()
 
   useEffect(() => {
+    if (livelloIniziale) return
     getLivelloTarget().then((l) => {
       setLivello(l)
       onLivelloChange?.(l)

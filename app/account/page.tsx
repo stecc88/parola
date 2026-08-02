@@ -26,8 +26,15 @@ export default async function AccountPage() {
   }
 
   const navItems = NAV_ITEMS_BY_ROLE[profile.role] ?? [{ href: '/account', label: 'Account' }]
-  const isStudentSenzaInsegnante = profile.role === 'student' && !(await hasActiveMembership())
-  const accessCode = profile.role === 'student' ? await getMyAccessCode() : null
+
+  // Le due query dipendono solo dal ruolo già noto, non l'una dall'altra:
+  // eseguirle in parallelo invece che in sequenza dimezza la latenza di
+  // rete per gli studenti (unico caso in cui servono entrambe).
+  const [haInsegnante, accessCode] =
+    profile.role === 'student'
+      ? await Promise.all([hasActiveMembership(), getMyAccessCode()])
+      : [false, null]
+  const isStudentSenzaInsegnante = profile.role === 'student' && !haInsegnante
 
   return (
     <>

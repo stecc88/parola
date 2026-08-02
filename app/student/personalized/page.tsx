@@ -8,13 +8,18 @@ import { hasActiveMembership } from '@/app/student/join-class/actions'
 import { STUDENT_NAV_ITEMS } from '@/components/shared/studentNav'
 
 export default async function PersonalizedExercisesPage() {
-  const esercizi = await getMyPersonalizedExercises()
-  const haInsegnante = await hasActiveMembership()
   const supabase = createClient()
 
-  // Side-effect deliberato: visitare questa pagina marca come "viste" le
-  // notifiche in attesa — stesso pattern già usato per il docente.
-  await markPersonalizedExercisesSeenByStudent()
+  // Le tre chiamate sono indipendenti tra loro (nessuna usa il risultato
+  // delle altre): eseguirle in parallelo invece che in sequenza evita tre
+  // round-trip di rete consecutivi prima ancora di iniziare a renderizzare.
+  // Il side-effect "marca come viste" è lo stesso pattern già usato lato
+  // docente — qui viaggia semplicemente insieme alle altre due letture.
+  const [esercizi, haInsegnante] = await Promise.all([
+    getMyPersonalizedExercises(),
+    hasActiveMembership(),
+    markPersonalizedExercisesSeenByStudent()
+  ])
 
   const submissionIds = esercizi
     .map((e) => e.submission_id)

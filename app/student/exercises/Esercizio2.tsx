@@ -84,8 +84,7 @@ export function Esercizio2() {
             </p>
             <p className="mb-1 text-xs text-ink-tertiary">{f.contesto_grammaticale}</p>
             <input
-              aria-label={`Risposta <input
-              value={risposte[f.id]`}
+              aria-label={`Risposta ${i + 1}`}
               value={risposte[f.id] ?? ''}
               onChange={(e) => setRisposte((p) => ({ ...p, [f.id]: e.target.value }))}
               placeholder="Scrivi la frase nell'ordine corretto"
