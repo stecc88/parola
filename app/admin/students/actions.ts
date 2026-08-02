@@ -6,14 +6,6 @@ import { createAdminClient, assertIsAdmin } from '@/lib/supabase/admin'
 import { generateAccessCode } from '@/lib/student/access-code'
 import { CORSI_VALIDI } from '@/lib/student/corso'
 
-export {
-  getAllStudentsAdmin,
-  getApprovedTeachers,
-  deleteStudentCompletely,
-  type StudentAdminRow,
-  type TeacherRow
-} from '../users/actions'
-
 async function requireAdminUserId(): Promise<string> {
   const supabase = createClient()
   const { data, error } = await supabase.auth.getUser()

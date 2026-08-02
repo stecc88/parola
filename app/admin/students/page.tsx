@@ -11,11 +11,10 @@ import {
   getAllStudentsAdmin,
   getApprovedTeachers,
   deleteStudentCompletely,
-  updateStudentDetails,
-  createStudentAdmin,
   type StudentAdminRow,
   type TeacherRow
-} from './actions'
+} from '../users/actions'
+import { updateStudentDetails, createStudentAdmin } from './actions'
 
 export default function AdminStudentsPage() {
   const [students, setStudents] = useState<StudentAdminRow[]>([])
