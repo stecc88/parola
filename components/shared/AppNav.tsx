@@ -27,6 +27,7 @@ const ROUTE_ICONS: Record<string, LucideIcon> = {
   '/teacher/dashboard':    LayoutDashboard,
   '/teacher/classes':      GraduationCap,
   '/teacher/students':     Users,
+  '/admin/students':       Users,
   '/account':              User,
 }
 

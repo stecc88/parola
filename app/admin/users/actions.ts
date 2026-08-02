@@ -265,6 +265,7 @@ export interface StudentAdminRow {
   cognome: string
   email: string
   student_status: 'pending' | 'approved' | 'rejected' | 'disabled'
+  corso: string | null
   created_at: string
   approved_at: string | null
   subscription_end_at: string | null
@@ -285,7 +286,7 @@ export async function getAllStudentsAdmin(): Promise<StudentAdminRow[]> {
   const [{ data: students, error }, { data: memberships }, emailMap] = await Promise.all([
     admin
       .from('profiles')
-      .select('id, nome, cognome, student_status, created_at, approved_at, subscription_end_at')
+      .select('id, nome, cognome, student_status, corso, created_at, approved_at, subscription_end_at')
       .eq('role', 'student')
       .order('created_at', { ascending: false }),
     admin
@@ -315,6 +316,7 @@ export async function getAllStudentsAdmin(): Promise<StudentAdminRow[]> {
       cognome: s.cognome,
       email: emailMap.get(s.id) ?? '',
       student_status: s.student_status,
+      corso: s.corso,
       created_at: s.created_at,
       approved_at: s.approved_at,
       subscription_end_at: s.subscription_end_at,
