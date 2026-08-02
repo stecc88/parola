@@ -38,26 +38,6 @@ export const valutazioneEsaminatoreSchema = z.object({
 export type ValutazioneEsaminatore = z.infer<typeof valutazioneEsaminatoreSchema>
 
 /**
- * Schema para los 4 tipi di esercizio di analisi delle strutture.
- * Placeholder deliberadamente genérico hasta que se defina el contrato
- * exacto de cada tipo (pendiente, mencionado en la conversación previa).
- */
-export const valutazioneStrutturaSchema = z.object({
-  tipo: z.enum([
-    'esercizio_struttura_1',
-    'esercizio_struttura_2',
-    'esercizio_struttura_3',
-    'esercizio_struttura_4'
-  ]),
-  corretto: z.boolean(),
-  punteggio: z.number().min(0).max(100),
-  feedback: z.string().min(1),
-  suggerimento: z.string().nullable()
-})
-
-export type ValutazioneStruttura = z.infer<typeof valutazioneStrutturaSchema>
-
-/**
  * Schema per la GENERAZIONE (non valutazione) di un esercizio personalizzato
  * da parte del docente, basato sui punti debili di uno studente specifico.
  *

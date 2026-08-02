@@ -84,10 +84,61 @@ qualcosa come "Hai usato bene il vocabolario specifico del contesto (es.
 Massimo 5 voci per ciascuno dei due campi, ognuna su un punto diverso e
 specifico — meglio 3 voci utili e concrete che 5 generiche.
 
-Per gli errori specifici con correzione e spiegazione, un punteggio
-complessivo (0-100) e una stima del livello CEFR (A1-C2). Non menzionare
-mai nomi di certificazioni specifiche: riferisciti genericamente a
-"standard internazionali di lingua italiana" se necessario.`
+Il punteggio complessivo (0-100) deve riflettere questi quattro aspetti
+della rubrica ufficiale di riferimento per la scrittura — il loro peso
+relativo NON è uguale a tutti i livelli, vedi sotto:
+1. Efficacia comunicativa: comprende l'adeguatezza di contenuto (la
+   risposta è adeguata e coerente con quanto richiesto, se c'è una
+   consegna), la coerenza (il testo ha una struttura unitaria, le sue
+   parti concordano nel significato senza creare problemi di
+   comprensione) e la coesione (i legami semantico-lessicali e
+   morfosintattici tra le parti del testo: congiunzioni, pronomi,
+   clitici, connettivi di causa o tempo). Problemi di coerenza o
+   coesione vanno segnalati nel campo "errori" con categoria
+   "coerenza", che copre entrambi gli aspetti.
+2. Correttezza morfosintattica: grammatica e sintassi corrette per il
+   livello indicato sopra.
+3. Adeguatezza e ricchezza lessicale: varietà e precisione del
+   vocabolario usato, calibrata al livello — non solo assenza di
+   errori, ma anche varietà rispetto al minimo richiesto per quel
+   livello.
+4. Ortografia e punteggiatura: refusi, accenti, doppie, apostrofi, uso
+   della punteggiatura.
+
+Peso relativo per livello — leggi con attenzione, cambia in modo netto:
+- A1-B2: l'efficacia comunicativa pesa più di ogni altro singolo
+  aspetto (circa il 30-40% del punteggio), la correttezza morfosintattica
+  pesa meno, e l'ortografia pesa relativamente poco. Un testo che
+  comunica bene con qualche errore grammaticale merita un punteggio più
+  alto di un testo grammaticalmente corretto ma confuso o che non si fa
+  capire.
+- C1-C2: la situazione si INVERTE — la correttezza morfosintattica
+  diventa il fattore singolo più pesante (più dell'efficacia
+  comunicativa), e anche lessico e ortografia acquistano peso relativo.
+  A questi livelli comunicare in modo comprensibile è dato per
+  scontato: la valutazione si concentra sulla precisione e
+  sull'accuratezza, non solo sul farsi capire.
+
+Per ogni voce del campo "errori": "testo_originale" è esattamente il
+frammento scritto dallo studente (non parafrasato), "correzione" è come
+andrebbe scritto, "categoria" una delle cinque previste, e
+"spiegazione" NON deve limitarsi a segnalare l'errore — deve includere
+la regola grammaticale (la parte teorica) che lo spiega, in 1-2 frasi,
+così lo studente capisce il PERCHÉ e non solo il COSA correggere.
+
+Esempio di "spiegazione" BEN FATTA: "In italiano l'aggettivo concorda in
+genere e numero con il nome che accompagna: 'gatto' è maschile
+singolare, quindi richiede 'piccolo' e non 'piccola'."
+
+Esempio di "spiegazione" SBAGLIATA da NON produrre (segnala l'errore
+senza spiegare la regola che lo governa): "Errore di concordanza tra
+articolo e nome."
+
+Per gli errori specifici con correzione e spiegazione (secondo queste
+regole), il punteggio complessivo sopra descritto e una stima del
+livello CEFR (A1-C2). Non menzionare mai nomi di certificazioni
+specifiche: riferisciti genericamente a "standard internazionali di
+lingua italiana" se necessario.`
 }
 
 export async function evaluateScritturaLibera(
