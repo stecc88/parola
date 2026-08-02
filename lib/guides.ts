@@ -224,7 +224,22 @@ interface AdattamentoLivello {
 
 const ADATTAMENTO_PER_CATEGORIA: Record<string, Record<LivelloCefr, AdattamentoLivello>> = {
   descrittivo: {
-    A1: { fattoreLunghezza: 0.25, notaGrammaticale: "Usa frasi semplicissime al presente (è, ha, si chiama)." },
+    A1: {
+      fattoreLunghezza: 0.25,
+      notaGrammaticale: 'Usa frasi semplicissime al presente (è, ha, si chiama). Non serve far concordare aggettivo e nome.',
+      struttura: [
+        { titolo: 'Chi è', descrizione: 'Una frase: il nome e chi è per te (mamma, amico...).' },
+        { titolo: 'Com\'è', descrizione: 'Di\' due o tre cose: alto/a? Capelli? Occhi?' },
+        { titolo: 'Perché ti piace', descrizione: 'Una frase finale: perché ti piace questa persona.' }
+      ],
+      frasiUtili: [
+        { sezione: 'Per iniziare', frasi: ['Si chiama...', 'È mio/a...', 'Voglio parlare di...'] },
+        { sezione: 'Per descrivere', frasi: ['Ha i capelli...', 'È alto/a...', 'Ha gli occhi...'] },
+        { sezione: 'Per concludere', frasi: ['Mi piace perché...', 'È molto simpatico/a.'] }
+      ],
+      vocabolarioChiave: ['simpatico/a', 'alto/a', 'capelli', 'occhi', 'famiglia', 'amico/a', 'piacere'],
+      testoModello: `Si chiama Anna. È mia sorella. È alta e ha i capelli neri. Ha gli occhi marroni. È molto simpatica e allegra. Mi piace stare con lei.`
+    },
     A2: {
       fattoreLunghezza: 0.45,
       notaGrammaticale: 'Usa il presente indicativo. Descrivi con aggettivi semplici e connettivi: "e", "ma", "anche".',
@@ -263,7 +278,7 @@ const ADATTAMENTO_PER_CATEGORIA: Record<string, Record<LivelloCefr, AdattamentoL
         { sezione: 'Per concludere', frasi: ['Stare con lui/lei mi ricorda che...', 'Grazie a lui/lei ho capito che...', 'È il tipo di persona che...'] }
       ],
       vocabolarioChiave: ['la cui', 'il quale', 'nonostante', 'ha la rara capacità di', 'colpisce per', 'di poche parole e molti fatti', 'influenzare'],
-      testoModello: `C'è una persona nella mia vita che, più di ogni altra, ha influenzato il modo in cui vedo il mondo: mia nonna paterna, Assunta, che ha compiuto settantasette anni lo scorso marzo.\n\nHa una figura minuta ma piena di energia — capelli bianchi raccolti in una crocchia, mani sempre indaffarate, e uno sguardo acuto che non lascia passare nulla inosservato. Non indossa mai gioielli preziosi, ma porta sempre un vecchio orologio d'oro che apparteneva a suo padre.\n\nÈ una donna di poche parole e molti fatti. Quando qualcuno ha bisogno di aiuto, non chiede se può fare qualcosa: lo fa e basta. Ricordo ancora il giorno in cui, saputo che il vicino era rimasto solo e malato, preparò da mangiare per una settimana intera senza dirlo a nessuno.\n\nStare con lei mi ricorda che il carattere si vede nelle piccole cose.`
+      testoModello: `C'è una persona nella mia vita che, più di ogni altra, ha influenzato il modo in cui vedo il mondo: mia nonna paterna, Assunta, che ha compiuto settantasette anni lo scorso marzo.\n\nHa una figura minuta ma piena di energia — capelli bianchi raccolti in una crocchia, mani sempre indaffarate, e uno sguardo acuto che non lascia passare nulla inosservato. Non indossa mai gioielli preziosi, ma porta sempre un vecchio orologio d'oro che apparteneva a suo padre.\n\nÈ una donna di poche parole e molti fatti. Quando qualcuno ha bisogno di aiuto, non chiede se può fare qualcosa: lo fa e basta. Ricordo ancora il giorno in cui seppe che il vicino era rimasto solo e malato e preparò da mangiare per una settimana intera senza dirlo a nessuno.\n\nStare con lei mi ricorda che il carattere si vede nelle piccole cose.`
     },
     C1: {
       fattoreLunghezza: 1.6,
@@ -286,7 +301,22 @@ const ADATTAMENTO_PER_CATEGORIA: Record<string, Record<LivelloCefr, AdattamentoL
     C2: { fattoreLunghezza: 2, notaGrammaticale: 'Usa un linguaggio ricco e preciso, con scelte stilistiche personali.' }
   },
   narrativo: {
-    A1: { fattoreLunghezza: 0.3, notaGrammaticale: 'Racconta con frasi semplicissime, principalmente al presente.' },
+    A1: {
+      fattoreLunghezza: 0.3,
+      notaGrammaticale: 'Racconta con frasi semplicissime. Puoi usare il passato prossimo (non serve far concordare il participio).',
+      struttura: [
+        { titolo: 'Quando e dove', descrizione: 'Una frase: quando e dove è successo (es. "Ieri, a scuola...").' },
+        { titolo: 'Cosa succede', descrizione: 'Racconta 2-3 cose, in ordine, con "poi" e "dopo".' },
+        { titolo: 'Come finisce', descrizione: 'Una frase: come è finita, come ti sei sentito/a.' }
+      ],
+      frasiUtili: [
+        { sezione: 'Per iniziare', frasi: ['Ieri...', 'Un giorno...', 'La settimana scorsa...'] },
+        { sezione: 'Per raccontare', frasi: ['Prima...', 'Poi...', 'Dopo...', 'Ho visto...', 'Ho mangiato...'] },
+        { sezione: 'Per concludere', frasi: ['Infine...', 'Sono stato/a molto contento/a.'] }
+      ],
+      vocabolarioChiave: ['ieri', 'prima', 'poi', 'dopo', 'infine', 'contento/a'],
+      testoModello: `Ieri sono andato in un parco con mio fratello. Prima abbiamo giocato a pallone. Poi abbiamo mangiato un gelato. Infine siamo tornati a casa. Sono stato molto contento.`
+    },
     A2: {
       fattoreLunghezza: 0.5,
       notaGrammaticale: 'Usa il passato prossimo per le azioni concluse. Collega le frasi con "poi", "dopo", "alla fine".',
@@ -306,7 +336,7 @@ const ADATTAMENTO_PER_CATEGORIA: Record<string, Record<LivelloCefr, AdattamentoL
     B1: {
       fattoreLunghezza: 1,
       notaGrammaticale: 'Usa passato prossimo e imperfetto, prestando attenzione alla coerenza temporale.',
-      testoModello: `Era una mattina di ottobre quando Giulia decise di esplorare il vecchio mercato del suo quartiere. Non ci era mai entrata, anche se ci passava davanti ogni giorno da anni.\n\nMentre camminava tra le bancarelle colorate, sentì una voce familiare. Si girò e vide Marco, il suo compagno di scuola delle elementari. Non si vedevano da dieci anni.\n\nSi guardarono sorpresi, poi scoppiarono a ridere. Parlarono per quasi un'ora, seduti su un muretto vicino alla fontana, ricordando le avventure di quando erano bambini.\n\nQuando si salutarono, Giulia si rese conto che a volte basta una passeggiata fuori dal solito percorso per trovare qualcosa di prezioso.`
+      testoModello: `Era una mattina di ottobre quando Giulia ha deciso di esplorare il vecchio mercato del suo quartiere. Non ci era mai entrata, anche se ci passava davanti ogni giorno da anni.\n\nMentre camminava tra le bancarelle colorate, ha sentito una voce familiare. Si è girata e ha visto Marco, il suo compagno di scuola delle elementari. Non si vedevano da dieci anni.\n\nSi sono guardati sorpresi, poi hanno iniziato a ridere. Hanno parlato per quasi un'ora, seduti su un muretto vicino alla fontana, e hanno ricordato le avventure di quando erano bambini.\n\nQuando si sono salutati, Giulia si è resa conto che a volte basta una passeggiata fuori dal solito percorso per trovare qualcosa di prezioso.`
     },
     B2: {
       fattoreLunghezza: 1.3,
@@ -345,7 +375,22 @@ const ADATTAMENTO_PER_CATEGORIA: Record<string, Record<LivelloCefr, AdattamentoL
     C2: { fattoreLunghezza: 2, notaGrammaticale: 'Usa una gamma completa di tempi verbali e tecniche narrative (es. flashback, voce narrante).' }
   },
   espositivo: {
-    A1: { fattoreLunghezza: 0.3, notaGrammaticale: 'Usa frasi brevi e semplici al presente.' },
+    A1: {
+      fattoreLunghezza: 0.3,
+      notaGrammaticale: 'Usa frasi brevi e semplici al presente.',
+      struttura: [
+        { titolo: 'Di cosa parli', descrizione: 'Una frase: qual è l\'argomento e cos\'è.' },
+        { titolo: 'Due cose importanti', descrizione: 'Di\' due o tre cose semplici su questo argomento.' },
+        { titolo: 'Perché ti piace', descrizione: 'Una frase finale: perché ti piace o è interessante.' }
+      ],
+      frasiUtili: [
+        { sezione: 'Per iniziare', frasi: ['[Argomento] è...', 'Oggi parlo di...'] },
+        { sezione: 'Per spiegare', frasi: ['Ha...', 'Serve per...', 'È fatto/a di...'] },
+        { sezione: 'Per concludere', frasi: ['Mi piace perché...', 'È molto interessante.'] }
+      ],
+      vocabolarioChiave: ['serve per', 'è fatto di', 'importante', 'interessante', 'mi piace'],
+      testoModello: `La pizza è un cibo italiano. Ha pomodoro, formaggio e altri ingredienti. In Italia, tutti mangiano la pizza. Mi piace perché è buona e semplice.`
+    },
     A2: {
       fattoreLunghezza: 0.5,
       notaGrammaticale: 'Usa il presente indicativo, con connettivi semplici: "e", "ma", "poi", "anche".',
@@ -398,7 +443,22 @@ const ADATTAMENTO_PER_CATEGORIA: Record<string, Record<LivelloCefr, AdattamentoL
     C2: { fattoreLunghezza: 2, notaGrammaticale: 'Usa un registro accademico, con strutture complesse e lessico specifico.' }
   },
   regolativo: {
-    A1: { fattoreLunghezza: 0.4, notaGrammaticale: "Usa frasi cortissime, anche solo con l'infinito (es. 'mescolare', 'aggiungere')." },
+    A1: {
+      fattoreLunghezza: 0.4,
+      notaGrammaticale: "Usa frasi cortissime con l'imperativo (mescola, aggiungi) o l'infinito (mescolare, aggiungere).",
+      struttura: [
+        { titolo: 'Cosa serve', descrizione: 'Una lista corta: 2-3 cose.' },
+        { titolo: 'I passaggi', descrizione: '2-3 passaggi brevi con l\'imperativo (es. "Metti...", "Aggiungi...").' },
+        { titolo: 'Consiglio', descrizione: 'Una frase finale: un consiglio.' }
+      ],
+      frasiUtili: [
+        { sezione: 'Per iniziare', frasi: ['Per fare..., hai bisogno di...', 'Segui questi passaggi:'] },
+        { sezione: 'Per i passaggi', frasi: ['Prima,...', 'Poi,...', 'Metti...', 'Taglia...', 'Mescola...'] },
+        { sezione: 'Per concludere', frasi: ['Il consiglio è di...', 'Attenzione a...'] }
+      ],
+      vocabolarioChiave: ['prima', 'poi', 'metti', 'taglia', 'mescola', 'attenzione'],
+      testoModello: `Per fare un panino, hai bisogno di pane, prosciutto e formaggio. Prima, taglia il pane. Poi, metti il prosciutto e il formaggio. Il consiglio è di non fare panini troppo grandi!`
+    },
     A2: {
       fattoreLunghezza: 0.6,
       notaGrammaticale: 'Usa l\'imperativo (mescola, aggiungi, aspetta) per i passaggi. Numera i passaggi.',
@@ -446,7 +506,22 @@ const ADATTAMENTO_PER_CATEGORIA: Record<string, Record<LivelloCefr, AdattamentoL
     C2: { fattoreLunghezza: 1.6, notaGrammaticale: 'Usa un linguaggio regolativo formale, preciso e senza ambiguità.' }
   },
   argomentativo: {
-    A1: { fattoreLunghezza: 0.25, notaGrammaticale: "Esprimi un'opinione semplicissima (mi piace / non mi piace) con \"perché\"." },
+    A1: {
+      fattoreLunghezza: 0.25,
+      notaGrammaticale: "Esprimi un'opinione semplicissima (mi piace / non mi piace) con \"perché\".",
+      struttura: [
+        { titolo: 'Cosa pensi', descrizione: 'Una frase: "Mi piace..." o "Non mi piace..." + l\'argomento.' },
+        { titolo: 'Perché', descrizione: 'Un motivo semplice con "perché".' },
+        { titolo: 'Conclusione', descrizione: 'Ripeti la tua opinione in un\'altra frase.' }
+      ],
+      frasiUtili: [
+        { sezione: 'Per iniziare', frasi: ['Mi piace...', 'Non mi piace...', 'Secondo me...'] },
+        { sezione: 'Per il motivo', frasi: ['Perché...', 'È...', 'Mi piace perché...'] },
+        { sezione: 'Per concludere', frasi: ['Per questo...', 'È vero!'] }
+      ],
+      vocabolarioChiave: ['mi piace', 'non mi piace', 'perché', 'secondo me', 'importante'],
+      testoModello: `Mi piace lo sport. Secondo me, è molto importante. È buono per la salute. Gioco sempre con gli amici e sono felice. Per questo, faccio sport ogni settimana.`
+    },
     A2: {
       fattoreLunghezza: 0.4,
       notaGrammaticale: 'Esprimi un\'opinione semplice con un motivo, usando "perché" o "secondo me".',
@@ -456,17 +531,17 @@ const ADATTAMENTO_PER_CATEGORIA: Record<string, Record<LivelloCefr, AdattamentoL
         { titolo: 'Conclusione', descrizione: 'Ripeti la tua opinione in modo diverso. Usa "in conclusione" o "per questo motivo".' }
       ],
       frasiUtili: [
-        { sezione: 'Per iniziare', frasi: ['Voglio parlare di...', 'Secondo me,...', 'Penso che... sia molto...', 'A mio parere,...'] },
+        { sezione: 'Per iniziare', frasi: ['Voglio parlare di...', 'Secondo me,...', '[Argomento] è molto...', 'A mio parere,...'] },
         { sezione: 'Per dare un motivo', frasi: ['Perché...', 'Per esempio,...', 'È importante perché...', 'Aiuta a...'] },
         { sezione: 'Per concludere', frasi: ['In conclusione,...', 'Per questo motivo, penso che...', 'Quindi,...'] }
       ],
       vocabolarioChiave: ['penso che', 'secondo me', 'perché', 'per esempio', 'importante', 'utile', 'in conclusione'],
-      testoModello: `Voglio parlare dei videogiochi. Secondo me, i videogiochi sono utili per i ragazzi. Prima di tutto, aiutano a pensare velocemente — in molti giochi devi risolvere problemi difficili. Poi, puoi giocare con gli amici e stare insieme, anche quando non puoi uscire di casa. Certo, non bisogna giocare troppo. In conclusione, penso che i videogiochi siano buoni se li usi con moderazione.`
+      testoModello: `Voglio parlare dei videogiochi. Secondo me, i videogiochi sono utili per i ragazzi. Prima di tutto, aiutano a pensare velocemente — in molti giochi devi risolvere problemi difficili. Poi, puoi giocare con gli amici e stare insieme, anche quando non puoi uscire di casa. Certo, non bisogna giocare troppo. In conclusione, secondo me i videogiochi sono buoni se li usi con moderazione.`
     },
     B1: {
       fattoreLunghezza: 1,
       notaGrammaticale: 'Presenta una tesi con almeno due argomenti a supporto.',
-      testoModello: `Negli ultimi anni, sempre più scuole usano sistemi di apprendimento online. Secondo me, questa è una scelta positiva, anche se presenta alcuni problemi.\n\nInnanzitutto, studiare online permette agli studenti di organizzare il proprio tempo in modo più flessibile. Uno studente può rivedere una lezione quante volte vuole, cosa impossibile in classe. Questo è particolarmente utile per chi ha difficoltà di apprendimento.\n\nInoltre, le piattaforme online offrono materiali molto vari: video, esercizi interattivi e quiz immediati che rendono lo studio più coinvolgente.\n\nCerto, ci sono anche aspetti negativi: alcuni studenti si concentrano meno a casa e mancano i rapporti sociali con i compagni.\n\nIn conclusione, credo che la scuola online sia uno strumento prezioso se usato insieme, e non al posto, dell'insegnamento tradizionale.`
+      testoModello: `Negli ultimi anni, sempre più scuole usano sistemi di apprendimento online. Secondo me, questa è una scelta positiva, anche se presenta alcuni problemi.\n\nInnanzitutto, studiare online permette agli studenti di organizzare il proprio tempo in modo più flessibile. Uno studente può rivedere una lezione quante volte vuole, cosa impossibile in classe. Questo è particolarmente utile per chi ha difficoltà di apprendimento.\n\nInoltre, le piattaforme online offrono materiali molto vari: video, esercizi interattivi e quiz immediati che rendono lo studio più coinvolgente.\n\nCerto, ci sono anche aspetti negativi: alcuni studenti si concentrano meno a casa e mancano i rapporti sociali con i compagni.\n\nIn conclusione, secondo me la scuola online è uno strumento prezioso se usata insieme, e non al posto, dell'insegnamento tradizionale.`
     },
     B2: {
       fattoreLunghezza: 1.3,
@@ -485,7 +560,7 @@ const ADATTAMENTO_PER_CATEGORIA: Record<string, Record<LivelloCefr, AdattamentoL
         { sezione: 'Per concludere', frasi: ['In definitiva,...', 'Per questi motivi, ritengo che...', 'La vera sfida è...', 'Sarebbe auspicabile che...'] }
       ],
       vocabolarioChiave: ['a mio avviso', 'è indubbio che', 'da un lato / dall\'altro', 'd\'altra parte', 'tuttavia', 'nonostante', 'in definitiva', 'sarebbe auspicabile'],
-      testoModello: `Negli ultimi anni, l'intelligenza artificiale ha trasformato profondamente il mondo del lavoro, sollevando un dibattito acceso sul suo impatto sull'occupazione. A mio avviso, i benefici superano i rischi, a patto che si investa nella formazione dei lavoratori.\n\nDa un lato, l'IA automatizza compiti ripetitivi e pericolosi, liberando i lavoratori per attività più creative. Nel settore manifatturiero, per esempio, i robot gestiscono linee di produzione con maggiore precisione e sicurezza rispetto all'uomo.\n\nD'altra parte, è indubbio che alcune categorie professionali siano a rischio di sostituzione. Contabili, addetti all'inserimento dati e operatori di call center potrebbero vedere ridursi la domanda del loro lavoro nei prossimi anni.\n\nTuttavia, ogni rivoluzione tecnologica ha storicamente creato nuovi lavori mentre ne eliminava altri. La vera sfida non è fermare l'IA, ma garantire che i lavoratori abbiano le competenze per adattarsi.\n\nIn definitiva, l'intelligenza artificiale rappresenta un'opportunità, non una minaccia, se gestita con politiche di riqualificazione adeguate.`
+      testoModello: `Negli ultimi anni, l'intelligenza artificiale ha trasformato profondamente il mondo del lavoro e ha sollevato un dibattito acceso sul suo impatto sull'occupazione. A mio avviso, i benefici superano i rischi, a patto che si investa nella formazione dei lavoratori.\n\nDa un lato, l'IA automatizza compiti ripetitivi e pericolosi e libera i lavoratori per attività più creative. Nel settore manifatturiero, per esempio, i robot gestiscono linee di produzione con maggiore precisione e sicurezza rispetto all'uomo.\n\nD'altra parte, è indubbio che alcune categorie professionali siano a rischio di sostituzione. Contabili, addetti all'inserimento dati e operatori di call center potrebbero vedere ridursi la domanda del loro lavoro nei prossimi anni.\n\nTuttavia, ogni rivoluzione tecnologica ha storicamente creato nuovi lavori mentre ne eliminava altri. La vera sfida non è fermare l'IA, ma garantire che i lavoratori abbiano le competenze per adattarsi.\n\nIn definitiva, l'intelligenza artificiale rappresenta un'opportunità, non una minaccia, se gestita con politiche di riqualificazione adeguate.`
     },
     C1: {
       fattoreLunghezza: 1.6,
@@ -515,7 +590,22 @@ const ADATTAMENTO_PER_CATEGORIA: Record<string, Record<LivelloCefr, AdattamentoL
 // hanno il proprio adattamento dedicato per slug.
 const ADATTAMENTO_PER_SLUG: Record<string, Record<LivelloCefr, AdattamentoLivello>> = {
   'lettera-informale': {
-    A1: { fattoreLunghezza: 0.3, notaGrammaticale: 'Usa frasi semplicissime al presente, con saluti di base.' },
+    A1: {
+      fattoreLunghezza: 0.3,
+      notaGrammaticale: 'Usa frasi semplicissime al presente, con saluti di base.',
+      struttura: [
+        { titolo: 'Saluto', descrizione: '"Ciao [nome]! Come stai?" — una riga.' },
+        { titolo: 'Cosa racconti', descrizione: '1-2 frasi semplici: cosa hai fatto o cosa vuoi dire.' },
+        { titolo: 'Saluto finale', descrizione: '"A presto! [nome]"' }
+      ],
+      frasiUtili: [
+        { sezione: 'Per iniziare', frasi: ['Ciao [nome]!', 'Come stai?'] },
+        { sezione: 'Per raccontare', frasi: ['Sto bene.', 'Ho un/a nuovo/a...', 'Vado a...'] },
+        { sezione: 'Per salutare', frasi: ['A presto!', 'Ciao!'] }
+      ],
+      vocabolarioChiave: ['ciao', 'come stai', 'bene', 'a presto', 'amico/a'],
+      testoModello: `Ciao Marco! Come stai? Io sto bene. Ho una nuova scuola, è molto bella. Ho tanti amici nuovi. E tu?\nA presto!\nAnna`
+    },
     A2: {
       fattoreLunghezza: 0.55,
       notaGrammaticale: 'Usa il passato prossimo per raccontare cosa è successo. Non dimenticare saluto iniziale e finale.',
@@ -527,7 +617,7 @@ const ADATTAMENTO_PER_SLUG: Record<string, Record<LivelloCefr, AdattamentoLivell
         { titolo: 'Saluto finale', descrizione: '"A presto! Un abbraccio, [nome]"' }
       ],
       frasiUtili: [
-        { sezione: 'Per iniziare', frasi: ['Ciao [nome]! Come stai?', 'Caro/a [nome], spero tu stia bene!', 'Ciao! Ti scrivo perché...'] },
+        { sezione: 'Per iniziare', frasi: ['Ciao [nome]! Come stai?', 'Caro/a [nome], spero tutto bene da te!', 'Ciao! Ti scrivo perché...'] },
         { sezione: 'Per raccontare', frasi: ['La settimana scorsa...', 'Sabato...', 'Ho fatto/visto/mangiato/incontrato...', 'È stato bellissimo!'] },
         { sezione: 'Per chiedere', frasi: ['E tu? Cosa hai fatto?', 'Sei mai stato/a a...?', 'Dimmi qualcosa di te!'] },
         { sezione: 'Per salutare', frasi: ['A presto!', 'Un abbraccio,', 'Ciao!', 'Scrivi presto!'] }
@@ -538,7 +628,7 @@ const ADATTAMENTO_PER_SLUG: Record<string, Record<LivelloCefr, AdattamentoLivell
     B1: {
       fattoreLunghezza: 1,
       notaGrammaticale: 'Usa un registro colloquiale, con passato prossimo e imperfetto. Saluti iniziali e finali tipici.',
-      testoModello: `Cara Sofia,\ncome stai? Spero tutto bene da te!\nTi scrivo perché la settimana scorsa mi è successa una cosa incredibile. Indovina un po'? Ho trovato il portafoglio che avevo perso tre mesi fa! L'ho trovato in un cassetto che non apro quasi mai, mentre cercavo qualcos'altro. Dentro c'erano ancora i soldi e le tessere.\nMi sono sentito così stupido — ma anche molto fortunato!\nDimmi, hai notizie di Luca? Non lo sento da un po'.\nUn abbraccio grande,\nDavide`
+      testoModello: `Cara Sofia,\ncome stai? Spero tutto bene da te!\nTi scrivo perché la settimana scorsa mi è successa una cosa incredibile. Indovina un po'? Ho trovato il portafoglio che ho perso tre mesi fa! L'ho trovato in un cassetto che non apro quasi mai, mentre cercavo qualcos'altro. Dentro c'erano ancora i soldi e le tessere.\nMi sono sentito così stupido — ma anche molto fortunato!\nDimmi, hai notizie di Luca? Non lo sento da un po'.\nUn abbraccio grande,\nDavide`
     },
     B2: {
       fattoreLunghezza: 1.3,
@@ -574,7 +664,22 @@ const ADATTAMENTO_PER_SLUG: Record<string, Record<LivelloCefr, AdattamentoLivell
     C2: { fattoreLunghezza: 1.8, notaGrammaticale: 'Usa un linguaggio colloquiale ricco, con espressioni idiomatiche.' }
   },
   'email-formale': {
-    A1: { fattoreLunghezza: 0.4, notaGrammaticale: 'Usa frasi semplicissime e formule fisse di saluto formale.' },
+    A1: {
+      fattoreLunghezza: 0.4,
+      notaGrammaticale: 'Usa frasi semplicissime e formule fisse di saluto formale. Per chiedere, usa "Voglio sapere..." invece del condizionale "vorrei" (non richiesto a questo livello).',
+      struttura: [
+        { titolo: 'Saluto formale', descrizione: '"Gentile [nome/ufficio]," — sempre con la virgola.' },
+        { titolo: 'La domanda', descrizione: '1-2 domande semplici e dirette.' },
+        { titolo: 'Chiusura', descrizione: '"Grazie. Distinti saluti, [nome]"' }
+      ],
+      frasiUtili: [
+        { sezione: 'Per iniziare', frasi: ['Gentile Direttore,', 'Mi chiamo...'] },
+        { sezione: 'Per chiedere', frasi: ['Voglio sapere...', 'Quando...?', 'Quanto costa...?'] },
+        { sezione: 'Per concludere', frasi: ['Grazie.', 'Distinti saluti,'] }
+      ],
+      vocabolarioChiave: ['gentile', 'voglio sapere', 'grazie', 'distinti saluti'],
+      testoModello: `Gentile Direttore,\nmi chiamo Luca Bianchi. Voglio sapere quando inizia il corso di italiano. Quanto costa?\nGrazie per la risposta.\nDistinti saluti,\nLuca Bianchi`
+    },
     A2: {
       fattoreLunghezza: 0.6,
       notaGrammaticale: 'Usa il presente e formule di cortesia semplici. Struttura: apertura, richiesta, chiusura.',
@@ -586,16 +691,16 @@ const ADATTAMENTO_PER_SLUG: Record<string, Record<LivelloCefr, AdattamentoLivell
       ],
       frasiUtili: [
         { sezione: 'Per iniziare', frasi: ['Gentile Direttore/Direttrice,', 'Gentile Signora/Signor [cognome],', 'A chi di competenza,'] },
-        { sezione: 'Per la richiesta', frasi: ['Mi chiamo... e sono interessato/a a...', 'Vorrei sapere:', 'Potete dirmi quando...?', 'Quanto costa...?'] },
+        { sezione: 'Per la richiesta', frasi: ['Mi chiamo... e sono interessato/a a...', 'Voglio sapere:', 'Potete dirmi quando...?', 'Quanto costa...?'] },
         { sezione: 'Per concludere', frasi: ['Ringrazio per la risposta.', 'Grazie.', 'Distinti saluti,', 'Cordiali saluti,'] }
       ],
-      vocabolarioChiave: ['gentile', 'distinti saluti', 'cordiali saluti', 'sono interessato/a', 'vorrei sapere', 'ringrazio'],
-      testoModello: `Gentile Direttore,\nmi chiamo Marco Rossi e sono uno studente universitario. Vi scrivo perché sono interessato al corso di italiano per stranieri.\nVorrei sapere alcune cose: quando inizia il corso? Quante ore dura ogni settimana? Quanto costa in totale? È possibile pagare in due rate?\nRingrazio per la risposta.\nDistinti saluti,\nMarco Rossi`
+      vocabolarioChiave: ['gentile', 'distinti saluti', 'cordiali saluti', 'sono interessato/a', 'voglio sapere', 'ringrazio'],
+      testoModello: `Gentile Direttore,\nmi chiamo Marco Rossi e sono uno studente universitario. Vi scrivo perché sono interessato al corso di italiano per stranieri.\nVoglio sapere alcune cose: quando inizia il corso? Quante ore dura ogni settimana? Quanto costa in totale? È possibile pagare in due rate?\nRingrazio per la risposta.\nDistinti saluti,\nMarco Rossi`
     },
     B1: {
       fattoreLunghezza: 1,
       notaGrammaticale: 'Usa un registro formale con il condizionale di cortesia (vorrei, potrebbe, sarei grato/a).',
-      testoModello: `Gentile Responsabile,\nmi chiamo Laura Ferrari e sono interessata al corso di cucina italiana per principianti annunciato sul vostro sito. Vorrei richiedere alcune informazioni.\nIn primo luogo, potrebbe indicarmi le date esatte di inizio e fine del corso? Vorrei sapere, inoltre, se sono richieste conoscenze culinarie precedenti o se il corso è aperto anche ai principianti assoluti.\nInfine, sarei grata se potesse fornirmi informazioni sui costi e sulle modalità di pagamento disponibili.\nResto in attesa di una sua gentile risposta.\nCordiali saluti,\nLaura Ferrari`
+      testoModello: `Gentile Responsabile,\nmi chiamo Laura Ferrari e sono interessata al corso di cucina italiana per principianti annunciato sul vostro sito. Vorrei richiedere alcune informazioni.\nIn primo luogo, potrebbe indicarmi le date esatte di inizio e fine del corso? Vorrei sapere, inoltre, se sono richieste conoscenze culinarie precedenti o se il corso è aperto anche ai principianti assoluti.\nInfine, vorrei sapere i costi e le modalità di pagamento disponibili.\nResto in attesa di una sua gentile risposta.\nCordiali saluti,\nLaura Ferrari`
     },
     B2: {
       fattoreLunghezza: 1.2,
@@ -642,9 +747,17 @@ export interface ConsegnaAdattata {
  * stessa complessità grammaticale a un A1 e a un C1.
  */
 export function getConsegnaAdattata(guida: Guida, livello: LivelloCefr): ConsegnaAdattata {
-  const mappa = guida.categoria
-    ? ADATTAMENTO_PER_CATEGORIA[guida.categoria]
-    : ADATTAMENTO_PER_SLUG[guida.slug]
+  // BUG corretto qui: 'email-formale' ha categoria: 'regolativo' (serve per
+  // mostrare il badge "Cos'è il testo regolativo?" nella UI — vedi
+  // app/student/write/page.tsx), quindi con "guida.categoria ? ... : ..."
+  // prendeva SEMPRE l'adattamento di categoria (quello di "Istruzioni e
+  // regole", es. la ricetta della pasta) e il suo ADATTAMENTO_PER_SLUG
+  // dedicato (testoModello, frasiUtili, ecc. specifici per un'email) non
+  // veniva mai raggiunto — esattamente quello che il commento sopra
+  // ADATTAMENTO_PER_SLUG descrive come comportamento atteso ma che il
+  // codice non implementava. Ora l'adattamento per slug ha sempre la
+  // precedenza quando esiste, indipendentemente dalla categoria.
+  const mappa = ADATTAMENTO_PER_SLUG[guida.slug] ?? (guida.categoria ? ADATTAMENTO_PER_CATEGORIA[guida.categoria] : undefined)
   const adattamento = mappa?.[livello]
 
   if (!adattamento) {

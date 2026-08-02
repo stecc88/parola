@@ -2,7 +2,7 @@
  * Client REST diretto all'API di Gemini. NON usare mai @google/generative-ai
  * né alcun SDK ufficiale — regola esplicita del progetto.
  *
- * Modello principale: gemini-2.5-flash
+ * Modello principale: gemini-2.5-flash-lite (vedi GEMINI_MODEL_PRIMARY)
  *   - Structured outputs nativi (responseSchema) → usati invece di
  *     parsare JSON "a mano" dal testo della risposta.
  *   - Thinking supportato → opzionale, attivato solo dove il costo di

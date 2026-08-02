@@ -114,7 +114,7 @@ export function Esercizio9() {
               [{l.numero}]{l.preposizione_suggerita ? ` (${l.preposizione_suggerita})` : ''}
             </span>
             <input
-              aria-label={`Risposta `}
+              aria-label={`Risposta ${l.numero}`}
               value={risposte[l.numero] ?? ''}
               onChange={(e) => setRisposte((p) => ({ ...p, [l.numero]: e.target.value }))}
               placeholder="..."

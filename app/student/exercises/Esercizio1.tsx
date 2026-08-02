@@ -79,8 +79,7 @@ export function Esercizio1() {
             <p className="mb-1 text-sm text-ink-primary">{i + 1}. {f.testo_con_buco}</p>
             <p className="mb-1 text-xs text-ink-tertiary">{f.contesto_grammaticale}</p>
             <input
-              aria-label={`Risposta <input
-              value={risposte[f.id]`}
+              aria-label={`Risposta ${i + 1}`}
               value={risposte[f.id] ?? ''}
               onChange={(e) => setRisposte((p) => ({ ...p, [f.id]: e.target.value }))}
               disabled={stato === 'valutando'}

@@ -121,8 +121,7 @@ export function Esercizio19() {
             <div className="flex items-start gap-2">
               <span className="mt-2 shrink-0 text-sm font-medium text-brand-600">{f.inizio_dato}</span>
               <input
-                aria-label={`Risposta <input
-                value={risposte[f.id]`}
+                aria-label={`Risposta ${i + 1}`}
                 value={risposte[f.id] ?? ''}
                 onChange={(e) => setRisposte((p) => ({ ...p, [f.id]: e.target.value }))}
                 placeholder="completa la frase..."

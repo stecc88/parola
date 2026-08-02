@@ -5,24 +5,21 @@ import { ParolaMascot } from '@/components/shared/ParolaMascot'
 import { createClient } from '@/lib/supabase/server'
 import { getMyPersonalizedExercises, markPersonalizedExercisesSeenByStudent } from './actions'
 import { hasActiveMembership } from '@/app/student/join-class/actions'
-
-const NAV_ITEMS = [
-  { href: '/student/progress', label: 'I miei progressi' },
-  { href: '/student/write', label: 'Scrittura libera' },
-  { href: '/student/exercises', label: 'Esercizi' },
-  { href: '/student/guides', label: 'Guide' },
-  { href: '/student/personalized', label: 'Per te' },
-  { href: '/account', label: 'Account' }
-]
+import { STUDENT_NAV_ITEMS } from '@/components/shared/studentNav'
 
 export default async function PersonalizedExercisesPage() {
-  const esercizi = await getMyPersonalizedExercises()
-  const haInsegnante = await hasActiveMembership()
   const supabase = createClient()
 
-  // Side-effect deliberato: visitare questa pagina marca come "viste" le
-  // notifiche in attesa — stesso pattern già usato per il docente.
-  await markPersonalizedExercisesSeenByStudent()
+  // Le tre chiamate sono indipendenti tra loro (nessuna usa il risultato
+  // delle altre): eseguirle in parallelo invece che in sequenza evita tre
+  // round-trip di rete consecutivi prima ancora di iniziare a renderizzare.
+  // Il side-effect "marca come viste" è lo stesso pattern già usato lato
+  // docente — qui viaggia semplicemente insieme alle altre due letture.
+  const [esercizi, haInsegnante] = await Promise.all([
+    getMyPersonalizedExercises(),
+    hasActiveMembership(),
+    markPersonalizedExercisesSeenByStudent()
+  ])
 
   const submissionIds = esercizi
     .map((e) => e.submission_id)
@@ -46,7 +43,7 @@ export default async function PersonalizedExercisesPage() {
 
   return (
     <>
-      <AppNav items={NAV_ITEMS} />
+      <AppNav items={STUDENT_NAV_ITEMS} />
       <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
         {/* Hero */}
         <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 via-brand-600 to-coral-600 p-6 text-white shadow-glow-brand">

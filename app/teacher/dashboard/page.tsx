@@ -2,7 +2,12 @@ import Link from 'next/link'
 import { AppNav } from '@/components/shared/AppNav'
 import { Card } from '@/components/ui/Card'
 import { requireApprovedTeacher } from '@/lib/teacher/guard'
-import { getStudentsOverview, getPendingPersonalizedCount } from '../classes/actions'
+import {
+  getStudentsOverview,
+  getPendingPersonalizedCount,
+  getUnseenDeliveries,
+  markDeliveryNotificationsSeen
+} from '../classes/actions'
 import { buildClassDashboard } from '@/lib/analytics/classDashboard'
 import {
   Users,
@@ -15,12 +20,7 @@ import {
   Target,
   FileClock
 } from 'lucide-react'
-
-const NAV_ITEMS = [
-  { href: '/teacher/dashboard', label: 'Dashboard' },
-  { href: '/teacher/classes', label: 'Le mie classi' },
-  { href: '/account', label: 'Account' }
-]
+import { TEACHER_NAV_ITEMS } from '@/components/shared/teacherNav'
 
 const CATEGORIA_LABEL: Record<string, string> = {
   grammatica: 'Grammatica',
@@ -37,9 +37,10 @@ function iniziali(nome: string, cognome: string) {
 export default async function TeacherDashboardPage() {
   await requireApprovedTeacher()
 
-  const [righe, pendingPersonalizzati] = await Promise.all([
+  const [righe, pendingPersonalizzati, notifiche] = await Promise.all([
     getStudentsOverview(),
-    getPendingPersonalizedCount()
+    getPendingPersonalizedCount(),
+    getUnseenDeliveries().finally(() => markDeliveryNotificationsSeen().catch(() => {}))
   ])
 
   const d = buildClassDashboard(righe)
@@ -49,7 +50,7 @@ export default async function TeacherDashboardPage() {
 
   return (
     <>
-      <AppNav items={NAV_ITEMS} />
+      <AppNav items={TEACHER_NAV_ITEMS} />
       <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
         <h1 className="mb-6 text-xl font-semibold text-ink-primary">Dashboard</h1>
 
@@ -97,6 +98,34 @@ export default async function TeacherDashboardPage() {
                   <strong>{pendingPersonalizzati}</strong> esercizi personalizzati generati,
                   ancora senza risposta dello studente.
                 </p>
+              </Card>
+            )}
+
+            {notifiche.length > 0 && (
+              <Card className="mb-6 border-warning-text/30 bg-warning-bg">
+                <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-warning-text">
+                  🔔 Nuove consegne ({notifiche.length})
+                </h2>
+                <div className="space-y-2">
+                  {notifiche.map((n) => (
+                    <Link key={n.id} href={`/teacher/students/${n.student_id}`}>
+                      <div className="flex items-center justify-between rounded-md bg-surface p-3 hover:bg-surface-tertiary">
+                        <div>
+                          <p className="text-sm font-medium text-ink-primary">
+                            {n.nome} {n.cognome}
+                          </p>
+                          <p className="text-xs text-ink-tertiary">{n.titolo}</p>
+                        </div>
+                        <span className="text-xs text-ink-tertiary">
+                          {new Date(n.created_at).toLocaleDateString('it-IT', {
+                            day: '2-digit',
+                            month: '2-digit'
+                          })}
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
               </Card>
             )}
 

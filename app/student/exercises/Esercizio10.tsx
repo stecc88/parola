@@ -127,7 +127,7 @@ export function Esercizio10() {
               <p className="mt-0.5 text-xs italic text-brand-500">({l.infinito})</p>
             </div>
             <input
-              aria-label={`Risposta `}
+              aria-label={`Risposta ${l.numero}`}
               value={risposte[l.numero] ?? ''}
               onChange={(e) => setRisposte((p) => ({ ...p, [l.numero]: e.target.value }))}
               placeholder={`coniuga "${l.infinito}"...`}

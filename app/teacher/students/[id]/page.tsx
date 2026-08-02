@@ -26,12 +26,7 @@ import { ExportReportButton } from './ExportReportButton'
 import { ExportCorrezioniButton } from './ExportCorrezioniButton'
 import { CopyButton } from '@/components/ui/CopyButton'
 import { PendingStudentActions } from '@/app/teacher/classes/PendingStudentActions'
-
-const NAV_ITEMS = [
-  { href: '/teacher/dashboard', label: 'Dashboard' },
-  { href: '/teacher/classes', label: 'Le mie classi' },
-  { href: '/account', label: 'Account' }
-]
+import { TEACHER_NAV_ITEMS } from '@/components/shared/teacherNav'
 
 const CATEGORIA_LABEL: Record<CategoriaErrore, string> = {
   grammatica: 'Grammatica',
@@ -135,7 +130,7 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
 
   return (
     <>
-      <AppNav items={NAV_ITEMS} />
+      <AppNav items={TEACHER_NAV_ITEMS} />
       <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
         <Link href="/teacher/classes" className="text-sm text-brand-400 underline">
           ← Tutte le classi

@@ -37,6 +37,19 @@ describe('getConsegnaAdattata', () => {
     }
   })
 
+  it('uses the slug-specific adaptation for email-formale, not its regolativo category fallback', () => {
+    // Regressione: email-formale ha categoria: 'regolativo' (serve solo per
+    // il badge "Cos'è il testo regolativo?" nella UI), ma prima
+    // getConsegnaAdattata guardava sempre la categoria per prima — quindi
+    // mostrava il testoModello di "Istruzioni e regole" (una ricetta di
+    // pasta) invece del proprio, dedicato in ADATTAMENTO_PER_SLUG.
+    const guida = getGuidaBySlug('email-formale')!
+    const b1 = getConsegnaAdattata(guida, 'B1')
+
+    expect(b1.testoModello).toContain('Gentile Responsabile')
+    expect(b1.testoModello).not.toContain('pasta al pomodoro')
+  })
+
   it('produces a valid adaptation for every guide at every CEFR level', () => {
     const livelli: Array<'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2'> = [
       'A1',

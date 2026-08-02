@@ -485,11 +485,15 @@ const STRUTTURE_B1 = `Strutture morfosintattiche del sillabo B1 ufficiale:
 - aggettivi e pronomi possessivi, dimostrativi, interrogativi
 - indefiniti: ogni, ciascuno, nessuno, qualche
 - preposizioni semplici e articolate (del, della, al, alla, dal, nel, ecc.)
+- avverbi qualificativi, di tempo, di quantità, di luogo più frequenti
 - verbi: indicativo presente, indicativo passato prossimo, indicativo imperfetto,
-  condizionale presente, imperativo, infinito presente
+  condizionale presente, imperativo, infinito presente, anche in forma riflessiva
+  (es. lavarsi, svegliarsi)
   (verbi regolari + dare, fare, stare, andare, potere, sapere, bere, dire, venire, modali)
+- frasi dichiarative, interrogative, esclamative, volitive con imperativo e condizionale
+- proposizioni coordinate copulative, avversative, dichiarative
 - proposizioni subordinate: oggettive implicite (di + inf.), temporali (quando, mentre),
-  causali (perché, dato che), relative esplicite (che, cui)
+  causali (perché, dato che), dichiarative, relative esplicite (che, cui)
 VIETATO nel sillabo B1: passato remoto, trapassato prossimo, futuro semplice/anteriore,
 congiuntivo (qualsiasi tempo), condizionale passato, gerundio, participio assoluto`
 
@@ -509,9 +513,17 @@ export const clozeTestoSchema = z.object({
 
 export type ClozeTestoB1 = z.infer<typeof clozeTestoSchema>
 
+// NOTA: questo esercizio è ancorato al sillabo B1 fisso (vedi STRUTTURE_B1)
+// indipendentemente dal livello impostato dallo studente — è così che è
+// classificato nella UI (scheda "B1"). Il parametro `livello` è accettato
+// per uniformità con generateEsercizioStrutturaN(livello) ma non determina
+// il contenuto: prima si iniettava anche descrizioneLivelloGenerazione(livello)
+// qui sotto, che per uno studente C1 chiedeva congiuntivo/gerundio nella
+// stessa prompt in cui STRUTTURE_B1 li vieta esplicitamente — rimosso.
 export async function generateEsercizioStruttura7(livello: string): Promise<ClozeTestoB1> {
-  const prompt = `Genera un esercizio di cloze su testo in italiano per uno
-studente di livello ${livello} che si prepara a superare standard
+  void livello
+  const prompt = `Genera un esercizio di cloze su testo in italiano di
+livello B1 per uno studente che si prepara a superare standard
 internazionali di lingua italiana.
 
 Formato esatto:
@@ -526,8 +538,6 @@ Formato esatto:
      e spiega perché le altre opzioni sono errate (campo spiegazione)
 
 ${STRUTTURE_B1}
-
-${descrizioneLivelloGenerazione(livello)}
 
 Il testo deve essere naturale e scorrevole anche con le lacune riempite
 correttamente. Non menzionare mai nomi di certificazioni specifiche.`
@@ -604,9 +614,11 @@ export const sceltaMorfosintSchema = z.object({
 
 export type SceltaMorfosint = z.infer<typeof sceltaMorfosintSchema>
 
+// NOTA: come Esercizio 7, ancorato al sillabo B1 fisso — vedi commento lì.
 export async function generateEsercizioStruttura8(livello: string): Promise<SceltaMorfosint> {
+  void livello
   const prompt = `Genera 10 domande a scelta multipla morfosintattiche in
-italiano per uno studente di livello ${livello} che si prepara a superare
+italiano di livello B1 per uno studente che si prepara a superare
 standard internazionali di lingua italiana.
 
 Formato esatto per ogni domanda:
@@ -623,7 +635,6 @@ Formato esatto per ogni domanda:
 ${STRUTTURE_B1}
 
 Copri strutture diverse nelle 10 domande: non ripetere mai la stessa struttura.
-${descrizioneLivelloGenerazione(livello)}
 
 Non menzionare mai nomi di certificazioni specifiche.`
 
@@ -687,9 +698,11 @@ export const clozePrepArticoliSchema = z.object({
 
 export type ClozePrepArticoli = z.infer<typeof clozePrepArticoliSchema>
 
+// NOTA: come Esercizio 7, ancorato al sillabo B1 fisso — vedi commento lì.
 export async function generateEsercizioStruttura9(livello: string): Promise<ClozePrepArticoli> {
+  void livello
   const prompt = `Genera un esercizio di cloze su articoli e preposizioni in
-italiano per uno studente di livello ${livello} B1 che si prepara a superare
+italiano di livello B1 per uno studente che si prepara a superare
 standard internazionali di lingua italiana.
 
 Formato (fedele alla Prova N.1 dell'esame B1):
@@ -766,9 +779,11 @@ export const clozeVerbiSchema = z.object({
 
 export type ClozeVerbi = z.infer<typeof clozeVerbiSchema>
 
+// NOTA: come Esercizio 7, ancorato al sillabo B1 fisso — vedi commento lì.
 export async function generateEsercizioStruttura10(livello: string): Promise<ClozeVerbi> {
-  const prompt = `Genera un esercizio di cloze sui verbi in italiano per uno
-studente di livello ${livello} B1 che si prepara a superare standard
+  void livello
+  const prompt = `Genera un esercizio di cloze sui verbi in italiano di
+livello B1 per uno studente che si prepara a superare standard
 internazionali di lingua italiana.
 
 Formato (fedele alla Prova N.2 dell'esame B1):
@@ -870,9 +885,11 @@ export const clozeTestoB2Schema = z.object({
 
 export type ClozeTestoB2 = z.infer<typeof clozeTestoB2Schema>
 
+// NOTA: come Esercizio 7, ancorato al sillabo B1 fisso — vedi commento lì.
 export async function generateEsercizioStruttura11(livello: string): Promise<ClozeTestoB2> {
+  void livello
   const prompt = `Genera un esercizio di cloze lessicale a scelta multipla
-in italiano per uno studente di livello ${livello} B1 che si prepara a
+in italiano di livello B1 per uno studente che si prepara a
 superare standard internazionali di lingua italiana.
 
 Formato (fedele alla Prova N.3 dell'esame B1):
@@ -935,14 +952,16 @@ Morfologia pronominale:
 - pronomi combinati (me lo, glielo, ce ne, ve lo...)
 - particelle pronominali ci e ne
 
-Morfologia verbale — TUTTI questi modi e tempi:
+Morfologia verbale — TUTTI questi modi e tempi, anche in forma riflessiva
+(es. lavarsi, svegliarsi):
 - indicativo presente, passato prossimo, imperfetto, passato remoto,
   trapassato prossimo, futuro semplice, futuro anteriore
 - condizionale presente e passato
 - congiuntivo presente e imperfetto
 - infinito presente e passato
 - imperativo
-- forma passiva (essere + participio passato)
+- forma passiva (essere + participio passato) — solo riconoscimento,
+  non è richiesto produrla attivamente a questo livello
 - verbi impersonali (bisogna, occorre, capita, sembra, pare, basta)
 
 Sintassi:
@@ -990,9 +1009,13 @@ const valutazioneClozePronomiSchema = z.object({
 
 export type ValutazioneClozePronomi = z.infer<typeof valutazioneClozePronomiSchema>
 
+// NOTA: come Esercizio 7 ma per il gruppo B2 — ancorato al sillabo B2
+// fisso (STRUTTURE_B2, prima definita ma mai iniettata in nessun prompt:
+// collegata qui e in Esercizio 13).
 export async function generateEsercizioStruttura12(livello: string): Promise<ClozePronomiB2> {
+  void livello
   const prompt = `Genera un esercizio di cloze su pronomi e aggettivi in
-italiano per uno studente di livello ${livello} B2 che si prepara a superare
+italiano di livello B2 per uno studente che si prepara a superare
 standard internazionali di lingua italiana.
 
 Formato (fedele alla Prova N.1 dell'esame B2):
@@ -1007,6 +1030,9 @@ Formato (fedele alla Prova N.1 dell'esame B2):
 
 Varia i tipi: almeno 4 pronomi atoni, 3 possessivi, 2 combinati,
 2 relativi, 1 indefinito.
+
+${STRUTTURE_B2}
+
 Non menzionare mai nomi di certificazioni specifiche.`
 
   const raw = await generateStructuredContent({
@@ -1057,9 +1083,11 @@ Il campo punteggio è il totale corretto (max ${lacune.length}).`
 // Stesso formato di E10 ma con TUTTI i tempi del sillabo B2.
 // ---------------------------------------------------------------------------
 
+// NOTA: come Esercizio 12, ancorato al sillabo B2 fisso — vedi commento lì.
 export async function generateEsercizioStruttura13(livello: string): Promise<ClozeVerbi> {
-  const prompt = `Genera un esercizio di cloze sui verbi in italiano per uno
-studente di livello ${livello} B2 che si prepara a superare standard
+  void livello
+  const prompt = `Genera un esercizio di cloze sui verbi in italiano di
+livello B2 per uno studente che si prepara a superare standard
 internazionali di lingua italiana.
 
 Formato (fedele alla Prova N.2 dell'esame B2):
@@ -1073,6 +1101,9 @@ Usa la varietà B2 — almeno:
 - 2 futuro (semplice o anteriore), 2 condizionale (presente o passato),
 - 2 imperfetto o trapassato, 2 presente indicativo.
 Includi verbi irregolari e passiva (essere + participio).
+
+${STRUTTURE_B2}
+
 Non menzionare mai nomi di certificazioni specifiche.`
 
   const raw = await generateStructuredContent({
@@ -1123,9 +1154,11 @@ Il campo punteggio è il totale corretto (max ${lacune.length}).`
 // Stesso schema di E11 ma con vocabolario e contenuti B2.
 // ---------------------------------------------------------------------------
 
+// NOTA: come Esercizio 12, ancorato al sillabo B2 fisso — vedi commento lì.
 export async function generateEsercizioStruttura14(livello: string): Promise<ClozeTestoB2> {
+  void livello
   const prompt = `Genera un esercizio di cloze lessicale a scelta multipla
-in italiano per uno studente di livello ${livello} B2 che si prepara a
+in italiano di livello B2 per uno studente che si prepara a
 superare standard internazionali di lingua italiana.
 
 Formato (fedele alla Prova N.3 dell'esame B2):
@@ -1182,9 +1215,13 @@ export const situazioniB2Schema = z.object({
 
 export type SituazioniB2 = z.infer<typeof situazioniB2Schema>
 
+// NOTA: come Esercizio 12, ancorato al livello B2 fisso — vedi commento lì
+// (qui non si inietta STRUTTURE_B2: l'esercizio testa il registro/contesto
+// pragmatico di un'espressione, non strutture morfosintattiche puntuali).
 export async function generateEsercizioStruttura15(livello: string): Promise<SituazioniB2> {
+  void livello
   const prompt = `Genera un esercizio "situazioni comunicative" in italiano
-per uno studente di livello ${livello} B2 che si prepara a superare
+di livello B2 per uno studente che si prepara a superare
 standard internazionali di lingua italiana.
 
 Formato (fedele alla Prova N.4 dell'esame B2):
@@ -1222,7 +1259,8 @@ const STRUTTURE_C1 = `Strutture del sillabo C1 (include tutto B2 più):
 Morfologia verbale avanzata:
 - congiuntivo passato (abbia fatto) e trapassato (avesse fatto)
 - gerundio presente (facendo) e passato (avendo fatto)
-- participio presente (seguente, corrente) e assoluto (arrivato il treno, partì)
+- participio presente (seguente, corrente), passato (fatto, arrivato) e
+  assoluto (arrivato il treno, partì)
 - forma passiva con venire + participio (viene letto) e andare + participio (va rispettato)
 - verbi pronominali (farcela, prendersela, cavarsela, andarsene)
 - verbi fraseologici (stare per, stare + gerundio, finire per, tornare a, continuare a)
@@ -1240,7 +1278,8 @@ Sintassi complessa:
 - esclusive (tranne che, a meno che non, eccetto che)
 - limitative (per quanto + congiuntivo, nei limiti in cui)
 - nominalizzazione (la crescita = il fatto che cresca)
-- discorso indiretto con consecutio temporum completa`
+- discorso diretto e indiretto (trasformazione tra i due, con consecutio
+  temporum completa)`
 
 // ---------------------------------------------------------------------------
 // TIPO 16 — Cloze verbi C1 ⭐ Prova N.2 C1
@@ -1248,9 +1287,11 @@ Sintassi complessa:
 // gerundio, congiuntivo passato/trapassato, participio, passiva avanzata.
 // ---------------------------------------------------------------------------
 
+// NOTA: come Esercizio 7 ma per il gruppo C1 — ancorato al sillabo C1 fisso.
 export async function generateEsercizioStruttura16(livello: string): Promise<ClozeVerbi> {
-  const prompt = `Genera un esercizio di cloze sui verbi in italiano per uno
-studente di livello ${livello} C1 che si prepara a superare standard
+  void livello
+  const prompt = `Genera un esercizio di cloze sui verbi in italiano di
+livello C1 per uno studente che si prepara a superare standard
 internazionali di lingua italiana.
 
 Formato (fedele alla Prova N.2 dell'esame C1):
@@ -1358,9 +1399,11 @@ const valutazioneClozeC1Schema = z.object({
 
 export type ValutazioneClozeC1 = z.infer<typeof valutazioneClozeC1Schema>
 
+// NOTA: come Esercizio 16, ancorato al sillabo C1 fisso — vedi commento lì.
 export async function generateEsercizioStruttura17(livello: string): Promise<ClozeTestoC1> {
+  void livello
   const prompt = `Genera un esercizio di completamento testuale in italiano
-per uno studente di livello ${livello} C1 che si prepara a superare standard
+di livello C1 per uno studente che si prepara a superare standard
 internazionali di lingua italiana.
 
 Formato (fedele alla Prova N.1 dell'esame C1):
@@ -1436,9 +1479,11 @@ Il campo punteggio è il totale corretto (max ${lacune.length}).`
 // Schema: riusa ClozeTestoB2 con prompt C1.
 // ---------------------------------------------------------------------------
 
+// NOTA: come Esercizio 16, ancorato al sillabo C1 fisso — vedi commento lì.
 export async function generateEsercizioStruttura18(livello: string): Promise<ClozeTestoB2> {
+  void livello
   const prompt = `Genera un esercizio di scelta multipla morfolessicale in
-italiano per uno studente di livello ${livello} C1 che si prepara a superare
+italiano di livello C1 per uno studente che si prepara a superare
 standard internazionali di lingua italiana.
 
 Formato (fedele alla Prova N.3 dell'esame C1):
@@ -1520,9 +1565,11 @@ const valutazioneTrasformazioneSchema = z.object({
 
 export type ValutazioneTrasformazione = z.infer<typeof valutazioneTrasformazioneSchema>
 
+// NOTA: come Esercizio 16, ancorato al sillabo C1 fisso — vedi commento lì.
 export async function generateEsercizioStruttura19(livello: string): Promise<TrasformazioneSintC1> {
+  void livello
   const prompt = `Genera un esercizio di trasformazione sintattica in italiano
-per uno studente di livello ${livello} C1 che si prepara a superare standard
+di livello C1 per uno studente che si prepara a superare standard
 internazionali di lingua italiana.
 
 Formato (fedele alla Prova N.4 dell'esame C1):

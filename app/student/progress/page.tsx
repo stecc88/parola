@@ -13,20 +13,13 @@ import {
 import { StudentSubmissionEntry } from './StudentSubmissionEntry'
 import { LivelloSelector } from '@/components/shared/LivelloSelector'
 import { z } from 'zod'
+import { STUDENT_NAV_ITEMS } from '@/components/shared/studentNav'
+import { getLivelloTarget } from '@/lib/student/livello'
 
 const valutazioneSchema = z.object({
   punteggio_complessivo: z.number().optional(),
   risultati: z.array(z.object({ corretto: z.boolean() })).optional()
 })
-
-const NAV_ITEMS = [
-  { href: '/student/progress', label: 'I miei progressi' },
-  { href: '/student/write', label: 'Scrittura libera' },
-  { href: '/student/exercises', label: 'Esercizi' },
-  { href: '/student/guides', label: 'Guide' },
-  { href: '/student/personalized', label: 'Per te' },
-  { href: '/account', label: 'Account' }
-]
 
 const TIPO_LABEL: Record<string, string> = {
   scrittura_libera: 'Scrittura libera',
@@ -78,37 +71,55 @@ export default async function ProgressPage() {
 
   const userId = userData.user?.id ?? ''
 
-  const [{ data: allSubmissions }, { data: profile }, { data: unseenAchievements }] = await Promise.all([
-    supabase
-      .from('submissions')
-      .select('id, tipo, created_at, consegna, valutazione_completed_at, valutazione_ia, testo_studente')
-      .eq('student_id', userId)
-      .order('created_at', { ascending: false }),
-    supabase.from('profiles').select('nome').eq('id', userId).single(),
-    supabase
-      .from('level_achievements')
-      .select('id, livello')
-      .eq('student_id', userId)
-      .eq('seen_by_student', false)
-  ])
+  // Query separata e leggera per le stats: coprono TUTTA la storia dello
+  // studente ma senza i campi di testo pesanti (testo_studente, consegna),
+  // che servono solo per le ultime 5 attività mostrate in UI. Con molte
+  // submission accumulate nel tempo, questo evita di trasferire dal DB
+  // testo che non verrà mai renderizzato.
+  const [{ data: statsSubmissions }, { data: recentSubmissions }, { data: profile }, { data: unseenAchievements }, livello] =
+    await Promise.all([
+      supabase
+        .from('submissions')
+        .select('id, tipo, created_at, valutazione_ia')
+        .eq('student_id', userId)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('submissions')
+        .select('id, tipo, created_at, consegna, valutazione_ia, testo_studente')
+        .eq('student_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(5),
+      supabase.from('profiles').select('nome').eq('id', userId).single(),
+      supabase
+        .from('level_achievements')
+        .select('id, livello')
+        .eq('student_id', userId)
+        .eq('seen_by_student', false),
+      getLivelloTarget()
+    ])
 
-  // Mark achievements as seen — best-effort, non-blocking
+  // Mark achievements as seen — best-effort, non-blocking: un fallo qui
+  // non deve mai impedire il caricamento della pagina dei progressi.
   if (unseenAchievements && unseenAchievements.length > 0) {
-    const admin = createAdminClient()
-    await admin
-      .from('level_achievements')
-      .update({ seen_by_student: true })
-      .in('id', unseenAchievements.map((a) => a.id))
+    try {
+      const admin = createAdminClient()
+      await admin
+        .from('level_achievements')
+        .update({ seen_by_student: true })
+        .in('id', unseenAchievements.map((a) => a.id))
+    } catch (err) {
+      console.error('Errore segnando i traguardi come visti:', err)
+    }
   }
 
   // Stats calcolate su TUTTE le submission per non perdere la storia
-  // pedagogica. La UI mostra solo le ultime 5.
-  const stats = computeStudentStats((allSubmissions as SubmissionRow[]) ?? [])
-  const submissions = (allSubmissions ?? []).slice(0, 5)
+  // pedagogica. La UI mostra solo le ultime 5 (query separata sopra).
+  const stats = computeStudentStats((statsSubmissions as SubmissionRow[]) ?? [])
+  const submissions = recentSubmissions ?? []
 
   return (
     <>
-      <AppNav items={NAV_ITEMS} />
+      <AppNav items={STUDENT_NAV_ITEMS} />
       <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
         {/* Hero */}
         <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 via-violet-600 to-coral-600 p-6 text-white shadow-glow-brand">
@@ -153,7 +164,7 @@ export default async function ProgressPage() {
               Scegli il livello che vuoi raggiungere. Il tuo insegnante lo vedrà nel tuo profilo.
             </p>
           </div>
-          <LivelloSelector />
+          <LivelloSelector livelloIniziale={livello} />
         </Card>
 
         {stats.totaleAttivita === 0 ? (

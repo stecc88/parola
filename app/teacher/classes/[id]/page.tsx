@@ -5,12 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { requireApprovedTeacher } from '@/lib/teacher/guard'
 import { MoveStudentSelect } from './MoveStudentSelect'
 import { ClassActions } from '../ClassActions'
-
-const NAV_ITEMS = [
-  { href: '/teacher/dashboard', label: 'Dashboard' },
-  { href: '/teacher/classes', label: 'Le mie classi' },
-  { href: '/account', label: 'Account' }
-]
+import { TEACHER_NAV_ITEMS } from '@/components/shared/teacherNav'
 
 export default async function ClassDetailPage({ params }: { params: { id: string } }) {
   await requireApprovedTeacher()
@@ -36,7 +31,7 @@ export default async function ClassDetailPage({ params }: { params: { id: string
   if (!classe) {
     return (
       <>
-        <AppNav items={NAV_ITEMS} />
+        <AppNav items={TEACHER_NAV_ITEMS} />
         <main className="p-6">
           <p className="text-sm text-danger-text">Classe non trovata.</p>
         </main>
@@ -46,7 +41,7 @@ export default async function ClassDetailPage({ params }: { params: { id: string
 
   return (
     <>
-      <AppNav items={NAV_ITEMS} />
+      <AppNav items={TEACHER_NAV_ITEMS} />
       <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
         <Link href="/teacher/classes" className="text-sm text-brand-400 underline">
           ← Tutte le classi
