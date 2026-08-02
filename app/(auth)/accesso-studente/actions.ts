@@ -1,9 +1,10 @@
 'use server'
 
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { checkPreAuthRateLimit } from '@/lib/student/rate-limit'
 import { generateAccessCode } from '@/lib/student/access-code'
-import { CORSI_VALIDI } from '@/lib/student/corso'
+import { CORSI_VALIDI, corsoLabel } from '@/lib/student/corso'
 
 const LIVELLI_VALIDI = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] as const
 type Livello = (typeof LIVELLI_VALIDI)[number]
@@ -39,6 +40,61 @@ export async function getSimplifiedRegistrationMode(): Promise<boolean> {
   } catch (err) {
     console.error('getSimplifiedRegistrationMode fallita:', err)
     return false
+  }
+}
+
+/**
+ * Nel registro semplificato la classe corrisponde 1:1 al corso scelto dallo
+ * studente: se il docente non ne ha ancora una con questo nome, viene
+ * creata al volo. Senza questo, ogni studente che si registra da solo
+ * finiva nel bucket "da assegnare" e il docente doveva creare la classe a
+ * mano e poi assegnarcelo — un passaggio manuale ripetuto per ogni singolo
+ * studente.
+ *
+ * Non c'è un vincolo unique su (teacher_id, nome) in classes: due
+ * registrazioni dello stesso corso arrivate nello stesso istante potrebbero
+ * in teoria creare due classi omonime. Scenario estremamente improbabile
+ * per registrazioni studente-per-studente, e comunque recuperabile a mano
+ * (rinominare o eliminare una delle due) senza perdita di dati — per questo
+ * si accetta il rischio invece di introdurre un vincolo DB che potrebbe
+ * fallire su installazioni esistenti con nomi classe già duplicati.
+ *
+ * Fallisce in modo silenzioso (torna null) se la classe non si riesce a
+ * trovare/creare: un problema qui non deve mai bloccare la registrazione,
+ * lo studente finisce semplicemente nel bucket "da assegnare" come prima.
+ */
+async function getOrCreateClassForCorso(
+  admin: SupabaseClient,
+  teacherId: string,
+  corso: string
+): Promise<string | null> {
+  const nome = corsoLabel(corso)
+
+  try {
+    const { data: esistente } = await admin
+      .from('classes')
+      .select('id')
+      .eq('teacher_id', teacherId)
+      .eq('nome', nome)
+      .maybeSingle()
+
+    if (esistente) return esistente.id
+
+    const { data: nuova, error } = await admin
+      .from('classes')
+      .insert({ teacher_id: teacherId, nome })
+      .select('id')
+      .single()
+
+    if (error || !nuova) {
+      console.error('Errore creando la classe automatica per il corso:', error)
+      return null
+    }
+
+    return nuova.id
+  } catch (err) {
+    console.error('Errore risolvendo la classe automatica per il corso:', err)
+    return null
   }
 }
 
@@ -98,6 +154,12 @@ export async function registerStudent(
     )
   }
 
+  // In modo semplificato, risolve/crea la classe corrispondente al corso
+  // scelto — vedi commento su getOrCreateClassForCorso. In modo classico
+  // resta null, come prima (il docente assegna la classe a mano).
+  const classId =
+    simplifiedMode && corso ? await getOrCreateClassForCorso(admin, teacher.id, corso) : null
+
   // Genera un codice univoco (retry al massimo 5 volte in caso di collisione)
   let accessCode = ''
   let userId = ''
@@ -154,11 +216,12 @@ export async function registerStudent(
     throw new Error('Errore configurando il profilo. Riprova.')
   }
 
-  // Associa lo studente all'insegnante
+  // Associa lo studente all'insegnante (e, in modo semplificato, già alla
+  // classe del suo corso — vedi getOrCreateClassForCorso).
   const { error: membershipError } = await admin.from('class_memberships').insert({
     student_id: userId,
     teacher_id: teacher.id,
-    class_id: null
+    class_id: classId
   })
 
   if (membershipError) {
