@@ -13,15 +13,7 @@ import { getGuidaBySlug, getConsegnaAdattata } from '@/lib/guides'
 import type { LivelloCefr } from '@/lib/supabase/database.types'
 import { ValutazioneCard } from '@/components/shared/ValutazioneCard'
 import { useWritingSignals } from '@/lib/hooks/useWritingSignals'
-
-const NAV_ITEMS = [
-  { href: '/student/progress', label: 'I miei progressi' },
-  { href: '/student/write', label: 'Scrittura libera' },
-  { href: '/student/exercises', label: 'Esercizi' },
-  { href: '/student/guides', label: 'Guide' },
-  { href: '/student/personalized', label: 'Per te' },
-  { href: '/account', label: 'Account' }
-]
+import { STUDENT_NAV_ITEMS } from '@/components/shared/studentNav'
 
 type Stato = 'idle' | 'salvando' | 'valutando' | 'pronto' | 'errore'
 
@@ -89,7 +81,7 @@ function WritePageInner() {
 
   return (
     <>
-      <AppNav items={NAV_ITEMS} />
+      <AppNav items={STUDENT_NAV_ITEMS} />
       <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
         <div className="mb-6 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">

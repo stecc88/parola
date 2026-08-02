@@ -315,23 +315,39 @@ export async function getUnseenLevelAchievements(): Promise<NotificaTraguardo[]>
   })
 }
 
-export async function markAllTeacherNotificationsSeen(): Promise<void> {
+/**
+ * Segna come visti i traguardi (level_achievements) — chiamata dalla
+ * pagina che li mostra effettivamente (/teacher/classes). Separata da
+ * markDeliveryNotificationsSeen perché le due notifiche vivono ora su
+ * pagine diverse: segnarle come viste insieme marcherebbe "vista" una
+ * notifica che il docente non ha ancora effettivamente guardato.
+ */
+export async function markAchievementNotificationsSeen(): Promise<void> {
   const teacherId = await requireApprovedTeacherActionUserId()
   const admin = createAdminClient()
 
-  await Promise.all([
-    admin
-      .from('level_achievements')
-      .update({ seen_by_teacher: true })
-      .eq('teacher_id', teacherId)
-      .eq('seen_by_teacher', false),
-    admin
-      .from('personalized_exercises')
-      .update({ seen_by_teacher: true })
-      .eq('teacher_id', teacherId)
-      .eq('seen_by_teacher', false)
-      .or('submission_id.not.is.null,completato_at.not.is.null')
-  ])
+  await admin
+    .from('level_achievements')
+    .update({ seen_by_teacher: true })
+    .eq('teacher_id', teacherId)
+    .eq('seen_by_teacher', false)
+}
+
+/**
+ * Segna come viste le nuove consegne (personalized_exercises) — chiamata
+ * dalla pagina che le mostra effettivamente (/teacher/dashboard). Vedi
+ * commento su markAchievementNotificationsSeen.
+ */
+export async function markDeliveryNotificationsSeen(): Promise<void> {
+  const teacherId = await requireApprovedTeacherActionUserId()
+  const admin = createAdminClient()
+
+  await admin
+    .from('personalized_exercises')
+    .update({ seen_by_teacher: true })
+    .eq('teacher_id', teacherId)
+    .eq('seen_by_teacher', false)
+    .or('submission_id.not.is.null,completato_at.not.is.null')
 }
 
 export interface NotificaConsegna {

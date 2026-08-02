@@ -5,15 +5,7 @@ import { ParolaMascot } from '@/components/shared/ParolaMascot'
 import { createClient } from '@/lib/supabase/server'
 import { getMyPersonalizedExercises, markPersonalizedExercisesSeenByStudent } from './actions'
 import { hasActiveMembership } from '@/app/student/join-class/actions'
-
-const NAV_ITEMS = [
-  { href: '/student/progress', label: 'I miei progressi' },
-  { href: '/student/write', label: 'Scrittura libera' },
-  { href: '/student/exercises', label: 'Esercizi' },
-  { href: '/student/guides', label: 'Guide' },
-  { href: '/student/personalized', label: 'Per te' },
-  { href: '/account', label: 'Account' }
-]
+import { STUDENT_NAV_ITEMS } from '@/components/shared/studentNav'
 
 export default async function PersonalizedExercisesPage() {
   const esercizi = await getMyPersonalizedExercises()
@@ -46,7 +38,7 @@ export default async function PersonalizedExercisesPage() {
 
   return (
     <>
-      <AppNav items={NAV_ITEMS} />
+      <AppNav items={STUDENT_NAV_ITEMS} />
       <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
         {/* Hero */}
         <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 via-brand-600 to-coral-600 p-6 text-white shadow-glow-brand">

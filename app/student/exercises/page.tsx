@@ -25,15 +25,7 @@ import { Esercizio17 } from './Esercizio17'
 import { Esercizio18 } from './Esercizio18'
 import { Esercizio19 } from './Esercizio19'
 import { ExerciseErrorBoundary } from '@/components/shared/ExerciseErrorBoundary'
-
-const NAV_ITEMS = [
-  { href: '/student/progress', label: 'I miei progressi' },
-  { href: '/student/write', label: 'Scrittura libera' },
-  { href: '/student/exercises', label: 'Esercizi' },
-  { href: '/student/guides', label: 'Guide' },
-  { href: '/student/personalized', label: 'Per te' },
-  { href: '/account', label: 'Account' }
-]
+import { STUDENT_NAV_ITEMS } from '@/components/shared/studentNav'
 
 type GruppoId = 'generale' | 'b1' | 'b2' | 'c1'
 
@@ -118,7 +110,7 @@ export default function ExercisesPage() {
 
   return (
     <>
-      <AppNav items={NAV_ITEMS} />
+      <AppNav items={STUDENT_NAV_ITEMS} />
       <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
 
         {/* Header */}

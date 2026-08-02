@@ -3,15 +3,7 @@ import { AppNav } from '@/components/shared/AppNav'
 import { Card } from '@/components/ui/Card'
 import { ParolaMascot } from '@/components/shared/ParolaMascot'
 import { GUIDES } from '@/lib/guides'
-
-const NAV_ITEMS = [
-  { href: '/student/progress', label: 'I miei progressi' },
-  { href: '/student/write', label: 'Scrittura libera' },
-  { href: '/student/exercises', label: 'Esercizi' },
-  { href: '/student/guides', label: 'Guide' },
-  { href: '/student/personalized', label: 'Per te' },
-  { href: '/account', label: 'Account' }
-]
+import { STUDENT_NAV_ITEMS } from '@/components/shared/studentNav'
 
 const CATEGORIA_LABEL: Record<string, string> = {
   descrittivo: 'Tipo descrittivo',
@@ -24,7 +16,7 @@ const CATEGORIA_LABEL: Record<string, string> = {
 export default function GuidesPage() {
   return (
     <>
-      <AppNav items={NAV_ITEMS} />
+      <AppNav items={STUDENT_NAV_ITEMS} />
       <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
         <div className="mb-6 flex items-center gap-3">
           <ParolaMascot mood="neutro" />

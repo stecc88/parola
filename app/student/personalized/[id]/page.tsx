@@ -3,15 +3,7 @@ import { AppNav } from '@/components/shared/AppNav'
 import { getPersonalizedExerciseById, getSubmissionValutazione } from '../actions'
 import { PersonalizedExerciseClient } from './PersonalizedExerciseClient'
 import type { ValutazioneEsaminatore } from '@/lib/gemini/schema'
-
-const NAV_ITEMS = [
-  { href: '/student/progress', label: 'I miei progressi' },
-  { href: '/student/write', label: 'Scrittura libera' },
-  { href: '/student/exercises', label: 'Esercizi' },
-  { href: '/student/guides', label: 'Guide' },
-  { href: '/student/personalized', label: 'Per te' },
-  { href: '/account', label: 'Account' }
-]
+import { STUDENT_NAV_ITEMS } from '@/components/shared/studentNav'
 
 export default async function PersonalizedExerciseDetailPage({
   params
@@ -33,7 +25,7 @@ export default async function PersonalizedExerciseDetailPage({
 
   return (
     <>
-      <AppNav items={NAV_ITEMS} />
+      <AppNav items={STUDENT_NAV_ITEMS} />
       <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
         <PersonalizedExerciseClient
           esercizio={esercizio}

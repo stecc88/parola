@@ -8,24 +8,14 @@ import { AccountForm } from './AccountForm'
 import { LivelloObiettivoForm } from './LivelloObiettivoForm'
 import { AccessCodeCard } from './AccessCodeCard'
 import { hasActiveMembership } from '@/app/student/join-class/actions'
+import { STUDENT_NAV_ITEMS } from '@/components/shared/studentNav'
+import { TEACHER_NAV_ITEMS } from '@/components/shared/teacherNav'
+import { ADMIN_NAV_ITEMS } from '@/components/shared/adminNav'
 
 const NAV_ITEMS_BY_ROLE: Record<string, { href: string; label: string }[]> = {
-  student: [
-    { href: '/student/write', label: 'Scrittura libera' },
-    { href: '/student/exercises', label: 'Esercizi' },
-    { href: '/student/guides', label: 'Guide' },
-    { href: '/student/personalized', label: 'Per te' },
-    { href: '/student/progress', label: 'I miei progressi' },
-    { href: '/account', label: 'Account' }
-  ],
-  teacher: [
-    { href: '/teacher/classes', label: 'Le mie classi' },
-    { href: '/account', label: 'Account' }
-  ],
-  admin: [
-    { href: '/admin/users', label: 'Utenti' },
-    { href: '/account', label: 'Account' }
-  ]
+  student: STUDENT_NAV_ITEMS,
+  teacher: TEACHER_NAV_ITEMS,
+  admin: ADMIN_NAV_ITEMS
 }
 
 export default async function AccountPage() {

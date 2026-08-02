@@ -13,20 +13,12 @@ import {
 import { StudentSubmissionEntry } from './StudentSubmissionEntry'
 import { LivelloSelector } from '@/components/shared/LivelloSelector'
 import { z } from 'zod'
+import { STUDENT_NAV_ITEMS } from '@/components/shared/studentNav'
 
 const valutazioneSchema = z.object({
   punteggio_complessivo: z.number().optional(),
   risultati: z.array(z.object({ corretto: z.boolean() })).optional()
 })
-
-const NAV_ITEMS = [
-  { href: '/student/progress', label: 'I miei progressi' },
-  { href: '/student/write', label: 'Scrittura libera' },
-  { href: '/student/exercises', label: 'Esercizi' },
-  { href: '/student/guides', label: 'Guide' },
-  { href: '/student/personalized', label: 'Per te' },
-  { href: '/account', label: 'Account' }
-]
 
 const TIPO_LABEL: Record<string, string> = {
   scrittura_libera: 'Scrittura libera',
@@ -92,13 +84,18 @@ export default async function ProgressPage() {
       .eq('seen_by_student', false)
   ])
 
-  // Mark achievements as seen — best-effort, non-blocking
+  // Mark achievements as seen — best-effort, non-blocking: un fallo qui
+  // non deve mai impedire il caricamento della pagina dei progressi.
   if (unseenAchievements && unseenAchievements.length > 0) {
-    const admin = createAdminClient()
-    await admin
-      .from('level_achievements')
-      .update({ seen_by_student: true })
-      .in('id', unseenAchievements.map((a) => a.id))
+    try {
+      const admin = createAdminClient()
+      await admin
+        .from('level_achievements')
+        .update({ seen_by_student: true })
+        .in('id', unseenAchievements.map((a) => a.id))
+    } catch (err) {
+      console.error('Errore segnando i traguardi come visti:', err)
+    }
   }
 
   // Stats calcolate su TUTTE le submission per non perdere la storia
@@ -108,7 +105,7 @@ export default async function ProgressPage() {
 
   return (
     <>
-      <AppNav items={NAV_ITEMS} />
+      <AppNav items={STUDENT_NAV_ITEMS} />
       <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
         {/* Hero */}
         <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-600 via-violet-600 to-coral-600 p-6 text-white shadow-glow-brand">

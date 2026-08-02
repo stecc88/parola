@@ -7,19 +7,21 @@ import { Bell } from 'lucide-react'
 import { getTeacherUnseenCount } from '@/app/teacher/classes/actions'
 
 /**
- * Campanella per il docente: aggrega consegne studenti non viste +
- * traguardi di livello non visti. Ritorna null se l'utente non è un
- * docente approvato, così può stare in AppNav senza condizioni esterne.
+ * Campanella per il docente: aggrega consegne studenti non viste (segnate
+ * come viste su /teacher/dashboard) + traguardi di livello non visti
+ * (segnati come visti su /teacher/classes) — due fonti indipendenti su
+ * due pagine diverse, quindi NON si può azzerare il conteggio in base al
+ * semplice pathname come fa NotificationBell (lì un'unica pagina segna
+ * tutto come letto). Si rifà sempre il fetch: il server ha già applicato
+ * l'eventuale "segna come visto" della pagina corrente durante il suo
+ * render, quindi al montaggio di questo componente il conteggio fresco è
+ * già corretto, senza bisogno di scorciatoie locali.
  */
 export function TeacherNotificationBell() {
   const [count, setCount] = useState<number | null>(null)
   const pathname = usePathname()
 
   useEffect(() => {
-    if (pathname === '/teacher/classes') {
-      setCount(0)
-      return
-    }
     getTeacherUnseenCount().then(setCount).catch(() => {})
   }, [pathname])
 
@@ -27,7 +29,7 @@ export function TeacherNotificationBell() {
 
   return (
     <Link
-      href="/teacher/classes"
+      href="/teacher/dashboard"
       className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-ink-secondary transition-colors hover:bg-surface-secondary hover:text-ink-primary"
       aria-label={count > 0 ? `${count} nuove notifiche` : 'Nessuna nuova notifica'}
     >
