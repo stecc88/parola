@@ -15,16 +15,31 @@ export interface RegisterStudentResult {
 /**
  * Booleano non sensibile: la pagina pubblica di registrazione lo usa per
  * decidere quali campi mostrare, quindi nessun controllo admin qui.
+ *
+ * Chiamata durante il render della pagina pubblica: un errore qui (env
+ * mancanti, tabella non ancora migrata, ecc.) non deve MAI far cadere
+ * l'intera pagina di registrazione con un 500 — si degrada al registro
+ * classico, che è il comportamento sicuro di default.
  */
 export async function getSimplifiedRegistrationMode(): Promise<boolean> {
-  const admin = createAdminClient()
-  const { data } = await admin
-    .from('app_settings')
-    .select('simplified_registration_enabled')
-    .eq('id', true)
-    .single()
+  try {
+    const admin = createAdminClient()
+    const { data, error } = await admin
+      .from('app_settings')
+      .select('simplified_registration_enabled')
+      .eq('id', true)
+      .single()
 
-  return data?.simplified_registration_enabled ?? false
+    if (error) {
+      console.error('getSimplifiedRegistrationMode fallita:', error.message)
+      return false
+    }
+
+    return data?.simplified_registration_enabled ?? false
+  } catch (err) {
+    console.error('getSimplifiedRegistrationMode fallita:', err)
+    return false
+  }
 }
 
 export async function registerStudent(
