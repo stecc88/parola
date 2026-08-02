@@ -11,6 +11,7 @@ import {
   getAllStudentsAdmin,
   getApprovedTeachers,
   deleteStudentCompletely,
+  deleteStudentsCompletely,
   type StudentAdminRow,
   type TeacherRow
 } from '../users/actions'
@@ -24,6 +25,8 @@ export default function AdminStudentsPage() {
   const [editTarget, setEditTarget] = useState<StudentAdminRow | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<StudentAdminRow | null>(null)
   const [creating, setCreating] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [bulkDeleting, setBulkDeleting] = useState(false)
 
   async function reload() {
     setLoading(true)
@@ -32,6 +35,8 @@ export default function AdminStudentsPage() {
       setStudents(s)
       setTeachers(t)
       setError(null)
+      // Toglie dalla selezione gli id che non esistono più (eliminati altrove).
+      setSelectedIds((prev) => new Set([...prev].filter((id) => s.some((st) => st.id === id))))
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Errore caricando gli studenti.')
     } finally {
@@ -42,6 +47,21 @@ export default function AdminStudentsPage() {
   useEffect(() => {
     reload()
   }, [])
+
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAll() {
+    setSelectedIds((prev) =>
+      prev.size === students.length ? new Set() : new Set(students.map((s) => s.id))
+    )
+  }
 
   return (
     <>
@@ -65,25 +85,50 @@ export default function AdminStudentsPage() {
             Nessuno studente registrato.
           </Card>
         ) : (
-          <div className="space-y-2">
-            {students.map((s) => (
-              <Card key={s.id} className="flex items-center justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-ink-primary">
-                    {s.nome} {s.cognome}
-                  </p>
-                  <p className="truncate text-xs text-ink-tertiary">
-                    Corso: {corsoLabel(s.corso)}
-                    {s.teacherNome ? ` · Insegnante: ${s.teacherNome} ${s.teacherCognome}` : ' · Indipendente'}
-                  </p>
-                </div>
-                <div className="flex shrink-0 gap-2">
-                  <Button variant="secondary" onClick={() => setEditTarget(s)}>Modifica</Button>
-                  <Button variant="danger" onClick={() => setDeleteTarget(s)}>Elimina</Button>
-                </div>
-              </Card>
-            ))}
-          </div>
+          <>
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <label className="flex items-center gap-2 text-sm text-ink-secondary">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.size > 0 && selectedIds.size === students.length}
+                  onChange={toggleSelectAll}
+                />
+                Seleziona tutti {selectedIds.size > 0 && `(${selectedIds.size}/${students.length})`}
+              </label>
+              {selectedIds.size > 0 && (
+                <Button variant="danger" onClick={() => setBulkDeleting(true)}>
+                  Elimina selezionati ({selectedIds.size})
+                </Button>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              {students.map((s) => (
+                <Card key={s.id} className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(s.id)}
+                    onChange={() => toggleSelect(s.id)}
+                    aria-label={`Seleziona ${s.nome} ${s.cognome}`}
+                    className="shrink-0"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium text-ink-primary">
+                      {s.nome} {s.cognome}
+                    </p>
+                    <p className="truncate text-xs text-ink-tertiary">
+                      Corso: {corsoLabel(s.corso)}
+                      {s.teacherNome ? ` · Insegnante: ${s.teacherNome} ${s.teacherCognome}` : ' · Indipendente'}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    <Button variant="secondary" onClick={() => setEditTarget(s)}>Modifica</Button>
+                    <Button variant="danger" onClick={() => setDeleteTarget(s)}>Elimina</Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </>
         )}
 
         {creating && (
@@ -116,6 +161,19 @@ export default function AdminStudentsPage() {
             onClose={() => setDeleteTarget(null)}
             onDeleted={() => {
               setDeleteTarget(null)
+              reload()
+            }}
+            onError={setError}
+          />
+        )}
+
+        {bulkDeleting && (
+          <BulkDeleteModal
+            students={students.filter((s) => selectedIds.has(s.id))}
+            onClose={() => setBulkDeleting(false)}
+            onDeleted={() => {
+              setBulkDeleting(false)
+              setSelectedIds(new Set())
               reload()
             }}
             onError={setError}
@@ -363,6 +421,78 @@ function DeleteStudentModal({
             onClick={handleDelete}
           >
             {pending ? 'Eliminando...' : 'Elimina definitivamente'}
+          </Button>
+        </div>
+      </Card>
+    </div>
+  )
+}
+
+function BulkDeleteModal({
+  students,
+  onClose,
+  onDeleted,
+  onError
+}: {
+  students: StudentAdminRow[]
+  onClose: () => void
+  onDeleted: () => void
+  onError: (msg: string) => void
+}) {
+  const [confirmText, setConfirmText] = useState('')
+  const [pending, startTransition] = useTransition()
+
+  function handleDelete() {
+    startTransition(async () => {
+      try {
+        const result = await deleteStudentsCompletely(
+          students.map((s) => s.id),
+          confirmText
+        )
+        if (result.failed.length > 0) {
+          onError(
+            `${result.deleted} studenti eliminati, ${result.failed.length} non eliminati (riprova a eliminarli singolarmente).`
+          )
+        }
+        onDeleted()
+      } catch (e) {
+        onError(e instanceof Error ? e.message : 'Errore eliminando gli studenti.')
+      }
+    })
+  }
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-black/40 p-6">
+      <Card className="w-full max-w-md bg-surface">
+        <h2 className="mb-2 text-lg font-semibold text-danger-text">
+          Elimina {students.length} studenti
+        </h2>
+        <p className="mb-3 text-sm text-ink-secondary">
+          Questa azione è definitiva ed elimina anche tutti i dati di ciascuno studente selezionato.
+        </p>
+        <div className="mb-3 max-h-40 space-y-1 overflow-y-auto rounded-md bg-surface-secondary p-2">
+          {students.map((s) => (
+            <p key={s.id} className="truncate text-xs text-ink-secondary">
+              {s.nome} {s.cognome}
+            </p>
+          ))}
+        </div>
+        <p className="mb-2 text-sm text-ink-secondary">
+          Digita <strong>ELIMINA</strong> per confermare.
+        </p>
+        <input
+          value={confirmText}
+          onChange={(e) => setConfirmText(e.target.value)}
+          className="mb-4 w-full rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-danger-text"
+        />
+        <div className="flex justify-end gap-2">
+          <Button variant="ghost" onClick={onClose} disabled={pending}>Annulla</Button>
+          <Button
+            variant="danger"
+            disabled={pending || confirmText.trim().toUpperCase() !== 'ELIMINA'}
+            onClick={handleDelete}
+          >
+            {pending ? 'Eliminando...' : `Elimina ${students.length} studenti`}
           </Button>
         </div>
       </Card>
