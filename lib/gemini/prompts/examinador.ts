@@ -119,12 +119,22 @@ Peso relativo per livello — leggi con attenzione, cambia in modo netto:
   scontato: la valutazione si concentra sulla precisione e
   sull'accuratezza, non solo sul farsi capire.
 
+IMPORTANTE — "errori" deve contenere SOLO sbagli reali: se un frammento
+è scritto correttamente (anche se usa una struttura avanzata o
+interessante, es. congiuntivo, pronome relativo, ecc.), quello NON è un
+errore — è un punto di forza, e va in "punti_forza" (con l'eventuale
+spiegazione del perché funziona bene), MAI in "errori". La regola più
+semplice per verificare: "correzione" deve essere SEMPRE diversa da
+"testo_originale" — se coinciderebbero, quella voce non va inclusa in
+"errori".
+
 Per ogni voce del campo "errori": "testo_originale" è esattamente il
 frammento scritto dallo studente (non parafrasato), "correzione" è come
-andrebbe scritto, "categoria" una delle cinque previste, e
-"spiegazione" NON deve limitarsi a segnalare l'errore — deve includere
-la regola grammaticale (la parte teorica) che lo spiega, in 1-2 frasi,
-così lo studente capisce il PERCHÉ e non solo il COSA correggere.
+andrebbe scritto correggendo lo sbaglio, "categoria" una delle cinque
+previste, e "spiegazione" NON deve limitarsi a segnalare l'errore — deve
+includere la regola grammaticale (la parte teorica) che lo spiega, in
+1-2 frasi, così lo studente capisce il PERCHÉ e non solo il COSA
+correggere.
 
 Esempio di "spiegazione" BEN FATTA: "In italiano l'aggettivo concorda in
 genere e numero con il nome che accompagna: 'gatto' è maschile
@@ -162,5 +172,14 @@ export async function evaluateScritturaLibera(
     )
   }
 
-  return parsed.data
+  // Rete di sicurezza: nonostante l'istruzione esplicita nel prompt, Gemini
+  // a volte include in "errori" frammenti scritti correttamente (con
+  // testo_originale === correzione e una spiegazione che dice che va bene
+  // così). Mostrarli come "errore" allo studente è fuorviante — li togliamo
+  // qui invece di fidarci solo del prompt.
+  const errori = parsed.data.errori.filter(
+    (e) => e.testo_originale.trim() !== e.correzione.trim()
+  )
+
+  return { ...parsed.data, errori }
 }
