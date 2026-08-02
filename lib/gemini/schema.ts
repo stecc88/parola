@@ -106,7 +106,18 @@ export function zodToGeminiSchema(schema: z.ZodTypeAny): Record<string, unknown>
   }
 
   if (schema instanceof z.ZodArray) {
-    return { type: 'array', items: zodToGeminiSchema(schema.element) }
+    const result: Record<string, unknown> = { type: 'array', items: zodToGeminiSchema(schema.element) }
+    // ZodArray non espone getter pubblici minLength/maxLength (a differenza
+    // di ZodString/ZodNumber sotto) nella versione di zod installata — vanno
+    // letti da _def. Senza questo, vincoli come .min(1).max(5) non
+    // arrivavano a Gemini: il modello poteva restituire array vuoti o più
+    // lunghi del previsto, che poi fallivano la validazione Zod finale in
+    // evaluateScritturaLibera con un errore generico (500/502) invece di
+    // essere prevenuti a monte vincolando lo schema inviato a Gemini.
+    const def = schema._def as { minLength?: { value: number } | null; maxLength?: { value: number } | null }
+    if (def.minLength) result.minItems = def.minLength.value
+    if (def.maxLength) result.maxItems = def.maxLength.value
+    return result
   }
 
   if (schema instanceof z.ZodEnum) {
@@ -122,11 +133,17 @@ export function zodToGeminiSchema(schema: z.ZodTypeAny): Record<string, unknown>
   }
 
   if (schema instanceof z.ZodString) {
-    return { type: 'string' }
+    const result: Record<string, unknown> = { type: 'string' }
+    if (schema.minLength !== null) result.minLength = schema.minLength
+    if (schema.maxLength !== null) result.maxLength = schema.maxLength
+    return result
   }
 
   if (schema instanceof z.ZodNumber) {
-    return { type: 'number' }
+    const result: Record<string, unknown> = { type: 'number' }
+    if (schema.minValue !== null) result.minimum = schema.minValue
+    if (schema.maxValue !== null) result.maximum = schema.maxValue
+    return result
   }
 
   if (schema instanceof z.ZodBoolean) {
