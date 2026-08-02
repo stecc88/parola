@@ -2,37 +2,69 @@
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { checkPreAuthRateLimit } from '@/lib/student/rate-limit'
+import { generateAccessCode } from '@/lib/student/access-code'
+import { CORSI_VALIDI } from '@/lib/student/corso'
 
 const LIVELLI_VALIDI = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] as const
 type Livello = (typeof LIVELLI_VALIDI)[number]
-
-function generateAccessCode(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
-  let code = ''
-  const array = new Uint8Array(8)
-  crypto.getRandomValues(array)
-  for (const byte of array) {
-    code += chars[byte % chars.length]
-  }
-  return code
-}
 
 export interface RegisterStudentResult {
   accessCode: string
 }
 
+/**
+ * Booleano non sensibile: la pagina pubblica di registrazione lo usa per
+ * decidere quali campi mostrare, quindi nessun controllo admin qui.
+ *
+ * Chiamata durante il render della pagina pubblica: un errore qui (env
+ * mancanti, tabella non ancora migrata, ecc.) non deve MAI far cadere
+ * l'intera pagina di registrazione con un 500 — si degrada al registro
+ * classico, che è il comportamento sicuro di default.
+ */
+export async function getSimplifiedRegistrationMode(): Promise<boolean> {
+  try {
+    const admin = createAdminClient()
+    const { data, error } = await admin
+      .from('app_settings')
+      .select('simplified_registration_enabled')
+      .eq('id', true)
+      .single()
+
+    if (error) {
+      console.error('getSimplifiedRegistrationMode fallita:', error.message)
+      return false
+    }
+
+    return data?.simplified_registration_enabled ?? false
+  } catch (err) {
+    console.error('getSimplifiedRegistrationMode fallita:', err)
+    return false
+  }
+}
+
 export async function registerStudent(
   nome: string,
   cognome: string,
-  livello: string,
+  livello: string | null,
+  corso: string | null,
   inviteCode: string
 ): Promise<RegisterStudentResult> {
   if (!nome.trim() || !cognome.trim()) {
     throw new Error('Nome e cognome sono obbligatori.')
   }
 
-  if (!LIVELLI_VALIDI.includes(livello as Livello)) {
-    throw new Error('Livello non valido.')
+  // Rilegge il flag lato server: non ci si può fidare di ciò che manda il
+  // client, altrimenti un client "vecchio" potrebbe aggirare l'approvazione.
+  const simplifiedMode = await getSimplifiedRegistrationMode()
+
+  if (simplifiedMode) {
+    if (!corso || !CORSI_VALIDI.includes(corso as (typeof CORSI_VALIDI)[number])) {
+      throw new Error('Corso non valido.')
+    }
+  } else {
+    if (!livello || !LIVELLI_VALIDI.includes(livello as Livello)) {
+      throw new Error('Livello non valido.')
+    }
   }
 
   const inviteCodeNorm = inviteCode.trim().toUpperCase()
@@ -110,8 +142,10 @@ export async function registerStudent(
       cognome: cognome.trim(),
       role: 'student',
       access_code: accessCode,
-      livello_target: livello,
-      student_status: 'pending'
+      livello_target: simplifiedMode ? null : livello,
+      corso: simplifiedMode ? corso : null,
+      student_status: simplifiedMode ? 'approved' : 'pending',
+      approved_at: simplifiedMode ? new Date().toISOString() : null
     })
 
   if (profileError) {

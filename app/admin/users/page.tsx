@@ -2,8 +2,14 @@
 
 import { useEffect, useState, useTransition } from 'react'
 import { AppNav } from '@/components/shared/AppNav'
+import { ADMIN_NAV_ITEMS } from '@/components/shared/adminNav'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
+import { corsoLabel } from '@/lib/student/corso'
+import {
+  getRegistrationSettings,
+  setSimplifiedRegistrationMode
+} from '../settings/actions'
 import {
   getTeachers,
   approveTeacher,
@@ -30,11 +36,6 @@ import {
   type StudentAdminRow,
   type NameChangeRequestRow
 } from './actions'
-
-const NAV_ITEMS = [
-  { href: '/admin/users', label: 'Gestione utenti' },
-  { href: '/account', label: 'Account' }
-]
 
 const STATUS_LABEL: Record<TeacherRow['teacher_status'], string> = {
   pending: 'In attesa',
@@ -130,9 +131,13 @@ export default function AdminUsersPage() {
 
   return (
     <>
-      <AppNav items={NAV_ITEMS} />
+      <AppNav items={ADMIN_NAV_ITEMS} />
       <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
         <h1 className="mb-2 text-xl font-semibold text-ink-primary">Gestione utenti</h1>
+
+        <Card className="mb-6">
+          <SimplifiedModeToggle onError={setError} />
+        </Card>
         {!loading && teachers.length > 0 && (
           <p className="mb-6 text-sm text-ink-tertiary">
             {teachers.length} insegnanti totali · {approvati} approvati
@@ -249,6 +254,9 @@ export default function AdminUsersPage() {
                       {s.nome} {s.cognome}
                     </p>
                     <p className="truncate text-xs text-ink-tertiary">{s.email}</p>
+                    {s.corso && (
+                      <p className="truncate text-xs text-ink-tertiary">Corso: {corsoLabel(s.corso)}</p>
+                    )}
                     <p
                       className={`truncate text-xs ${
                         s.teacherNome ? 'text-ink-tertiary' : 'font-medium text-warning-text'
@@ -699,6 +707,56 @@ function ManageStudentModal({
 function formatDate(iso: string | null): string {
   if (!iso) return '—'
   return new Date(iso).toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
+function SimplifiedModeToggle({ onError }: { onError: (msg: string) => void }) {
+  const [enabled, setEnabled] = useState<boolean | null>(null)
+  const [pending, startTransition] = useTransition()
+
+  useEffect(() => {
+    getRegistrationSettings()
+      .then((s) => setEnabled(s.simplifiedRegistrationEnabled))
+      .catch((e) => onError(e instanceof Error ? e.message : 'Errore caricando le impostazioni.'))
+  }, [])
+
+  function handleToggle() {
+    if (enabled === null) return
+    const next = !enabled
+    startTransition(async () => {
+      try {
+        await setSimplifiedRegistrationMode(next)
+        setEnabled(next)
+      } catch (e) {
+        onError(e instanceof Error ? e.message : 'Errore aggiornando la modalità.')
+      }
+    })
+  }
+
+  return (
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h2 className="text-sm font-semibold text-ink-primary">Modalità di registrazione semplificata</h2>
+        <p className="text-xs text-ink-tertiary">
+          {enabled === null
+            ? 'Caricamento...'
+            : enabled
+              ? 'Attiva: il registro studenti mostra solo Nome, Cognome, Corso e Codice insegnante, con accesso immediato.'
+              : 'Disattiva: il registro classico è in uso (Nome, Cognome, Livello, Codice insegnante, con approvazione).'}
+        </p>
+      </div>
+      <Button
+        variant={enabled ? 'danger' : 'secondary'}
+        disabled={enabled === null || pending}
+        onClick={handleToggle}
+      >
+        {pending
+          ? '...'
+          : enabled
+            ? 'Disattiva modalità semplificata'
+            : 'Attiva modalità semplificata'}
+      </Button>
+    </div>
+  )
 }
 
 function SubscriptionEditor({

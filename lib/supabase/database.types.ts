@@ -23,7 +23,13 @@ export interface Profile {
   teacher_status: TeacherStatus | null
   livello_target: LivelloCefr | null
   invite_code: string | null
+  corso: string | null
   created_at: string
+  updated_at: string
+}
+
+export interface AppSettings {
+  simplified_registration_enabled: boolean
   updated_at: string
 }
 
