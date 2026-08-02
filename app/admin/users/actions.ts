@@ -525,4 +525,76 @@ export async function deleteStudentCompletely(
   if (deleteUserError) throw new Error('Errore eliminando l\'account.')
 
   revalidatePath('/admin/users')
+  revalidatePath('/admin/students')
+}
+
+export interface DeleteStudentsResult {
+  deleted: number
+  failed: { id: string; error: string }[]
+}
+
+/**
+ * Elimina più studenti in un colpo solo — stessa logica di
+ * deleteStudentCompletely, ma senza richiedere che l'admin digiti ogni nome
+ * singolarmente (impraticabile con una selezione multipla). Al posto del
+ * nome esatto, la conferma è la parola fissa "ELIMINA": il client mostra
+ * comunque l'elenco dei nomi selezionati prima di abilitare il pulsante.
+ *
+ * I dati applicativi (esercizi, submissions, iscrizioni) vengono eliminati
+ * in batch con IN(...). L'API Admin di Supabase non ha un delete-many per
+ * gli utenti Auth, quindi quello resta uno per uno: se uno specifico
+ * fallisce, i suoi dati applicativi sono comunque già stati rimossi (non
+ * resta un'inconsistenza), solo un account Auth orfano senza dati collegati
+ * — riprovare la cancellazione di quello studente risolve.
+ */
+export async function deleteStudentsCompletely(
+  studentIds: string[],
+  confirmPhrase: string
+): Promise<DeleteStudentsResult> {
+  await requireAdminUserId()
+
+  if (confirmPhrase.trim().toUpperCase() !== 'ELIMINA') {
+    throw new Error('Conferma non valida. Eliminazione annullata.')
+  }
+
+  if (studentIds.length === 0) {
+    throw new Error('Nessuno studente selezionato.')
+  }
+
+  const admin = createAdminClient()
+
+  const { error: exercisesError } = await admin
+    .from('personalized_exercises')
+    .delete()
+    .in('student_id', studentIds)
+  if (exercisesError) throw new Error('Errore eliminando gli esercizi personalizzati.')
+
+  const { error: submissionsError } = await admin
+    .from('submissions')
+    .delete()
+    .in('student_id', studentIds)
+  if (submissionsError) throw new Error('Errore eliminando le submissions.')
+
+  const { error: membershipsError } = await admin
+    .from('class_memberships')
+    .delete()
+    .in('student_id', studentIds)
+  if (membershipsError) throw new Error('Errore eliminando le iscrizioni.')
+
+  const failed: { id: string; error: string }[] = []
+  let deleted = 0
+
+  for (const id of studentIds) {
+    const { error } = await admin.auth.admin.deleteUser(id)
+    if (error) {
+      failed.push({ id, error: error.message })
+    } else {
+      deleted++
+    }
+  }
+
+  revalidatePath('/admin/users')
+  revalidatePath('/admin/students')
+
+  return { deleted, failed }
 }
