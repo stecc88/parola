@@ -1,8 +1,6 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
-import { AppNav } from '@/components/shared/AppNav'
-import { ADMIN_NAV_ITEMS } from '@/components/shared/adminNav'
 import { Card } from '@/components/ui/Card'
 import { SimplifiedModeToggle } from './SimplifiedModeToggle'
 import { NameChangeRequestsCard } from './NameChangeRequestsCard'
@@ -87,10 +85,8 @@ export default function AdminUsersPage() {
   const pendingStudents = students.filter((s) => s.student_status === 'pending')
 
   return (
-    <>
-      <AppNav items={ADMIN_NAV_ITEMS} />
-      <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
-        <h1 className="mb-2 text-xl font-semibold text-ink-primary">Gestione utenti</h1>
+    <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
+      <h1 className="mb-2 text-xl font-semibold text-ink-primary">Gestione utenti</h1>
 
         <Card className="mb-6">
           <SimplifiedModeToggle onError={setError} />
@@ -157,19 +153,18 @@ export default function AdminUsersPage() {
           />
         )}
 
-        {manageTarget && (
-          <ManageStudentModal
-            student={manageTarget}
-            approvedTeachers={approvedTeachers}
-            onClose={() => setManageTarget(null)}
-            onChanged={() => {
-              setManageTarget(null)
-              reload()
-            }}
-            onError={(msg) => setError(msg)}
-          />
-        )}
-      </main>
-    </>
+      {manageTarget && (
+        <ManageStudentModal
+          student={manageTarget}
+          approvedTeachers={approvedTeachers}
+          onClose={() => setManageTarget(null)}
+          onChanged={() => {
+            setManageTarget(null)
+            reload()
+          }}
+          onError={(msg) => setError(msg)}
+        />
+      )}
+    </main>
   )
 }

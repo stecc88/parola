@@ -1,11 +1,9 @@
 import Link from 'next/link'
-import { AppNav } from '@/components/shared/AppNav'
 import { Card } from '@/components/ui/Card'
 import { ParolaMascot } from '@/components/shared/ParolaMascot'
 import { createClient } from '@/lib/supabase/server'
 import { getMyPersonalizedExercises, markPersonalizedExercisesSeenByStudent } from './actions'
 import { hasActiveMembership } from '@/app/student/join-class/actions'
-import { STUDENT_NAV_ITEMS } from '@/components/shared/studentNav'
 
 export default async function PersonalizedExercisesPage() {
   const supabase = createClient()
@@ -42,10 +40,8 @@ export default async function PersonalizedExercisesPage() {
   }
 
   return (
-    <>
-      <AppNav items={STUDENT_NAV_ITEMS} />
-      <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
-        {/* Hero */}
+    <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
+      {/* Hero */}
         <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 via-brand-600 to-coral-600 p-6 text-white shadow-glow-brand">
           <div aria-hidden className="pointer-events-none absolute -right-8 -top-8 h-48 w-48 rounded-full bg-white/10 blur-3xl" />
           <div aria-hidden className="pointer-events-none absolute -left-6 bottom-0 h-32 w-32 rounded-full bg-sunshine-400/20 blur-2xl" />
@@ -166,10 +162,9 @@ export default async function PersonalizedExercisesPage() {
                   </Card>
                 </Link>
               )
-            })}
-          </div>
-        )}
-      </main>
-    </>
+          })}
+        </div>
+      )}
+    </main>
   )
 }

@@ -2,7 +2,6 @@
 
 import { Suspense, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { AppNav } from '@/components/shared/AppNav'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { ParolaMascot } from '@/components/shared/ParolaMascot'
@@ -13,7 +12,6 @@ import { getGuidaBySlug, getConsegnaAdattata } from '@/lib/guides'
 import type { LivelloCefr } from '@/lib/supabase/database.types'
 import { ValutazioneCard } from '@/components/shared/ValutazioneCard'
 import { useWritingSignals } from '@/lib/hooks/useWritingSignals'
-import { STUDENT_NAV_ITEMS } from '@/components/shared/studentNav'
 
 type Stato = 'idle' | 'salvando' | 'valutando' | 'pronto' | 'errore'
 
@@ -80,13 +78,11 @@ function WritePageInner({ livelloIniziale }: { livelloIniziale: LivelloCefr }) {
   }
 
   return (
-    <>
-      <AppNav items={STUDENT_NAV_ITEMS} />
-      <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
-        <div className="mb-6 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <ParolaMascot mood="incoraggiante" />
-            <div>
+    <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <ParolaMascot mood="incoraggiante" />
+          <div>
               <h1 className="text-xl font-semibold text-ink-primary">
                 {guida ? guida.titolo : 'Scrittura libera'}
               </h1>
@@ -253,15 +249,14 @@ function WritePageInner({ livelloIniziale }: { livelloIniziale: LivelloCefr }) {
           </div>
         </Card>
 
-        {valutazione && submissionId && (
-          <ValutazioneCard
-            valutazione={valutazione}
-            submissionId={submissionId}
-            testo={testoValutato}
-          />
-        )}
-      </main>
-    </>
+      {valutazione && submissionId && (
+        <ValutazioneCard
+          valutazione={valutazione}
+          submissionId={submissionId}
+          testo={testoValutato}
+        />
+      )}
+    </main>
   )
 }
 

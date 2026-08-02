@@ -1,5 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { AppNav } from '@/components/shared/AppNav'
+import { ADMIN_NAV_ITEMS } from '@/components/shared/adminNav'
 
 /**
  * Guard server-side per tutto ciò che sta sotto /admin/*. Prima di questo,
@@ -10,6 +12,11 @@ import { createClient } from '@/lib/supabase/server'
  *
  * Questo layout gira per primo, sul server, per qualsiasi route sotto
  * /admin: se non è admin, fa il redirect prima che venga montato qualcosa.
+ *
+ * Ospita anche <AppNav>: prima ogni pagina admin montava la propria,
+ * quindi passare da una voce di menu all'altra smontava e rimontava tutta
+ * la nav (comprese le campanelle di notifica). Qui resta montata tra le
+ * pagine sotto /admin.
  */
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
@@ -29,5 +36,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/')
   }
 
-  return <>{children}</>
+  return (
+    <>
+      <AppNav items={ADMIN_NAV_ITEMS} />
+      {children}
+    </>
+  )
 }

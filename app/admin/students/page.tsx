@@ -1,8 +1,6 @@
 'use client'
 
 import { useEffect, useState, useTransition } from 'react'
-import { AppNav } from '@/components/shared/AppNav'
-import { ADMIN_NAV_ITEMS } from '@/components/shared/adminNav'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { CopyButton } from '@/components/ui/CopyButton'
@@ -64,11 +62,9 @@ export default function AdminStudentsPage() {
   }
 
   return (
-    <>
-      <AppNav items={ADMIN_NAV_ITEMS} />
-      <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
-        <div className="mb-6 flex items-center justify-between gap-3">
-          <h1 className="text-xl font-semibold text-ink-primary">Gestione Studenti</h1>
+    <main id="main-content" className="mx-auto max-w-3xl p-6 animate-fade-in">
+      <div className="mb-6 flex items-center justify-between gap-3">
+        <h1 className="text-xl font-semibold text-ink-primary">Gestione Studenti</h1>
           <Button onClick={() => setCreating(true)}>Crea nuovo studente</Button>
         </div>
 
@@ -167,20 +163,19 @@ export default function AdminStudentsPage() {
           />
         )}
 
-        {bulkDeleting && (
-          <BulkDeleteModal
-            students={students.filter((s) => selectedIds.has(s.id))}
-            onClose={() => setBulkDeleting(false)}
-            onDeleted={() => {
-              setBulkDeleting(false)
-              setSelectedIds(new Set())
-              reload()
-            }}
-            onError={setError}
-          />
-        )}
-      </main>
-    </>
+      {bulkDeleting && (
+        <BulkDeleteModal
+          students={students.filter((s) => selectedIds.has(s.id))}
+          onClose={() => setBulkDeleting(false)}
+          onDeleted={() => {
+            setBulkDeleting(false)
+            setSelectedIds(new Set())
+            reload()
+          }}
+          onError={setError}
+        />
+      )}
+    </main>
   )
 }
 
