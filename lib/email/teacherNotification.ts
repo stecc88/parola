@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { sendEmail } from './send'
+import { sendEmail, escapeHtml } from './send'
 
 /**
  * Notifica il docente via email quando uno studente consegna un esercizio
@@ -44,8 +44,8 @@ export async function notifyTeacherOfDelivery({
       subject: `${nomeStudente} ha consegnato un esercizio su Parola`,
       html: `
         <p>Ciao,</p>
-        <p><strong>${nomeStudente}</strong> ha appena consegnato la risposta a
-        "<strong>${titoloEsercizio}</strong>".</p>
+        <p><strong>${escapeHtml(nomeStudente)}</strong> ha appena consegnato la risposta a
+        "<strong>${escapeHtml(titoloEsercizio)}</strong>".</p>
         ${siteUrl ? `<p><a href="${siteUrl}/teacher/students/${studentId}">Vai alla pagina dello studente</a></p>` : ''}
         <p style="color:#8A7C6D;font-size:12px;margin-top:24px;">
           Questa è una notifica automatica di Parola. Puoi vedere tutte le consegne in attesa
