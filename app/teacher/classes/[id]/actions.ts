@@ -26,7 +26,7 @@ export async function moveStudentToClass(membershipId: string, targetClassId: st
 
   const { data: membership } = await supabase
     .from('class_memberships')
-    .select('student_id')
+    .select('student_id, class_id')
     .eq('id', membershipId)
     .single()
 
@@ -44,5 +44,14 @@ export async function moveStudentToClass(membershipId: string, targetClassId: st
   })
 
   if (insertError) throw new Error('Errore spostando lo studente.')
+
+  // MoveStudentSelect viene usato solo nella pagina di dettaglio classe:
+  // senza revalidare anche quella (non solo la lista), lo studente
+  // spostato restava visibile nell'elenco della classe di origine finché
+  // non si ricaricava manualmente la pagina.
   revalidatePath('/teacher/classes')
+  if (membership.class_id) {
+    revalidatePath(`/teacher/classes/${membership.class_id}`)
+  }
+  revalidatePath(`/teacher/classes/${targetClassId}`)
 }

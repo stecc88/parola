@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useWritingSignals } from '@/lib/hooks/useWritingSignals'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -337,18 +338,18 @@ function ChiusoEsercizio({ esercizio }: { esercizio: PersonalizedExerciseDetail 
           </div>
 
           <div className="mt-3 flex flex-wrap gap-2">
-            <a
+            <Link
               href="/student/progress"
               className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-all hover:brightness-110"
             >
               Vedi i miei progressi
-            </a>
-            <a
+            </Link>
+            <Link
               href="/student/personalized"
               className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-surface px-4 py-2 text-sm font-semibold text-ink-secondary transition-all hover:bg-surface-secondary"
             >
               Altri esercizi
-            </a>
+            </Link>
           </div>
         </Card>
       )}

@@ -1,4 +1,20 @@
 /**
+ * Escapa i caratteri HTML speciali prima di interpolare stringhe
+ * controllate dall'utente (nome, cognome, titolo esercizio...) nei
+ * template email in lib/email/*.ts. Senza questo, un nome contenente
+ * "<"/">"/"&" rompeva il markup dell'email o, nel peggiore dei casi,
+ * iniettava HTML arbitrario nel client di posta di chi la riceve.
+ */
+export function escapeHtml(testo: string): string {
+  return testo
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+/**
  * Client minimale per l'invio di email tramite l'API REST di Resend (senza SDK,
  * stesso criterio del client di Gemini: fetch diretto).
  *

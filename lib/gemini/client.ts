@@ -10,14 +10,25 @@
  *     rapidi della modalità guidata.
  *   - Input fino a 1.048.576 token / output fino a 65.536.
  *
- * Modello di riserva: gemini-2.5-flash-lite
- *   - Usato SOLO quando il modello principale restituisce quota esaurita
- *     (RESOURCE_EXHAUSTED) — vedi isQuotaExhausted più in basso. Ogni
- *     modello ha la propria quota indipendente nel piano gratuito, quindi
- *     questo garantisce continuità del servizio senza attendere il reset.
+ * Modelli di riserva (GEMINI_MODEL_FALLBACK, _FALLBACK_2):
+ *   - Usati in cascata quando il modello precedente fallisce (quota
+ *     esaurita — RESOURCE_EXHAUSTED — vedi isQuotaExhausted più in basso,
+ *     o qualsiasi altro errore Gemini). Ogni modello ha la propria quota
+ *     indipendente nel piano gratuito, quindi questo garantisce
+ *     continuità del servizio senza attendere il reset.
  *
- * GEMINI_API_KEY vive solo nell'ambiente server (senza prefisso
- * NEXT_PUBLIC_) — questo modulo non deve essere importato da codice client.
+ * Livello a pagamento (GEMINI_API_KEY_PAID, opzionale):
+ *   - Se configurata, viene usata come ultimissima risorsa SOLO quando
+ *     l'ultimo modello gratuito fallisce specificamente per quota esaurita
+ *     (non per errori di rete/5xx transitori — quelli non si risolvono
+ *     spendendo su una key a pagamento). Richiede una seconda API key da
+ *     un progetto Google con fatturazione abilitata (aistudio.google.com/apikey),
+ *     diversa da GEMINI_API_KEY. Se non configurata, il comportamento resta
+ *     identico a prima: dopo l'ultimo modello gratuito, l'errore si propaga.
+ *
+ * GEMINI_API_KEY (e GEMINI_API_KEY_PAID) vivono solo nell'ambiente server
+ * (senza prefisso NEXT_PUBLIC_) — questo modulo non deve essere importato
+ * da codice client.
  */
 
 // Ordered by cost (cheapest first). Each model has independent quota.
@@ -25,6 +36,10 @@
 const GEMINI_MODEL_PRIMARY = 'gemini-2.5-flash-lite'   // cheapest known-good model
 const GEMINI_MODEL_FALLBACK = 'gemini-3.1-flash-lite'   // next-gen lite when available
 const GEMINI_MODEL_FALLBACK_2 = 'gemini-2.5-flash'      // higher quality last resort
+// Ultima risorsa a pagamento, usata solo se GEMINI_API_KEY_PAID è configurata
+// e la quota gratuita è davvero esaurita — stesso modello del fallback
+// gratuito sopra, così non cambia comportamento/qualità, solo la key.
+const GEMINI_MODEL_PAID_FALLBACK = 'gemini-3.1-flash-lite'
 const GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com/v1beta'
 
 interface ThinkingConfig {
@@ -192,10 +207,11 @@ async function callModel(
 }
 
 /**
- * Genera contenuto con il modello principale; se questo restituisce quota
- * esaurita, passa automaticamente al modello di riserva (quota
- * indipendente) prima di arrendersi. Il chiamante non ha bisogno di sapere
- * quale dei due modelli ha risposto alla fine.
+ * Genera contenuto con il modello principale; se fallisce, passa in
+ * cascata ai modelli di riserva (quota indipendente per ciascuno) e,
+ * se configurata, infine alla key a pagamento — solo se l'ultimo
+ * modello gratuito ha fallito specificamente per quota esaurita. Il
+ * chiamante non ha bisogno di sapere quale modello/key ha risposto.
  */
 export async function generateContent(
   options: GenerateContentOptions,
@@ -205,37 +221,65 @@ export async function generateContent(
   if (!apiKey) {
     throw new GeminiError('GEMINI_API_KEY non è configurata nelle variabili d\'ambiente del server.')
   }
+  const paidApiKey = process.env.GEMINI_API_KEY_PAID
 
   const body = buildRequestBody(options)
-  // Il modello di fallback (lite) non supporta thinking — costruiamo un
+  // I modelli di fallback (lite) non supportano thinking — costruiamo un
   // body senza thinkingConfig per evitare timeout o errori nel fallback.
   const bodyWithoutThinking = options.thinking
     ? buildRequestBody({ ...options, thinking: undefined })
     : body
 
-  // Qualsiasi GeminiError giustifica il passaggio al modello successivo:
-  // 429/503 (quota o sovraccarico — quote indipendenti per modello) e anche
-  // 404 (modello inesistente/ritirato — vedi commento in callModel: "non
-  // riprovare con lo stesso ma con il successivo nel cascade").
-  const shouldFallback = (err: unknown): boolean => err instanceof GeminiError
+  const cascata: {
+    model: string
+    apiKey: string
+    body: ReturnType<typeof buildRequestBody>
+    retries: number
+    isPaid: boolean
+  }[] = [
+    { model: GEMINI_MODEL_PRIMARY, apiKey, body, retries: maxRetries, isPaid: false },
+    { model: GEMINI_MODEL_FALLBACK, apiKey, body: bodyWithoutThinking, retries: 1, isPaid: false },
+    { model: GEMINI_MODEL_FALLBACK_2, apiKey, body: bodyWithoutThinking, retries: 1, isPaid: false }
+  ]
+  if (paidApiKey) {
+    cascata.push({
+      model: GEMINI_MODEL_PAID_FALLBACK,
+      apiKey: paidApiKey,
+      body: bodyWithoutThinking,
+      retries: 1,
+      isPaid: true
+    })
+  }
 
-  try {
-    return await callModel(GEMINI_MODEL_PRIMARY, body, apiKey, maxRetries)
-  } catch (err) {
-    if (!shouldFallback(err)) throw err
-    console.warn(
-      `Errore su ${GEMINI_MODEL_PRIMARY} (status ${(err as GeminiError).status}), riprovo con ${GEMINI_MODEL_FALLBACK}.`
-    )
+  let lastError: unknown
+  for (let i = 0; i < cascata.length; i++) {
+    const tentativo = cascata[i]
+
+    // La key a pagamento si usa SOLO se l'errore precedente era
+    // specificamente quota esaurita — per errori di rete/5xx transitori
+    // riprovare su una key diversa non risolve nulla, spende solo soldi.
+    if (tentativo.isPaid && !(lastError instanceof GeminiError && isQuotaExhausted(lastError))) {
+      break
+    }
+
     try {
-      return await callModel(GEMINI_MODEL_FALLBACK, bodyWithoutThinking, apiKey, 1)
-    } catch (err2) {
-      if (!shouldFallback(err2)) throw err2
-      console.warn(
-        `Errore su ${GEMINI_MODEL_FALLBACK} (status ${(err2 as GeminiError).status}), riprovo con ${GEMINI_MODEL_FALLBACK_2}.`
-      )
-      return await callModel(GEMINI_MODEL_FALLBACK_2, bodyWithoutThinking, apiKey, 1)
+      if (i > 0) {
+        console.warn(
+          `Passo a ${tentativo.model}${tentativo.isPaid ? ' (key a pagamento)' : ''} dopo errore su ${cascata[i - 1].model}.`
+        )
+      }
+      return await callModel(tentativo.model, tentativo.body, tentativo.apiKey, tentativo.retries)
+    } catch (err) {
+      lastError = err
+      // Qualsiasi GeminiError giustifica il passaggio al tentativo
+      // successivo: 429/503 (quota o sovraccarico) e anche 404 (modello
+      // inesistente/ritirato — vedi commento in callModel). Un errore
+      // non-Gemini (bug di codice, ecc.) si propaga subito.
+      if (!(err instanceof GeminiError)) throw err
     }
   }
+
+  throw lastError instanceof Error ? lastError : new GeminiError('Errore sconosciuto durante la chiamata a Gemini.')
 }
 
 /**

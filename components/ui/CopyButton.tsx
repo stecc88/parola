@@ -6,10 +6,16 @@ export function CopyButton({ text, className }: { text: string; className?: stri
   const [copied, setCopied] = useState(false)
 
   function handleCopy() {
-    navigator.clipboard.writeText(text).then(() => {
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    })
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      })
+      .catch(() => {
+        // Clipboard non disponibile (es. http non sicuro): l'utente può
+        // comunque selezionare il testo a mano, nessun errore da mostrare.
+      })
   }
 
   return (

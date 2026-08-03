@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { sendEmail } from './send'
+import { sendEmail, escapeHtml } from './send'
 
 export async function notifyAdminOfNameChangeRequest({
   nomeAttuale,
@@ -37,11 +37,11 @@ export async function notifyAdminOfNameChangeRequest({
           <table style="border-collapse:collapse;font-size:14px;margin:12px 0;">
             <tr>
               <td style="padding:4px 12px 4px 0;color:#8A7C6D;">Nome attuale</td>
-              <td style="padding:4px 0;"><strong>${nomeAttuale} ${cognomeAttuale}</strong></td>
+              <td style="padding:4px 0;"><strong>${escapeHtml(nomeAttuale)} ${escapeHtml(cognomeAttuale)}</strong></td>
             </tr>
             <tr>
               <td style="padding:4px 12px 4px 0;color:#8A7C6D;">Nome richiesto</td>
-              <td style="padding:4px 0;"><strong>${nomeRichiesto} ${cognomeRichiesto}</strong></td>
+              <td style="padding:4px 0;"><strong>${escapeHtml(nomeRichiesto)} ${escapeHtml(cognomeRichiesto)}</strong></td>
             </tr>
           </table>
           ${linkAdmin}
