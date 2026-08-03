@@ -29,7 +29,13 @@ export default async function HomePage() {
     redirect(profile.teacher_status === 'approved' ? '/teacher/classes' : '/teacher/pending')
   }
 
-  if (profile?.student_status === 'pending' || profile?.student_status === 'rejected') {
+  // Qualsiasi stato diverso da 'approved'/null (pending, rejected,
+  // disabled) va a /student/pending — stessa regola applicata dal
+  // middleware su /student/:path*. Il redirect qui è ridondante rispetto
+  // al middleware (che intercetterebbe comunque la richiesta verso
+  // /student/progress), ma tenerlo esplicito evita di dipendere solo dal
+  // middleware per la correttezza di questa pagina.
+  if (profile?.student_status !== 'approved' && profile?.student_status !== null) {
     redirect('/student/pending')
   }
 

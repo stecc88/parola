@@ -17,6 +17,14 @@ export default function ConfirmResetPasswordPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [verificandoLink, setVerificandoLink] = useState(true)
+  // Separato da "error": quello è per gli errori di invio del form (dove il
+  // form deve restare visibile per riprovare), questo per il link stesso
+  // non valido (dove non ha senso mostrare il form). Prima erano lo stesso
+  // stato e si distingueva "link non valido" da "errore di invio" solo
+  // controllando se il campo password era vuoto — ma se l'utente cancellava
+  // il campo per riscriverlo mentre un errore di invio era ancora visibile,
+  // il form spariva per sbaglio, sostituito dal messaggio di link non valido.
+  const [linkInvalido, setLinkInvalido] = useState<string | null>(null)
 
   useEffect(() => {
     // Con flowType 'implicit' (lib/supabase/client.ts), il client rileva
@@ -25,7 +33,7 @@ export default function ConfirmResetPasswordPage() {
     async function verificaSessione() {
       const { data } = await supabase.auth.getSession()
       if (!data.session) {
-        setError(
+        setLinkInvalido(
           "Link non valido, scaduto o già usato. Richiedi un nuovo link da 'Password smarrita?'."
         )
       }
@@ -82,10 +90,10 @@ export default function ConfirmResetPasswordPage() {
           <p className="text-center text-sm text-success-text">
             Password aggiornata! Ti stiamo portando al login...
           </p>
-        ) : error && !password ? (
+        ) : linkInvalido ? (
           // Il code non era valido: non ha senso mostrare il form, solo l'errore.
           <div className="text-center">
-            <p className="rounded-md bg-danger-bg px-3 py-2 text-sm text-danger-text">{error}</p>
+            <p className="rounded-md bg-danger-bg px-3 py-2 text-sm text-danger-text">{linkInvalido}</p>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">

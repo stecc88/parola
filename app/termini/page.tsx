@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { AppNav } from '@/components/shared/AppNav'
 
 const NAV_ITEMS = [{ href: '/', label: 'Home' }]
@@ -80,9 +81,9 @@ export default function TerminiPage() {
             <h2 className="mb-2 text-base font-semibold text-ink-primary">7. Privacy</h2>
             <p>
               Per informazioni su come trattiamo i tuoi dati, consulta la nostra{' '}
-              <a href="/privacy" className="text-brand-400 underline">
+              <Link href="/privacy" className="text-brand-400 underline">
                 informativa sulla privacy
-              </a>
+              </Link>
               .
             </p>
           </section>

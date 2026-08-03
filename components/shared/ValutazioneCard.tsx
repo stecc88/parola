@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { Card } from '@/components/ui/Card'
 import type { ValutazioneEsaminatore } from '@/lib/gemini/schema'
 import { getPreviousScritturaScore, getMyPastErrorCategoryCounts } from '@/app/student/write/actions'
@@ -201,17 +202,17 @@ export function ValutazioneCard({
                 Il tuo punto debole in questo testo:{' '}
                 <span className="font-semibold text-warning-text">{labelDebole}</span>.{' '}
                 Il tuo professore può crearti un esercizio mirato — controlla{' '}
-                <a href="/student/personalized" className="font-semibold text-brand-600 underline underline-offset-2 hover:text-brand-800 dark:text-brand-400">
+                <Link href="/student/personalized" className="font-semibold text-brand-600 underline underline-offset-2 hover:text-brand-800 dark:text-brand-400">
                   &quot;Per te&quot;
-                </a>{' '}
+                </Link>{' '}
                 per vedere se ne hai già uno pronto.
               </p>
             ) : (
               <p className="text-sm text-ink-primary">
                 Nessun errore rilevato — ottimo lavoro! Controlla{' '}
-                <a href="/student/personalized" className="font-semibold text-brand-600 underline underline-offset-2 hover:text-brand-800 dark:text-brand-400">
+                <Link href="/student/personalized" className="font-semibold text-brand-600 underline underline-offset-2 hover:text-brand-800 dark:text-brand-400">
                   &quot;Per te&quot;
-                </a>{' '}
+                </Link>{' '}
                 per nuovi esercizi dal tuo professore.
               </p>
             )}
