@@ -198,40 +198,26 @@ export async function markLevelAchievementsSeenByTeacher(studentId: string) {
 }
 
 /**
- * Data dell'ultimo accesso dello studente, letta da auth.users tramite
- * service role (non accessibile via RLS normale). Va chiamata SOLO dopo
- * aver già verificato — tramite una query soggetta a RLS, come
- * profiles_select_by_teacher — che questo studente è effettivamente
- * attivo sotto il docente corrente: questa funzione di per sé non fa
- * alcun controllo di autorizzazione, perché il service role bypassa RLS.
+ * Data dell'ultimo accesso dello studente, letta da profiles.last_sign_in_at
+ * (sincronizzato da auth.users via trigger — migrazione 0035). Prima
+ * serviva il client admin per leggere auth.users (non accessibile via RLS
+ * normale) con una verifica di ownership manuale a monte; ora basta una
+ * query col client dell'utente — la RLS (profiles_select_by_teacher,
+ * basata su is_active_teacher_of) restituisce la riga solo se lo studente
+ * è effettivamente attivo sotto il docente corrente, senza bisogno di
+ * controlli manuali né di bypassare RLS.
  */
 export async function getLastSignInForStudent(studentId: string): Promise<string | null> {
-  const teacherId = await requireApprovedTeacherActionUserId()
-
-  // Verifica esplicita di ownership: senza questo qualsiasi docente approvato
-  // potrebbe passare l'id di uno studente non suo e leggerne l'ultimo accesso,
-  // perché il client admin ignora RLS. La Server Action è invocabile
-  // direttamente, indipendentemente dalla pagina.
+  await requireApprovedTeacherActionUserId()
   const supabase = createClient()
-  const { data: membership } = await supabase
-    .from('class_memberships')
-    .select('id')
-    .eq('student_id', studentId)
-    .eq('teacher_id', teacherId)
-    .is('left_at', null)
+
+  const { data } = await supabase
+    .from('profiles')
+    .select('last_sign_in_at')
+    .eq('id', studentId)
     .maybeSingle()
 
-  if (!membership) return null
-
-  try {
-    const admin = createAdminClient()
-    const { data, error } = await admin.auth.admin.getUserById(studentId)
-    if (error || !data.user) return null
-    return data.user.last_sign_in_at ?? null
-  } catch (err) {
-    console.error('Errore recuperando ultimo accesso:', err)
-    return null
-  }
+  return (data as { last_sign_in_at?: string | null } | null)?.last_sign_in_at ?? null
 }
 
 /**

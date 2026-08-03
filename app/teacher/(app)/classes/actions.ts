@@ -418,10 +418,12 @@ export interface StudentOverviewRow {
 
 /**
  * Vista d'insieme di TUTTI gli studenti attivi del docente.
- * Refactored da N+1 a batch: 3 query totali indipendentemente dal numero
- * di studenti (memberships+profiles, submissions IN(...), listUsers).
- * Il precedente pattern (1 query per studente per submissions + 1 auth
- * call per studente) causava timeout con classi >30 studenti.
+ * Query per le submissions: una sola IN(...) invece di una per studente
+ * (il precedente pattern causava timeout con classi >30 studenti).
+ * Last_sign_in: letto direttamente da profiles.last_sign_in_at (migrazione
+ * 0035, sincronizzato via trigger su auth.users a ogni login) — nessuna
+ * chiamata all'Admin API, zero costo aggiuntivo oltre alla query già fatta
+ * per nome/cognome/livello.
  */
 export async function getStudentsOverview(): Promise<StudentOverviewRow[]> {
   const teacherId = await requireApprovedTeacherActionUserId()
@@ -430,7 +432,9 @@ export async function getStudentsOverview(): Promise<StudentOverviewRow[]> {
   // Query 1: memberships + profiles + classi (unica JOIN)
   const { data: memberships, error } = await supabase
     .from('class_memberships')
-    .select('student_id, joined_at, profiles!student_id(nome, cognome, livello_target, student_status), classes(nome)')
+    .select(
+      'student_id, joined_at, profiles!student_id(nome, cognome, livello_target, student_status, last_sign_in_at), classes(nome)'
+    )
     .eq('teacher_id', teacherId)
     .is('left_at', null)
 
@@ -442,37 +446,13 @@ export async function getStudentsOverview(): Promise<StudentOverviewRow[]> {
   if (!memberships || memberships.length === 0) return []
 
   const studentIds = memberships.map((m) => m.student_id)
-  const admin = createAdminClient()
   const oraMs = Date.now()
 
-  // listUsers è paginato: una singola chiamata con perPage=1000 tronca
-  // silenziosamente oltre i 1000 utenti TOTALI della piattaforma, facendo
-  // sparire il last_sign_in di alcuni studenti. Itera finché la pagina
-  // torna piena; errori non bloccanti come prima.
-  const listAllAuthUsers = async () => {
-    const users: { id: string; last_sign_in_at?: string | null }[] = []
-    try {
-      for (let page = 1; ; page++) {
-        const { data, error: listError } = await admin.auth.admin.listUsers({ page, perPage: 1000 })
-        if (listError) throw listError
-        users.push(...(data?.users ?? []))
-        if ((data?.users?.length ?? 0) < 1000) break
-      }
-    } catch (err) {
-      console.error('Errore recuperando last_sign_in (non bloccante):', err)
-    }
-    return users
-  }
-
-  // Query 2 + 3 in parallelo: tutte le submissions (IN) + auth users per last_sign_in
-  const [{ data: allSubmissions }, authUsersList] = await Promise.all([
-    supabase
-      .from('submissions')
-      .select('id, student_id, tipo, created_at, consegna, valutazione_ia, valutazione_completed_at')
-      .in('student_id', studentIds)
-      .order('created_at', { ascending: false }),
-    listAllAuthUsers()
-  ])
+  const { data: allSubmissions } = await supabase
+    .from('submissions')
+    .select('id, student_id, tipo, created_at, consegna, valutazione_ia, valutazione_completed_at')
+    .in('student_id', studentIds)
+    .order('created_at', { ascending: false })
 
   // Mappa in-memory: student_id → submissions (già ordinate desc per created_at)
   const submissionsByStudent = new Map<string, SubmissionRow[]>()
@@ -482,14 +462,6 @@ export async function getStudentsOverview(): Promise<StudentOverviewRow[]> {
     submissionsByStudent.set(s.student_id, list)
   }
 
-  // Mappa in-memory: student_id → last_sign_in_at
-  const lastSignInMap = new Map<string, string | null>()
-  for (const u of authUsersList) {
-    if (studentIds.includes(u.id)) {
-      lastSignInMap.set(u.id, u.last_sign_in_at ?? null)
-    }
-  }
-
   // Calcolo statistiche interamente in-memory (zero ulteriori roundtrip)
   const righe: StudentOverviewRow[] = memberships.map((m) => {
     const profile = Array.isArray(m.profiles) ? m.profiles[0] : m.profiles
@@ -497,7 +469,7 @@ export async function getStudentsOverview(): Promise<StudentOverviewRow[]> {
     const submissions = submissionsByStudent.get(m.student_id) ?? []
 
     const stats = computeStudentStats(submissions)
-    const ultimoAccesso = lastSignInMap.get(m.student_id) ?? null
+    const ultimoAccesso = (profile as { last_sign_in_at?: string | null } | undefined)?.last_sign_in_at ?? null
     const ultimaAttivitaAt = submissions[0]?.created_at ?? null
 
     const dateCorrezioni = submissions
