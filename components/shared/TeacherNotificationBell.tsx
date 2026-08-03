@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Bell } from 'lucide-react'
-import { getTeacherUnseenCount } from '@/app/teacher/classes/actions'
+import { getTeacherUnseenCount } from '@/app/teacher/(app)/classes/actions'
 
 /**
  * Campanella per il docente: aggrega consegne studenti non viste (segnate

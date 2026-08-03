@@ -24,7 +24,7 @@ import { ListChecks, TrendingUp, GraduationCap, Target, PenLine, Dumbbell, Calen
 import { ExportReportButton } from './ExportReportButton'
 import { ExportCorrezioniButton } from './ExportCorrezioniButton'
 import { CopyButton } from '@/components/ui/CopyButton'
-import { PendingStudentActions } from '@/app/teacher/classes/PendingStudentActions'
+import { PendingStudentActions } from '@/app/teacher/(app)/classes/PendingStudentActions'
 
 const CATEGORIA_LABEL: Record<CategoriaErrore, string> = {
   grammatica: 'Grammatica',

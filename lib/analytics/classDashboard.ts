@@ -1,4 +1,4 @@
-import type { StudentOverviewRow } from '@/app/teacher/classes/actions'
+import type { StudentOverviewRow } from '@/app/teacher/(app)/classes/actions'
 import type { CategoriaErrore } from './studentStats'
 
 const CEFR_ORDER = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] as const
