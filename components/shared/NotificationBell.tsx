@@ -7,7 +7,7 @@ import { Bell } from 'lucide-react'
 import {
   getUnseenPersonalizedCount,
   markPersonalizedExercisesSeenByStudent
-} from '@/app/student/personalized/actions'
+} from '@/app/student/(app)/personalized/actions'
 
 /**
  * Campanella di notifica per lo studente, quando il docente gli genera

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Card } from '@/components/ui/Card'
 import type { ValutazioneEsaminatore } from '@/lib/gemini/schema'
-import { getPreviousScritturaScore, getMyPastErrorCategoryCounts } from '@/app/student/write/actions'
+import { getPreviousScritturaScore, getMyPastErrorCategoryCounts } from '@/app/student/(app)/write/actions'
 import { AnnotatedText } from './AnnotatedText'
 
 const CATEGORIA_LABEL: Record<string, string> = {
