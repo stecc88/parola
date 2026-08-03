@@ -116,6 +116,16 @@ ${descrizioneLivelloGenerazione(livello)}
 
 ${tipoText}
 
+Controllo di qualità OBBLIGATORIO su ogni frase che scrivi (esempio,
+domande, frasi di completamento/trasformazione): deve essere italiano
+naturale e corretto, senza parole o costruzioni ripetute in modo
+ridondante nella stessa frase. Esempio di errore da NON produrre:
+"Spero che tu stia presto a stare meglio" — il verbo "stare" compare
+due volte in modo goffo e innaturale; corretto sarebbe "Spero che tu
+possa presto stare meglio" o "Spero che tu ti riprenda presto". Prima
+di includere una frase, rileggila e chiediti: "un madrelingua la
+scriverebbe così?" — se la risposta è no, riscrivila.
+
 Crea l'esercizio completo con questi campi, con un linguaggio chiaro,
 motivante e non punitivo, adatto sia ad adolescenti che ad adulti:
 
