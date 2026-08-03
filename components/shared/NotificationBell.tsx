@@ -4,7 +4,10 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Bell } from 'lucide-react'
-import { getUnseenPersonalizedCount } from '@/app/student/personalized/actions'
+import {
+  getUnseenPersonalizedCount,
+  markPersonalizedExercisesSeenByStudent
+} from '@/app/student/personalized/actions'
 
 /**
  * Campanella di notifica per lo studente, quando il docente gli genera
@@ -30,11 +33,22 @@ export function NotificationBell() {
     getUnseenPersonalizedCount().then(setCount).catch(() => {})
   }, [pathname])
 
+  function handleClick() {
+    // Azzera subito il badge e marca come viste lato server qui, invece di
+    // affidarsi solo al side-effect della pagina di destinazione: la cache
+    // client-side del router di Next a volte serve una versione già in
+    // cache di /student/personalized, saltando quel side-effect — il
+    // badge restava bloccato sul conteggio vecchio anche dopo il click.
+    setCount(0)
+    markPersonalizedExercisesSeenByStudent().catch(() => {})
+  }
+
   if (count === null) return null
 
   return (
     <Link
       href="/student/personalized"
+      onClick={handleClick}
       className="relative inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-ink-secondary transition-colors hover:bg-surface-secondary hover:text-ink-primary"
       aria-label={count > 0 ? `${count} nuovi esercizi da vedere` : 'Nessuna nuova notifica'}
     >
