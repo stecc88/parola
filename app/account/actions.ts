@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { getVerifiedAuth } from '@/lib/auth/verifiedRequest'
 import { notifyAdminOfNameChangeRequest } from '@/lib/email/adminNotification'
 
 export interface MyProfile {
@@ -24,13 +25,19 @@ export interface NameChangeRequest {
 
 export async function getMyProfile(): Promise<MyProfile | null> {
   const supabase = createClient()
-  const { data: userData } = await supabase.auth.getUser()
-  if (!userData.user) return null
+
+  // middleware.ts ha già validato la sessione per /account e inoltra
+  // l'userId via header verificato: se presente evita una auth.getUser()
+  // ridondante. La query su profiles resta comunque necessaria (serve
+  // per i campi di visualizzazione, non solo per il controllo d'accesso).
+  const verified = getVerifiedAuth()
+  const userId = verified?.userId ?? (await supabase.auth.getUser()).data.user?.id
+  if (!userId) return null
 
   const { data } = await supabase
     .from('profiles')
     .select('id, nome, cognome, role, livello_target, livello_obiettivo_classe')
-    .eq('id', userData.user.id)
+    .eq('id', userId)
     .single()
 
   return data ?? null

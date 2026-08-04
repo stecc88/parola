@@ -62,30 +62,51 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
   await requireApprovedTeacher()
   const supabase = createClient()
 
-  // Grazie alla RLS policy profiles_select_by_teacher (basata su
-  // is_active_teacher_of), questa query restituisce dati SOLO se lo
-  // studente è effettivamente attivo sotto questo insegnante. Se è di un
-  // altro insegnante (o ha lasciato), torna null e mostriamo 404 — non c'è
-  // bisogno di un controllo manuale aggiuntivo qui.
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('id, nome, cognome, livello_target, access_code, student_status')
-    .eq('id', params.id)
-    .eq('role', 'student')
-    .single()
+  // Le 4 richieste sotto sono indipendenti tra loro — nessuna usa il
+  // risultato delle altre, ognuna si autorizza da sola (RLS o guard
+  // interno, vedi i commenti che avevano prima). Eseguirle in sequenza
+  // come prima significava pagare 4 round-trip di rete uno dopo l'altro
+  // prima di iniziare a renderizzare qualsiasi cosa.
+  const [
+    { data: profile },
+    { data: allSubmissions, error },
+    ,
+    [personalizedExercises, ultimoAccesso]
+  ] = await Promise.all([
+    // Grazie alla RLS policy profiles_select_by_teacher (basata su
+    // is_active_teacher_of), questa query restituisce dati SOLO se lo
+    // studente è effettivamente attivo sotto questo insegnante. Se è di un
+    // altro insegnante (o ha lasciato), torna null e mostriamo 404 — non c'è
+    // bisogno di un controllo manuale aggiuntivo qui.
+    supabase
+      .from('profiles')
+      .select('id, nome, cognome, livello_target, access_code, student_status')
+      .eq('id', params.id)
+      .eq('role', 'student')
+      .single(),
+    // Stessa logica: submissions_select_by_active_teacher filtra già per noi.
+    supabase
+      .from('submissions')
+      .select(
+        'id, tipo, created_at, consegna, testo_studente, valutazione_ia, testo_incollato, secondi_scrittura'
+      )
+      .eq('student_id', params.id)
+      .order('created_at', { ascending: false }),
+    // Side-effect deliberato: visitare questa pagina marca come "lette" le
+    // consegne in attesa — stesso pattern di qualsiasi notifica in-app.
+    Promise.all([
+      markPersonalizedExercisesSeen(params.id),
+      markLevelAchievementsSeenByTeacher(params.id)
+    ]),
+    Promise.all([
+      getPersonalizedExercisesForStudent(params.id),
+      getLastSignInForStudent(params.id)
+    ])
+  ])
 
   if (!profile) {
     notFound()
   }
-
-  // Stessa logica: submissions_select_by_active_teacher filtra già per noi.
-  const { data: allSubmissions, error } = await supabase
-    .from('submissions')
-    .select(
-      'id, tipo, created_at, consegna, testo_studente, valutazione_ia, testo_incollato, secondi_scrittura'
-    )
-    .eq('student_id', params.id)
-    .order('created_at', { ascending: false })
 
   if (error) {
     console.error('Errore caricando le submissions dello studente:', error)
@@ -95,17 +116,6 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
   const stats = computeStudentStats((allSubmissions as SubmissionRow[]) ?? [])
   const submissions = (allSubmissions ?? []).slice(0, 10)
 
-  // Side-effect deliberato: visitare questa pagina marca come "lette" le
-  // consegne in attesa — stesso pattern di qualsiasi notifica in-app.
-  await Promise.all([
-    markPersonalizedExercisesSeen(params.id),
-    markLevelAchievementsSeenByTeacher(params.id)
-  ])
-
-  const [personalizedExercises, ultimoAccesso] = await Promise.all([
-    getPersonalizedExercisesForStudent(params.id),
-    getLastSignInForStudent(params.id)
-  ])
   const submissionIds = personalizedExercises
     .map((e) => e.submission_id)
     .filter((id): id is string => !!id)

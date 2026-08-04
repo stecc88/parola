@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getVerifiedAuth } from '@/lib/auth/verifiedRequest'
 
 /**
  * Verifica che l'utente autenticato sia un docente con teacher_status
@@ -9,8 +10,26 @@ import { createClient } from '@/lib/supabase/server'
  * Va chiamata all'inizio di OGNI pagina sotto /teacher/* che mostri dati
  * o permetta azioni — non è sufficiente bloccare solo il reindirizzamento
  * iniziale dalla home, perché qualcuno potrebbe accedere direttamente via URL.
+ *
+ * middleware.ts esegue già esattamente questo stesso controllo prima di
+ * arrivare qui e inoltra il risultato via header verificato — se presente
+ * lo riusiamo per evitare una seconda auth.getUser() + query su profiles
+ * identica. Se manca (es. sviluppo locale senza middleware, o un path
+ * fuori dal suo matcher) rifacciamo il controllo pieno: nessuna perdita
+ * di sicurezza, solo un fast path quando il lavoro è già stato fatto.
  */
 export async function requireApprovedTeacher(): Promise<string> {
+  const verified = getVerifiedAuth()
+  if (verified) {
+    if (verified.role !== 'teacher' || verified.teacherStatus !== 'approved') {
+      redirect('/teacher/pending')
+    }
+    if (verified.subscriptionEndAt && new Date(verified.subscriptionEndAt) < new Date()) {
+      redirect('/teacher/expired')
+    }
+    return verified.userId
+  }
+
   const supabase = createClient()
   const { data: userData } = await supabase.auth.getUser()
 

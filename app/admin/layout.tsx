@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { getVerifiedAuth } from '@/lib/auth/verifiedRequest'
 import { AppNav } from '@/components/shared/AppNav'
 import { ADMIN_NAV_ITEMS } from '@/components/shared/adminNav'
 
@@ -17,8 +18,25 @@ import { ADMIN_NAV_ITEMS } from '@/components/shared/adminNav'
  * quindi passare da una voce di menu all'altra smontava e rimontava tutta
  * la nav (comprese le campanelle di notifica). Qui resta montata tra le
  * pagine sotto /admin.
+ *
+ * middleware.ts fa già questo stesso controllo di ruolo e inoltra il
+ * risultato via header verificato — se presente lo riusiamo, altrimenti
+ * rifacciamo il controllo pieno (stesso fallback di requireApprovedTeacher).
  */
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const verified = getVerifiedAuth()
+  if (verified) {
+    if (verified.role !== 'admin') {
+      redirect('/')
+    }
+    return (
+      <>
+        <AppNav items={ADMIN_NAV_ITEMS} />
+        {children}
+      </>
+    )
+  }
+
   const supabase = createClient()
   const { data: userData } = await supabase.auth.getUser()
 
