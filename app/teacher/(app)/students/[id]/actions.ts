@@ -229,36 +229,57 @@ export interface TeacherClassOption {
  * Classe attuale dello studente sotto questo docente (se ne ha una) e
  * lista delle classi del docente tra cui scegliere — usati dal selettore
  * di classe nella pagina di dettaglio studente.
+ *
+ * Chiamata direttamente dal render della pagina (non da un form): un
+ * errore qui non va MAI propagato, altrimenti fa cadere l'intera pagina
+ * di dettaglio studente (schermata generica "Server Components render"
+ * senza dettagli, in produzione). Meglio mostrare il selettore vuoto che
+ * rompere tutto il resto della pagina.
  */
 export async function getClassAssignmentOptions(studentId: string): Promise<{
   currentClassId: string | null
   currentClassNome: string | null
   classi: TeacherClassOption[]
 }> {
-  const teacherId = await requireApprovedTeacherActionUserId()
-  const supabase = createClient()
+  const fallback = { currentClassId: null, currentClassNome: null, classi: [] }
 
-  const [{ data: membership }, { data: classi }] = await Promise.all([
-    supabase
-      .from('class_memberships')
-      .select('class_id, classes(nome)')
-      .eq('student_id', studentId)
-      .eq('teacher_id', teacherId)
-      .is('left_at', null)
-      .maybeSingle(),
-    supabase.from('classes').select('id, nome').eq('teacher_id', teacherId).order('nome', { ascending: true })
-  ])
+  try {
+    const teacherId = await requireApprovedTeacherActionUserId()
+    const supabase = createClient()
 
-  const classeAttuale = membership
-    ? Array.isArray(membership.classes)
-      ? membership.classes[0]
-      : membership.classes
-    : null
+    const [{ data: membership, error: membershipError }, { data: classi, error: classiError }] =
+      await Promise.all([
+        supabase
+          .from('class_memberships')
+          .select('class_id, classes(nome)')
+          .eq('student_id', studentId)
+          .eq('teacher_id', teacherId)
+          .is('left_at', null)
+          .maybeSingle(),
+        supabase.from('classes').select('id, nome').eq('teacher_id', teacherId).order('nome', { ascending: true })
+      ])
 
-  return {
-    currentClassId: membership?.class_id ?? null,
-    currentClassNome: (classeAttuale as { nome?: string } | null)?.nome ?? null,
-    classi: classi ?? []
+    if (membershipError) {
+      console.error('Errore caricando la membership dello studente:', membershipError)
+    }
+    if (classiError) {
+      console.error('Errore caricando le classi del docente:', classiError)
+    }
+
+    const classeAttuale = membership
+      ? Array.isArray(membership.classes)
+        ? membership.classes[0]
+        : membership.classes
+      : null
+
+    return {
+      currentClassId: membership?.class_id ?? null,
+      currentClassNome: (classeAttuale as { nome?: string } | null)?.nome ?? null,
+      classi: classi ?? []
+    }
+  } catch (err) {
+    console.error('Errore imprevisto caricando le opzioni di classe:', err)
+    return fallback
   }
 }
 
