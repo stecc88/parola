@@ -7,7 +7,19 @@ import { requireApprovedTeacherActionUserId } from '@/lib/teacher/guard'
 /**
  * Sposta uno studente dalla classe attuale a un'altra classe dello STESSO
  * docente. RLS (memberships_update_by_teacher) garantisce che possa operare
- * solo sulle membership di classi il cui teacher_id sia il suo.
+ * solo sulle membership il cui teacher_id sia il suo.
+ *
+ * BUG corretto qui: la versione precedente chiudeva la membership attuale
+ * (left_at) e poi tentava di INSERIRNE una nuova per la classe di
+ * destinazione — ma la policy RLS di insert (memberships_insert_own_student)
+ * richiede student_id = auth.uid(), quindi permette SOLO allo studente di
+ * creare la propria membership, mai a un docente per suo conto. L'insert
+ * falliva sempre; il close della vecchia membership però era già avvenuto
+ * (nessuna transazione a collegare le due operazioni), lasciando lo
+ * studente senza nessuna membership attiva — invisibile in ogni vista.
+ * Un semplice UPDATE del class_id (stesso pattern già usato con successo
+ * da assignStudentToClass) risolve alla radice: il teacher_id non cambia
+ * mai in questo spostamento, quindi non serve chiudere/riaprire nulla.
  */
 export async function moveStudentToClass(membershipId: string, targetClassId: string) {
   const teacherId = await requireApprovedTeacherActionUserId()
@@ -26,24 +38,20 @@ export async function moveStudentToClass(membershipId: string, targetClassId: st
 
   const { data: membership } = await supabase
     .from('class_memberships')
-    .select('student_id, class_id')
+    .select('class_id')
     .eq('id', membershipId)
+    .eq('teacher_id', teacherId)
+    .is('left_at', null)
     .single()
 
   if (!membership) throw new Error('Iscrizione non trovata.')
 
-  await supabase
+  const { error } = await supabase
     .from('class_memberships')
-    .update({ left_at: new Date().toISOString() })
+    .update({ class_id: targetClassId })
     .eq('id', membershipId)
 
-  const { error: insertError } = await supabase.from('class_memberships').insert({
-    student_id: membership.student_id,
-    teacher_id: teacherId,
-    class_id: targetClassId
-  })
-
-  if (insertError) throw new Error('Errore spostando lo studente.')
+  if (error) throw new Error('Errore spostando lo studente.')
 
   // MoveStudentSelect viene usato solo nella pagina di dettaglio classe:
   // senza revalidare anche quella (non solo la lista), lo studente
