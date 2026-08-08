@@ -13,6 +13,7 @@ import { valutazioneEsaminatoreSchema } from '@/lib/gemini/schema'
 import {
   getPersonalizedExercisesForStudent,
   getLastSignInForStudent,
+  getClassAssignmentOptions,
   markPersonalizedExercisesSeen,
   markLevelAchievementsSeenByTeacher,
   type PersonalizedExerciseRow
@@ -24,6 +25,8 @@ import { ListChecks, TrendingUp, GraduationCap, Target, PenLine, Dumbbell, Calen
 import { ExportReportButton } from './ExportReportButton'
 import { ExportCorrezioniButton } from './ExportCorrezioniButton'
 import { CopyButton } from '@/components/ui/CopyButton'
+import { ClassAssignmentControl } from './ClassAssignmentControl'
+import { DeleteStudentButton } from './DeleteStudentButton'
 import { PendingStudentActions } from '@/app/teacher/(app)/classes/PendingStudentActions'
 
 const CATEGORIA_LABEL: Record<CategoriaErrore, string> = {
@@ -71,7 +74,8 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
     { data: profile },
     { data: allSubmissions, error },
     ,
-    [personalizedExercises, ultimoAccesso]
+    [personalizedExercises, ultimoAccesso],
+    classAssignment
   ] = await Promise.all([
     // Grazie alla RLS policy profiles_select_by_teacher (basata su
     // is_active_teacher_of), questa query restituisce dati SOLO se lo
@@ -101,7 +105,8 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
     Promise.all([
       getPersonalizedExercisesForStudent(params.id),
       getLastSignInForStudent(params.id)
-    ])
+    ]),
+    getClassAssignmentOptions(params.id)
   ])
 
   if (!profile) {
@@ -180,6 +185,14 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
                   : 'mai'}
               </span>
             </div>
+            <div className="mt-2">
+              <ClassAssignmentControl
+                studentId={profile.id}
+                currentClassId={classAssignment.currentClassId}
+                currentClassNome={classAssignment.currentClassNome}
+                classi={classAssignment.classi}
+              />
+            </div>
           </div>
           {stats.totaleAttivita > 0 && (
             <div className="flex flex-wrap gap-2">
@@ -203,6 +216,10 @@ export default async function StudentDetailPage({ params }: { params: { id: stri
               />
             </div>
           )}
+        </div>
+
+        <div className="mb-6 flex justify-end">
+          <DeleteStudentButton studentId={profile.id} nomeCompleto={`${profile.nome} ${profile.cognome}`} />
         </div>
 
         <Card className="mb-6">
