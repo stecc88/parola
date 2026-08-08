@@ -220,6 +220,153 @@ export async function getLastSignInForStudent(studentId: string): Promise<string
   return (data as { last_sign_in_at?: string | null } | null)?.last_sign_in_at ?? null
 }
 
+export interface TeacherClassOption {
+  id: string
+  nome: string
+}
+
+/**
+ * Classe attuale dello studente sotto questo docente (se ne ha una) e
+ * lista delle classi del docente tra cui scegliere — usati dal selettore
+ * di classe nella pagina di dettaglio studente.
+ */
+export async function getClassAssignmentOptions(studentId: string): Promise<{
+  currentClassId: string | null
+  currentClassNome: string | null
+  classi: TeacherClassOption[]
+}> {
+  const teacherId = await requireApprovedTeacherActionUserId()
+  const supabase = createClient()
+
+  const [{ data: membership }, { data: classi }] = await Promise.all([
+    supabase
+      .from('class_memberships')
+      .select('class_id, classes(nome)')
+      .eq('student_id', studentId)
+      .eq('teacher_id', teacherId)
+      .is('left_at', null)
+      .maybeSingle(),
+    supabase.from('classes').select('id, nome').eq('teacher_id', teacherId).order('nome', { ascending: true })
+  ])
+
+  const classeAttuale = membership
+    ? Array.isArray(membership.classes)
+      ? membership.classes[0]
+      : membership.classes
+    : null
+
+  return {
+    currentClassId: membership?.class_id ?? null,
+    currentClassNome: (classeAttuale as { nome?: string } | null)?.nome ?? null,
+    classi: classi ?? []
+  }
+}
+
+/**
+ * Assegna lo studente a un'altra classe dello stesso docente, o lo lascia
+ * senza classe (classId null) — stesso stato "senza classe assegnata" che
+ * ha uno studente appena iscritto col codice del docente prima di essere
+ * smistato. Un semplice UPDATE basta perché il teacher_id non cambia mai
+ * qui (a differenza di una riassegnazione a un altro docente).
+ */
+export async function updateStudentClass(studentId: string, classId: string | null) {
+  const teacherId = await requireApprovedTeacherActionUserId()
+  const supabase = createClient()
+
+  if (classId) {
+    const { data: targetClass } = await supabase
+      .from('classes')
+      .select('id')
+      .eq('id', classId)
+      .eq('teacher_id', teacherId)
+      .single()
+
+    if (!targetClass) throw new Error('Classe non valida.')
+  }
+
+  const { data: membership } = await supabase
+    .from('class_memberships')
+    .select('id')
+    .eq('student_id', studentId)
+    .eq('teacher_id', teacherId)
+    .is('left_at', null)
+    .maybeSingle()
+
+  if (!membership) throw new Error('Studente non trovato o non assegnato a te.')
+
+  const { error } = await supabase
+    .from('class_memberships')
+    .update({ class_id: classId })
+    .eq('id', membership.id)
+
+  if (error) throw new Error('Errore aggiornando la classe dello studente.')
+
+  revalidatePath('/teacher/classes')
+  revalidatePath(`/teacher/students/${studentId}`)
+  if (classId) revalidatePath(`/teacher/classes/${classId}`)
+}
+
+/**
+ * Elimina PERMANENTEMENTE l'account di uno studente e tutti i suoi dati
+ * (submissions, esercizi personalizzati, iscrizioni) — stessa logica
+ * distruttiva di admin/users/actions.ts:deleteStudentCompletely, ma
+ * invocabile direttamente dal docente proprietario dello studente.
+ *
+ * Usa il client admin (service role) perché non esiste una policy RLS di
+ * delete su submissions/class_memberships (vedi migrazione 0002): la
+ * verifica di ownership qui sotto (membership attiva docente↔studente) è
+ * quindi l'UNICA barriera che impedisce a un docente di eliminare
+ * l'account di uno studente che non è il suo — va mantenuta anche se in
+ * futuro si aggiungessero policy di delete più permissive.
+ */
+export async function deleteStudentAsTeacher(
+  studentId: string,
+  confirmName: string,
+  expectedName: string
+) {
+  const teacherId = await requireApprovedTeacherActionUserId()
+
+  if (confirmName.trim() !== expectedName.trim()) {
+    throw new Error('Il nome non corrisponde. Eliminazione annullata.')
+  }
+
+  const admin = createAdminClient()
+
+  const { data: membership } = await admin
+    .from('class_memberships')
+    .select('id')
+    .eq('teacher_id', teacherId)
+    .eq('student_id', studentId)
+    .is('left_at', null)
+    .maybeSingle()
+
+  if (!membership) throw new Error('Studente non trovato o non assegnato a te.')
+
+  const { error: exercisesError } = await admin
+    .from('personalized_exercises')
+    .delete()
+    .eq('student_id', studentId)
+  if (exercisesError) throw new Error('Errore eliminando gli esercizi personalizzati.')
+
+  const { error: submissionsError } = await admin
+    .from('submissions')
+    .delete()
+    .eq('student_id', studentId)
+  if (submissionsError) throw new Error('Errore eliminando le submissions.')
+
+  const { error: membershipsError } = await admin
+    .from('class_memberships')
+    .delete()
+    .eq('student_id', studentId)
+  if (membershipsError) throw new Error('Errore eliminando le iscrizioni.')
+
+  const { error: deleteUserError } = await admin.auth.admin.deleteUser(studentId)
+  if (deleteUserError) throw new Error("Errore eliminando l'account.")
+
+  revalidatePath('/teacher/classes')
+  revalidatePath('/teacher/dashboard')
+}
+
 /**
  * Elimina un esercizio personalizzato. Solo il docente che lo ha creato
  * può eliminarlo — la RLS (teacher_id = auth.uid()) lo garantisce a
