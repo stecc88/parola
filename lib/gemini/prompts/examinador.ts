@@ -18,6 +18,15 @@ import { descrizioneLivelloValutazione } from '../cefrLevels'
 
 const RESPONSE_SCHEMA = zodToGeminiSchema(valutazioneEsaminatoreSchema)
 
+/**
+ * Normalizza "e'" (e seguita da apostrofo, in qualsiasi variante tipografica),
+ * "è" ed "é" a un unico carattere segnaposto — usata per capire se due
+ * frammenti differiscono SOLO nella scelta tra queste tre forme.
+ */
+function normalizzaAccentoE(testo: string): string {
+  return testo.replace(/[eE]['’‘`]/g, 'ẽ').replace(/[èÈéÉ]/g, 'ẽ')
+}
+
 function sanitizeUserText(text: string, maxChars = 3000): string {
   return text
     .slice(0, maxChars)
@@ -119,6 +128,26 @@ Peso relativo per livello — leggi con attenzione, cambia in modo netto:
   scontato: la valutazione si concentra sulla precisione e
   sull'accuratezza, non solo sul farsi capire.
 
+ECCEZIONE OBBLIGATORIA SULL'ACCENTO DELLA "E" — leggi con attenzione,
+è una regola FERREA, non una preferenza. Quando la forma corretta di una
+parola richiede una "e" accentata (es. "è", "né", "cioè", "perché",
+"caffè", "affinché"), le seguenti tre grafie di quella "e" sono SEMPRE
+equivalenti e corrette, qualunque lo studente abbia usato: "e'" (e
+seguita da apostrofo), "è" (accento grave), "é" (accento acuto). NON
+includere MAI in "errori" una voce che corregge una di queste forme in
+un'altra — nemmeno se non corrisponde all'accento "canonico" di quella
+parola specifica (es. "perché" si scrive canonicamente con l'accento
+grave, ma se lo studente scrive "perche'" NON è un errore, e nemmeno se
+scrivesse "perché" con l'accento acuto). Esempio concreto da NON fare:
+NON generare mai una voce con testo_originale "perche'" e correzione
+"perché" — è esattamente il tipo di correzione VIETATA da questa regola.
+Questa eccezione riguarda SOLO la scelta tra queste tre forme (e', è,
+é): se la "e" è scritta senza NESSUN accento e senza apostrofo (es.
+"perche" o "caffe", una semplice e piatta), quello resta un errore
+normale da segnalare. Tutti gli altri errori di accento su altre vocali
+(ciò/cio', però/pero', più/piu') restano errori normali da segnalare
+come sempre.
+
 IMPORTANTE — "errori" deve contenere SOLO sbagli reali: se un frammento
 è scritto correttamente (anche se usa una struttura avanzata o
 interessante, es. congiuntivo, pronome relativo, ecc.), quello NON è un
@@ -177,9 +206,19 @@ export async function evaluateScritturaLibera(
   // testo_originale === correzione e una spiegazione che dice che va bene
   // così). Mostrarli come "errore" allo studente è fuorviante — li togliamo
   // qui invece di fidarci solo del prompt.
-  const errori = parsed.data.errori.filter(
-    (e) => e.testo_originale.trim() !== e.correzione.trim()
-  )
+  //
+  // Stessa cosa per l'eccezione "e'/è/é": testato con chiamate reali,
+  // Gemini a volte ignora l'istruzione esplicita nel prompt e segnala
+  // comunque una di queste tre forme come errore (es. "perche'" → "perché").
+  // Il prompt da solo non è abbastanza affidabile per una regola che
+  // l'utente vuole rispettata SEMPRE — qui è la barriera deterministica.
+  const errori = parsed.data.errori.filter((e) => {
+    const originale = e.testo_originale.trim()
+    const correzione = e.correzione.trim()
+    if (originale === correzione) return false
+    if (normalizzaAccentoE(originale) === normalizzaAccentoE(correzione)) return false
+    return true
+  })
 
   return { ...parsed.data, errori }
 }
